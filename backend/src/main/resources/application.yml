@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: Livraria Tunoda
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
