@@ -27,3 +27,8 @@ logging:
     org.hibernate.SQL: ERROR
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
+
+management:
+  endpoint:
+    health:
+      show-details: never  # em prod, apenas status UP/DOWN

@@ -24,9 +24,9 @@ public class StartupLogger {
         String profiles = activeProfiles.length > 0 ? String.join(", ", activeProfiles) : "default";
 
         log.info("========================================");
-        log.info("Aplicação iniciada com sucesso!");
-        log.info("Perfil(s) ativo(s): {}", profiles);
-        log.info("Porta: {}", environment.getProperty("server.port", "8080"));
+        log.info("Application started successfully!");
+        log.info("Active profile(s): {}", profiles);
+        log.info("Port: {}", environment.getProperty("server.port", "8080"));
         log.info("========================================");
     }
 }
