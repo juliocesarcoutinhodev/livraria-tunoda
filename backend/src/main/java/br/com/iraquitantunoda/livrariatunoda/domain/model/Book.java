@@ -22,6 +22,7 @@ public class Book {
     private final BookId id;
     private final String title;
     private final String description;
+    private final String photoUrl;
     private final ISBN isbn;
     private final Money price;
     private final Weight weight;
@@ -34,10 +35,11 @@ public class Book {
         return java.util.Collections.unmodifiableSet(authorIds);
     }
 
-    private Book(BookId id, String title, String description, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds, Status status) {
+    private Book(BookId id, String title, String description, String photoUrl, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds, Status status) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.photoUrl = photoUrl;
         this.isbn = isbn;
         this.price = price;
         this.weight = weight;
@@ -45,12 +47,13 @@ public class Book {
         this.status = status;
     }
 
-    public static Book create(String title, String description, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds) {
+    public static Book create(String title, String description, String photoUrl, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds) {
         validate(title, description, price, weight, authorIds);
         return new Book(
             BookId.generate(),
             title,
             description,
+            photoUrl,
             isbn,
             price,
             weight,
@@ -59,9 +62,9 @@ public class Book {
         );
     }
 
-    public static Book reconstitute(BookId id, String title, String description, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds, Status status) {
+    public static Book reconstitute(BookId id, String title, String description, String photoUrl, ISBN isbn, Money price, Weight weight, Set<AuthorId> authorIds, Status status) {
         validate(title, description, price, weight, authorIds);
-        return new Book(id, title, description, isbn, price, weight, authorIds, status);
+        return new Book(id, title, description, photoUrl, isbn, price, weight, authorIds, status);
     }
 
     private static void validate(String title, String description, Money price, Weight weight, Set<AuthorId> authorIds) {

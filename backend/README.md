@@ -9,6 +9,7 @@ API REST para gerenciamento de livraria, construída com Spring Boot seguindo pr
 - **MySQL 9**
 - **Flyway** (versionamento de banco)
 - **Lombok** (redução de boilerplate)
+- **MapStruct 1.6.3** (mapeamento Domain ↔ Entity)
 - **Bean Validation** (validação de dados)
 - **Spring Actuator** (monitoramento)
 - **Docker & Docker Compose**
@@ -31,6 +32,9 @@ br.com.iraquitantunoda.livrariatunoda/
 │   │       ├── Weight.java    # Peso do livro
 │   │       ├── WeightUnit.java # Unidade de peso (g/kg)
 │   │       └── Status.java    # Status (ACTIVE/INACTIVE)
+│   ├── repository/            # Interfaces de Repository (Ports)
+│   │   ├── AuthorRepository.java
+│   │   └── BookRepository.java
 │   └── exception/             # Exceções de negócio
 │       ├── BusinessException.java
 │       └── ResourceNotFoundException.java
@@ -41,10 +45,23 @@ br.com.iraquitantunoda.livrariatunoda/
 └── infrastructure/           # Adaptadores e frameworks
     ├── config/              # Configurações do Spring
     │   └── StartupLogger.java
-    └── exception/           # Tratamento global de erros
-        ├── GlobalExceptionHandler.java
-        ├── ErrorResponse.java
-        └── ValidationError.java
+    ├── exception/           # Tratamento global de erros
+    │   ├── GlobalExceptionHandler.java
+    │   ├── ErrorResponse.java
+    │   └── ValidationError.java
+    └── persistence/         # Camada de Persistência
+        ├── entity/         # Entidades JPA
+        │   ├── AuthorEntity.java
+        │   └── BookEntity.java
+        ├── repository/     # Spring Data Repositories
+        │   ├── AuthorJpaRepository.java
+        │   └── BookJpaRepository.java
+        ├── mapper/         # MapStruct Mappers
+        │   ├── AuthorMapper.java
+        │   └── BookMapper.java
+        └── adapter/        # Adapters (implementam interfaces do domínio)
+            ├── AuthorRepositoryAdapter.java
+            └── BookRepositoryAdapter.java
 ```
 
 ### Princípios Aplicados
@@ -77,6 +94,7 @@ Aggregate Root principal que representa um livro no sistema.
 - `id: BookId` - Identificador único do livro
 - `title: String` - Título (obrigatório, máx. 300 caracteres)
 - `description: String` - Descrição (obrigatória)
+- `photoUrl: String` - URL da foto do livro (opcional)
 - `isbn: ISBN` - Código ISBN (opcional, validado para ISBN-10 ou ISBN-13)
 - `price: Money` - Preço (obrigatório, não negativo)
 - `weight: Weight` - Peso (obrigatório, maior que zero)
@@ -282,6 +300,44 @@ src/main/resources/db/migration/
 
 **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
 
+### Estrutura de Tabelas
+
+A aplicação possui as seguintes tabelas:
+
+**tb_authors**
+```sql
+id VARCHAR(36) PRIMARY KEY
+name VARCHAR(200) NOT NULL
+biography TEXT NOT NULL
+photo_url VARCHAR(500)
+status VARCHAR(20) NOT NULL
+created_at TIMESTAMP
+updated_at TIMESTAMP
+```
+
+**tb_books**
+```sql
+id VARCHAR(36) PRIMARY KEY
+title VARCHAR(300) NOT NULL
+description TEXT NOT NULL
+photo_url VARCHAR(500)
+isbn VARCHAR(20) UNIQUE
+price_amount DECIMAL(10,2) NOT NULL
+price_currency VARCHAR(3) NOT NULL
+weight_value DECIMAL(10,3) NOT NULL
+weight_unit VARCHAR(20) NOT NULL
+status VARCHAR(20) NOT NULL
+created_at TIMESTAMP
+updated_at TIMESTAMP
+```
+
+**tb_book_authors** (relacionamento N:N)
+```sql
+book_id VARCHAR(36)
+author_id VARCHAR(36)
+PRIMARY KEY (book_id, author_id)
+```
+
 ### Conexão Manual
 
 Para conectar diretamente ao MySQL:
@@ -425,6 +481,9 @@ backend/
 │   │   │       │   │       ├── Weight.java   # Peso físico
 │   │   │       │   │       ├── WeightUnit.java # Unidade de peso
 │   │   │       │   │       └── Status.java   # Status ACTIVE/INACTIVE
+│   │   │       │   ├── repository/          # Interfaces de Repository
+│   │   │       │   │   ├── AuthorRepository.java
+│   │   │       │   │   └── BookRepository.java
 │   │   │       │   └── exception/
 │   │   │       │       ├── BusinessException.java
 │   │   │       │       └── ResourceNotFoundException.java
@@ -441,10 +500,19 @@ backend/
 │   │   │           │   ├── GlobalExceptionHandler.java
 │   │   │           │   ├── ErrorResponse.java
 │   │   │           │   └── ValidationError.java
-│   │   │           ├── persistence/          # (a implementar)
+│   │   │           ├── persistence/          # ✅ Camada de Persistência
 │   │   │           │   ├── entity/          # Entidades JPA
-│   │   │           │   ├── repository/      # Repositories JPA
-│   │   │           │   └── adapter/         # Adapters para domain
+│   │   │           │   │   ├── AuthorEntity.java
+│   │   │           │   │   └── BookEntity.java
+│   │   │           │   ├── repository/      # Spring Data Repositories
+│   │   │           │   │   ├── AuthorJpaRepository.java
+│   │   │           │   │   └── BookJpaRepository.java
+│   │   │           │   ├── mapper/          # MapStruct Mappers
+│   │   │           │   │   ├── AuthorMapper.java
+│   │   │           │   │   └── BookMapper.java
+│   │   │           │   └── adapter/         # Adapters (implementam domínio)
+│   │   │           │       ├── AuthorRepositoryAdapter.java
+│   │   │           │       └── BookRepositoryAdapter.java
 │   │   │           └── web/                  # (a implementar)
 │   │   │               ├── controller/      # REST Controllers
 │   │   │               └── mapper/          # Mappers DTO <-> Domain
@@ -505,6 +573,12 @@ backend/
 - **Entities:** `@Getter` + `@ToString` + `@EqualsAndHashCode`
 - **Coleções:** Usar `@Getter(AccessLevel.NONE)` e método manual para retornar coleção imutável
 
+### Enums e Pragmatismo DDD
+- **Enums simples:** Reutilizados do domínio na infraestrutura (ex: `Status`, `WeightUnit`)
+- **Abordagem pragmática:** JPA mapeia enums do domínio diretamente com `@Enumerated(EnumType.STRING)`
+- **Sem duplicação:** Evitamos criar `StatusEntity` e `Status` para enums sem comportamento
+- **Quando duplicar:** Apenas se domínio e persistência tiverem representações muito diferentes
+
 ## 🔐 Segurança
 
 - ✅ Senhas via variáveis de ambiente
@@ -523,8 +597,8 @@ backend/
 - ✅ Entidade `Book` criada como Aggregate Root
 - ✅ Entidade `Author` criada como Aggregate Root
 - ✅ `Book` possui referência a um ou mais `AuthorId`
-- ✅ Atributos completos de `Book` (título, descrição, ISBN, preço, peso, status)
-- ✅ Atributos completos de `Author` (nome, biografia, foto, status)
+- ✅ Atributos completos de `Book` (título, descrição, **photoUrl**, ISBN, preço, peso, status)
+- ✅ Atributos completos de `Author` (nome, biografia, photoUrl, status)
 - ✅ Value Objects: `ISBN`, `Money`, `Weight`, `WeightUnit`, `Status`
 - ✅ Identidades tipadas: `BookId`, `AuthorId`
 - ✅ Regras de consistência aplicadas nos construtores
@@ -534,17 +608,84 @@ backend/
 - ✅ Regras de negócio centralizadas no domínio
 - ✅ Lombok para redução de boilerplate
 
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 💾 Story #2: Persistência de Livros e Autores
+
+**Objetivo:** Criar infraestrutura de persistência sem vazar JPA para o domínio e sem acoplamento indevido entre agregados.
+
+**Implementado:**
+
+#### Estrutura de Banco
+- ✅ Migration `V1__create-table-books.sql` criada
+- ✅ Tabela `tb_authors` (id, name, biography, photo_url, status, timestamps)
+- ✅ Tabela `tb_books` (id, title, description, photo_url, isbn, price_amount, price_currency, weight_value, weight_unit, status, timestamps)
+- ✅ Tabela `tb_book_authors` (relacionamento N:N)
+- ✅ Chaves primárias e integridade referencial configuradas
+- ✅ Índices para performance (status, relacionamentos)
+- ✅ Constraint UNIQUE em ISBN
+
+#### Persistência Implementada
+- ✅ `Book` persiste com sucesso
+- ✅ `Book` pode ter um ou mais autores
+- ✅ `Book` pode existir sem ISBN (campo opcional)
+- ✅ `Book` agora inclui **photoUrl** para imagem da capa
+- ✅ `Author` persiste com sucesso
+- ✅ `Author` pode existir sem livros associados
+- ✅ Filtros por status (ACTIVE/INACTIVE)
+
+#### Repositórios
+- ✅ Interfaces no domínio:
+  - `AuthorRepository`
+  - `BookRepository`
+- ✅ Implementação JPA na infraestrutura:
+  - `AuthorJpaRepository` (Spring Data)
+  - `BookJpaRepository` (Spring Data)
+- ✅ Adapters implementando interfaces do domínio:
+  - `AuthorRepositoryAdapter`
+  - `BookRepositoryAdapter`
+
+#### Conversão Domain ↔ JPA
+- ✅ **MapStruct** configurado para mapeamento automático
+- ✅ `AuthorMapper` (interface com conversões)
+- ✅ `BookMapper` (interface com conversões)
+- ✅ Conversão explícita de Value Objects
+- ✅ Conversão de coleções (Set<AuthorId> ↔ Set<String>)
+
+#### Operações Suportadas
+- ✅ `save(entity)` - Salvar/atualizar
+- ✅ `findById(id)` - Buscar por ID
+- ✅ `findAllActive()` - Listar apenas ativos
+- ✅ `existsById(id)` - Verificar existência
+
+#### Boas Práticas Aplicadas
+- ✅ Sem anotações JPA no domínio
+- ✅ JPA Entities isoladas em `infrastructure.persistence.entity`
+- ✅ Sem `CascadeType.ALL` entre Book e Author
+- ✅ Relacionamento gerenciado explicitamente via IDs
+- ✅ `FetchType.LAZY` para coleções
+- ✅ Sem `@ManyToMany` direto - usa `@ElementCollection` para IDs
+- ✅ **Enums do domínio reutilizados** - Sem duplicação (abordagem pragmática)
+- ✅ Timestamps automáticos (`@PrePersist`, `@PreUpdate`)
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 **Próximos Passos:**
-- 🔜 Repositories (interfaces no domínio)
-- 🔜 Adapters JPA (implementação na infra)
-- 🔜 Migrations Flyway (tabelas físicas)
 - 🔜 DTOs e Use Cases (camada application)
+- 🔜 REST Controllers (camada web)
+- 🔜 Validações de entrada da API
+- 🔜 Documentação OpenAPI/Swagger
 - 🔜 REST Controllers (camada web)
 
 ## 📚 Referências
 
 - [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Flyway Documentation](https://flywaydb.org/documentation/)
+- [MapStruct Documentation](https://mapstruct.org/)
 - [Clean Architecture - Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Domain-Driven Design - Eric Evans](https://www.domainlanguage.com/ddd/)
 - [Implementing Domain-Driven Design - Vaughn Vernon](https://vaughnvernon.com/)
@@ -552,5 +693,4 @@ backend/
 ---
 
 **Versão:** 0.0.1-SNAPSHOT  
-**Última atualização:** Janeiro 2026
-
+**Última atualização:** 07 Janeiro 2026
