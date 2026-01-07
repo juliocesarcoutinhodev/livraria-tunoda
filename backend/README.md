@@ -15,27 +15,56 @@ API REST para gerenciamento de livraria, construída com Spring Boot seguindo pr
 
 ## 🏗️ Arquitetura
 
-O projeto segue os princípios de **Clean Architecture**, organizado em camadas bem definidas:
+O projeto segue os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizado em camadas bem definidas:
 
 ```
 br.com.iraquitantunoda.livrariatunoda/
-├── domain/              # Entidades e regras de negócio (sem dependência de frameworks)
-│   ├── model/          # Entidades do domínio
-│   └── exception/      # Exceções de negócio
+├── domain/                      # Camada de Domínio (DDD)
+│   ├── model/                  # Aggregate Roots e Entidades
+│   │   ├── Author.java        # Aggregate Root - Autor
+│   │   ├── Book.java          # Aggregate Root - Livro
+│   │   ├── AuthorId.java      # Identidade tipada de Autor
+│   │   ├── BookId.java        # Identidade tipada de Livro
+│   │   └── vo/                # Value Objects
+│   │       ├── ISBN.java      # Código ISBN do livro
+│   │       ├── Money.java     # Valor monetário (preço)
+│   │       ├── Weight.java    # Peso do livro
+│   │       ├── WeightUnit.java # Unidade de peso (g/kg)
+│   │       └── Status.java    # Status (ACTIVE/INACTIVE)
+│   └── exception/             # Exceções de negócio
+│       ├── BusinessException.java
+│       └── ResourceNotFoundException.java
 │
-├── application/        # Casos de uso e lógica de aplicação
+├── application/               # Casos de uso e lógica de aplicação
+│   └── (a ser implementado)
 │
-└── infrastructure/     # Adaptadores e frameworks
-    ├── config/        # Configurações do Spring
-    └── exception/     # Tratamento global de erros
+└── infrastructure/           # Adaptadores e frameworks
+    ├── config/              # Configurações do Spring
+    │   └── StartupLogger.java
+    └── exception/           # Tratamento global de erros
+        ├── GlobalExceptionHandler.java
+        ├── ErrorResponse.java
+        └── ValidationError.java
 ```
 
 ### Princípios Aplicados
 
-- ✅ **Separação de responsabilidades**
-- ✅ **Inversão de dependências**
-- ✅ **Domínio sem dependência de frameworks**
-- ✅ **Controllers fora do domínio**
+- ✅ **Domain-Driven Design (DDD)**
+  - Aggregate Roots (`Book`, `Author`)
+  - Value Objects (`ISBN`, `Money`, `Weight`)
+  - Identidades tipadas (`BookId`, `AuthorId`)
+  - Associação via IDs, não entidades diretas
+- ✅ **Clean Architecture**
+  - Separação de responsabilidades
+  - Inversão de dependências
+  - Domínio sem dependência de frameworks (sem JPA no domain)
+- ✅ **Imutabilidade**
+  - Value Objects completamente imutáveis
+  - Entidades com campos `final` (apenas `status` mutável)
+- ✅ **Encapsulamento**
+  - Factory methods (`create`, `reconstitute`)
+  - Validações centralizadas no domínio
+  - Coleções expostas como imutáveis
 
 ## 🚀 Requisitos
 
