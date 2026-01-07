@@ -1,0 +1,299 @@
+{
+	"info": {
+		"_postman_id": "livraria-tunoda-api",
+		"name": "Livraria Tunoda API",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os endpoints implementados (8 stories)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "livraria-tunoda"
+	},
+	"item": [
+		{
+			"name": "Public - Catálogo",
+			"item": [
+				{
+					"name": "Listar Livros (Paginado)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books?page=0&size=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Número da página (começa em 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Quantidade de itens por página"
+								}
+							]
+						},
+						"description": "Lista livros ativos do catálogo com paginação. Ordenado por data de criação (mais recentes primeiro)."
+					},
+					"response": []
+				},
+				{
+					"name": "Detalhes do Livro",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books/{{book_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books", "{{book_id}}"]
+						},
+						"description": "Retorna detalhes completos de um livro específico (apenas livros ativos). Inclui informações dos autores com biografia completa."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints públicos para consulta do catálogo de livros"
+		},
+		{
+			"name": "Public - Métricas",
+			"item": [
+				{
+					"name": "Registrar Visualização",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/view",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books", "{{book_id}}", "metrics", "view"]
+						},
+						"description": "Registra evento de visualização de um livro. Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
+					},
+					"response": []
+				},
+				{
+					"name": "Registrar Clique",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/click",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books", "{{book_id}}", "metrics", "click"]
+						},
+						"description": "Registra evento de clique (ex: botão comprar). Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints públicos para registro de métricas de interação"
+		},
+		{
+			"name": "Admin - Autores",
+			"item": [
+				{
+					"name": "Criar Autor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Robert C. Martin\",\n  \"biography\": \"Robert Cecil Martin, conhecido como Uncle Bob, é um engenheiro de software americano e autor. É co-autor do Manifesto Ágil e autor de diversos livros sobre desenvolvimento de software.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/authors",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "authors"]
+						},
+						"description": "Cria um novo autor no sistema. Status ACTIVE por padrão. Campos obrigatórios: name, biography. Campo opcional: photoUrl."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Autor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Robert C. Martin (Uncle Bob)\",\n  \"biography\": \"Robert Cecil Martin é um engenheiro de software americano, autor e palestrante. É co-autor do Manifesto Ágil e autor de diversos livros incluindo Clean Code, Clean Architecture e The Clean Coder.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob-updated.jpg\",\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/authors/{{author_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "authors", "{{author_id}}"]
+						},
+						"description": "Atualiza todos os dados de um autor existente (substituição completa). Requer todos os campos: name, biography, photoUrl, status."
+					},
+					"response": []
+				},
+				{
+					"name": "Ativar/Desativar Autor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"INACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/authors/{{author_id}}/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "authors", "{{author_id}}", "status"]
+						},
+						"description": "Altera apenas o status do autor. Regra: não pode desativar autor que possui livros ativos. Valores aceitos: ACTIVE, INACTIVE."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints administrativos para gerenciamento de autores"
+		},
+		{
+			"name": "Admin - Livros",
+			"item": [
+				{
+					"name": "Criar Livro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way.\",\n  \"photoUrl\": \"https://example.com/books/clean-code.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 49.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.680,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/books",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "books"]
+						},
+						"description": "Cria um novo livro no sistema. Status ACTIVE por padrão. Valida que todos os autores existem e estão ativos. ISBN é opcional mas validado se fornecido."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Livro",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship - 2nd Edition\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This updated edition includes new insights and practical examples.\",\n  \"photoUrl\": \"https://example.com/books/clean-code-v2.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 59.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.700,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"],\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/books/{{book_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "books", "{{book_id}}"]
+						},
+						"description": "Atualiza todos os dados de um livro existente (substituição completa). Valida que todos os autores existem e estão ativos."
+					},
+					"response": []
+				},
+				{
+					"name": "Ativar/Desativar Livro",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/books/{{book_id}}/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "books", "{{book_id}}", "status"]
+						},
+						"description": "Altera apenas o status do livro. Regra: não pode ativar livro sem pelo menos um autor ativo. Valores aceitos: ACTIVE, INACTIVE."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints administrativos para gerenciamento de livros"
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/actuator/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "actuator", "health"]
+						},
+						"description": "Verifica o status da aplicação e suas dependências (banco de dados, etc.)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de monitoramento da aplicação"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "author_id",
+			"value": "cole-aqui-o-id-do-autor-criado",
+			"type": "string"
+		},
+		{
+			"key": "book_id",
+			"value": "cole-aqui-o-id-do-livro-criado",
+			"type": "string"
+		}
+	]
+}
+

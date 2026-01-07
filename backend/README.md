@@ -105,10 +105,11 @@ br.com.iraquitantunoda.livrariatunoda/
 ### Princípios Aplicados
 
 - ✅ **Domain-Driven Design (DDD)**
-  - Aggregate Roots (`Book`, `Author`)
+  - Aggregate Roots (`Book`, `Author`, `BookMetric`)
   - Value Objects (`ISBN`, `Money`, `Weight`)
-  - Identidades tipadas (`BookId`, `AuthorId`)
+  - Identidades tipadas (`BookId`, `AuthorId`, `BookMetricId`)
   - Associação via IDs, não entidades diretas
+  - **Bounded Contexts** - Contextos isolados
 - ✅ **Clean Architecture**
   - Separação de responsabilidades
   - Inversão de dependências
@@ -120,6 +121,27 @@ br.com.iraquitantunoda.livrariatunoda/
   - Factory methods (`create`, `reconstitute`)
   - Validações centralizadas no domínio
   - Coleções expostas como imutáveis
+
+### Bounded Contexts (Contextos Delimitados)
+
+O projeto está organizado em **contextos delimitados** independentes:
+
+#### **Contexto 1: Catálogo** (`domain.model`)
+- **Responsabilidade:** Gerenciar livros e autores
+- **Agregados:** `Book`, `Author`
+- **Propósito:** CRUD de produtos do catálogo
+
+#### **Contexto 2: Analytics** (`domain.metric`)
+- **Responsabilidade:** Rastrear eventos de interação
+- **Agregados:** `BookMetric`
+- **Propósito:** Observabilidade e análise de comportamento
+
+**Vantagens dessa separação:**
+- ✅ Baixo acoplamento entre contextos
+- ✅ Evolução independente
+- ✅ Facilita migração para microservices
+- ✅ Testes isolados por contexto
+- ✅ Equipes podem trabalhar em paralelo
 
 ## 📦 Modelo de Domínio
 
@@ -238,7 +260,34 @@ Author (buscar separadamente)          |
 - Consistência eventual
 - Facilita distribuição e escalabilidade
 
+---
 
+## 📊 Domínio de Métricas (Analytics)
+
+### Aggregate Root: BookMetric
+
+Representa um evento de interação do usuário com um livro.
+
+**Atributos:**
+- `id: BookMetricId` - Identificador único da métrica
+- `bookId: BookId` - Referência ao livro
+- `eventType: EventType` - Tipo de evento (VIEW, CLICK)
+- `occurredAt: LocalDateTime` - Timestamp do evento
+
+**Características:**
+- Domínio isolado do catálogo (`domain.metric`)
+- Apenas referencia `BookId` (não a entidade `Book`)
+- Persistência simples, sem agregações
+- Preparado para processamento assíncrono futuro
+
+**EventType:**
+- `VIEW` - Visualização da página de detalhes
+- `CLICK` - Clique em ação de interesse (comprar, adicionar ao carrinho)
+
+**Factory Method:**
+- `BookMetric.record(bookId, eventType)` - Registra novo evento
+
+---
 
 - **Java 25** ou superior
 - **Maven 3.8+**
@@ -374,6 +423,14 @@ updated_at TIMESTAMP
 book_id VARCHAR(36)
 author_id VARCHAR(36)
 PRIMARY KEY (book_id, author_id)
+```
+
+**tb_book_metrics** (métricas de interação)
+```sql
+id VARCHAR(36) PRIMARY KEY
+book_id VARCHAR(36) NOT NULL
+event_type VARCHAR(20) NOT NULL
+occurred_at TIMESTAMP NOT NULL
 ```
 
 ### Conexão Manual
@@ -675,49 +732,204 @@ backend/
 - ✅ Filtros por status (ACTIVE/INACTIVE)
 
 #### Repositórios
-- ✅ Interfaces no domínio:
-  - `AuthorRepository`
-  - `BookRepository`
-- ✅ Implementação JPA na infraestrutura:
-  - `AuthorJpaRepository` (Spring Data)
-  - `BookJpaRepository` (Spring Data)
-- ✅ Adapters implementando interfaces do domínio:
-  - `AuthorRepositoryAdapter`
-  - `BookRepositoryAdapter`
+- ✅ Interfaces no domínio
+- ✅ Implementação JPA na infraestrutura
+- ✅ Adapters implementando interfaces do domínio
 
 #### Conversão Domain ↔ JPA
 - ✅ **MapStruct** configurado para mapeamento automático
-- ✅ `AuthorMapper` (interface com conversões)
-- ✅ `BookMapper` (interface com conversões)
 - ✅ Conversão explícita de Value Objects
 - ✅ Conversão de coleções (Set<AuthorId> ↔ Set<String>)
-
-#### Operações Suportadas
-- ✅ `save(entity)` - Salvar/atualizar
-- ✅ `findById(id)` - Buscar por ID
-- ✅ `findAllActive()` - Listar apenas ativos
-- ✅ `existsById(id)` - Verificar existência
-
-#### Boas Práticas Aplicadas
-- ✅ Sem anotações JPA no domínio
-- ✅ JPA Entities isoladas em `infrastructure.persistence.entity`
-- ✅ Sem `CascadeType.ALL` entre Book e Author
-- ✅ Relacionamento gerenciado explicitamente via IDs
-- ✅ `FetchType.LAZY` para coleções
-- ✅ Sem `@ManyToMany` direto - usa `@ElementCollection` para IDs
-- ✅ **Enums do domínio reutilizados** - Sem duplicação (abordagem pragmática)
-- ✅ Timestamps automáticos (`@PrePersist`, `@PreUpdate`)
 
 **Status:** ✅ **COMPLETA**
 
 ---
 
+### 🔍 Story #3: Listagem Pública de Livros
+
+**Objetivo:** Expor listagem pública de livros ativos com paginação.
+
+**Implementado:**
+- ✅ Endpoint: `GET /api/public/books?page=0&size=10`
+- ✅ Retorna apenas livros ACTIVE
+- ✅ Ordenação por data de criação (mais recentes primeiro)
+- ✅ Paginação funcional (page, size, totalElements)
+- ✅ DTO: `BookCatalogResponse` (id, title, description, photoUrl, price, authors)
+- ✅ Use Case: `ListActiveBooksUseCase`
+- ✅ Consulta otimizada (sem N+1)
+- ✅ MapStruct para mapeamento Domain → DTO
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 📄 Story #4: Detalhes de Livro
+
+**Objetivo:** Endpoint público para visualizar detalhes completos de um livro.
+
+**Implementado:**
+- ✅ Endpoint: `GET /api/public/books/{bookId}`
+- ✅ Retorna apenas livros ACTIVE
+- ✅ Retorna 404 se livro não existir ou estiver inativo
+- ✅ DTO: `BookDetailResponse` (id, title, description, photoUrl, isbn, price, authors completos)
+- ✅ Use Case: `GetBookDetailUseCase`
+- ✅ Autores com biografia e foto completos
+- ✅ MapStruct para mapeamento Domain → DTO
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### ➕ Story #5: Cadastro Administrativo
+
+**Objetivo:** Permitir cadastro de livros e autores via endpoints administrativos.
+
+**Implementado:**
+
+#### Cadastro de Autor
+- ✅ Endpoint: `POST /api/admin/authors`
+- ✅ DTO: `CreateAuthorRequest` (name, biography, photoUrl)
+- ✅ Use Case: `CreateAuthorUseCase`
+- ✅ Status ACTIVE por padrão
+- ✅ Validações: Bean Validation + Domínio
+
+#### Cadastro de Livro
+- ✅ Endpoint: `POST /api/admin/books`
+- ✅ DTO: `CreateBookRequest` (title, description, photoUrl, isbn, price, weight, authorIds)
+- ✅ Use Case: `CreateBookUseCase`
+- ✅ Valida autores existentes e ativos
+- ✅ Status ACTIVE por padrão
+- ✅ ISBN opcional mas validado se fornecido
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### ✏️ Story #6: Atualização Administrativa
+
+**Objetivo:** Permitir atualização de livros e autores mantendo integridade do domínio.
+
+**Implementado:**
+
+#### Atualização de Autor
+- ✅ Endpoint: `PUT /api/admin/authors/{authorId}`
+- ✅ DTO: `UpdateAuthorRequest` (name, biography, photoUrl, status)
+- ✅ Use Case: `UpdateAuthorUseCase`
+- ✅ Usa `reconstitute()` para manter imutabilidade
+
+#### Atualização de Livro
+- ✅ Endpoint: `PUT /api/admin/books/{bookId}`
+- ✅ DTO: `UpdateBookRequest` (title, description, photoUrl, isbn, price, weight, authorIds, status)
+- ✅ Use Case: `UpdateBookUseCase`
+- ✅ Valida autores existentes e ativos
+- ✅ Usa `reconstitute()` para manter imutabilidade
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🔄 Story #7: Ativação/Desativação
+
+**Objetivo:** Controlar visibilidade do catálogo sem perder dados (soft delete).
+
+**Implementado:**
+
+#### Gestão de Status de Autor
+- ✅ Endpoint: `PUT /api/admin/authors/{authorId}/status`
+- ✅ DTO: `ChangeStatusRequest` (status)
+- ✅ Use Case: `ChangeAuthorStatusUseCase`
+- ✅ Regra: Não pode desativar se tiver livros ativos
+- ✅ Usa métodos `activate()` / `deactivate()` do domínio
+
+#### Gestão de Status de Livro
+- ✅ Endpoint: `PUT /api/admin/books/{bookId}/status`
+- ✅ DTO: `ChangeStatusRequest` (status)
+- ✅ Use Case: `ChangeBookStatusUseCase`
+- ✅ Regra: Não pode ativar sem autores ativos
+- ✅ Usa métodos `activate()` / `deactivate()` do domínio
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 📊 Story #8: Métricas de Visualização
+
+**Objetivo:** Registrar eventos de interação dos usuários com os livros.
+
+**Implementado:**
+
+#### Domínio de Métricas
+- ✅ Pacote isolado: `domain.metric`
+- ✅ Aggregate Root: `BookMetric`
+- ✅ Enum: `EventType` (VIEW, CLICK)
+- ✅ Repository: `BookMetricRepository`
+- ✅ Identidade: `BookMetricId`
+
+#### Persistência
+- ✅ Migration: `V2__create-table-book-metrics.sql`
+- ✅ Tabela: `tb_book_metrics` (id, book_id, event_type, occurred_at)
+- ✅ Entity: `BookMetricEntity`
+- ✅ JPA Repository: `BookMetricJpaRepository`
+- ✅ Adapter: `BookMetricRepositoryAdapter`
+
+#### Endpoints Públicos
+- ✅ `POST /api/public/books/{bookId}/metrics/view` - Registrar visualização
+- ✅ `POST /api/public/books/{bookId}/metrics/click` - Registrar clique
+- ✅ Use Case: `RecordBookMetricUseCase`
+- ✅ Fail Silently: Erros não bloqueiam navegação
+- ✅ Registra apenas para livros ativos
+- ✅ Sempre retorna 204 No Content
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+## 📊 Endpoints da API
+
+### Públicos (Catálogo)
+
+```
+GET    /api/public/books                    → Listar livros (paginado)
+GET    /api/public/books/{id}               → Detalhes do livro
+POST   /api/public/books/{id}/metrics/view  → Registrar visualização
+POST   /api/public/books/{id}/metrics/click → Registrar clique
+```
+
+### Administrativos
+
+```
+POST   /api/admin/authors              → Criar autor
+PUT    /api/admin/authors/{id}         → Atualizar autor
+PUT    /api/admin/authors/{id}/status  → Ativar/Desativar autor
+
+POST   /api/admin/books                → Criar livro
+PUT    /api/admin/books/{id}           → Atualizar livro
+PUT    /api/admin/books/{id}/status    → Ativar/Desativar livro
+```
+
+### 📬 Postman Collection
+
+Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-API.postman_collection.json`.
+
+**Como usar:**
+1. Abra o Postman
+2. Clique em **Import**
+3. Selecione o arquivo `docs/Livraria-Tunoda-API.postman_collection.json`
+4. Configure as variáveis `author_id` e `book_id` após criar os recursos
+5. Teste todos os 11 endpoints disponíveis
+
+📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
+
+---
+
 **Próximos Passos:**
-- 🔜 DTOs e Use Cases (camada application)
-- 🔜 REST Controllers (camada web)
-- 🔜 Validações de entrada da API
+- 🔜 Autenticação e autorização (JWT)
+- 🔜 Dashboard de métricas
+- 🔜 Carrinho de compras
+- 🔜 Processamento de pedidos
+- 🔜 Integração com gateway de pagamento
+- 🔜 Cálculo de frete
 - 🔜 Documentação OpenAPI/Swagger
-- 🔜 REST Controllers (camada web)
 
 ## 📚 Referências
 
@@ -731,4 +943,5 @@ backend/
 ---
 
 **Versão:** 0.0.1-SNAPSHOT  
-**Última atualização:** 07 Janeiro 2026
+**Última atualização:** 07 Janeiro 2026  
+**Stories Implementadas:** 8/8 ✅
