@@ -15,29 +15,174 @@ API REST para gerenciamento de livraria, construída com Spring Boot seguindo pr
 
 ## 🏗️ Arquitetura
 
-O projeto segue os princípios de **Clean Architecture**, organizado em camadas bem definidas:
+O projeto segue os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizado em camadas bem definidas:
 
 ```
 br.com.iraquitantunoda.livrariatunoda/
-├── domain/              # Entidades e regras de negócio (sem dependência de frameworks)
-│   ├── model/          # Entidades do domínio
-│   └── exception/      # Exceções de negócio
+├── domain/                      # Camada de Domínio (DDD)
+│   ├── model/                  # Aggregate Roots e Entidades
+│   │   ├── Author.java        # Aggregate Root - Autor
+│   │   ├── Book.java          # Aggregate Root - Livro
+│   │   ├── AuthorId.java      # Identidade tipada de Autor
+│   │   ├── BookId.java        # Identidade tipada de Livro
+│   │   └── vo/                # Value Objects
+│   │       ├── ISBN.java      # Código ISBN do livro
+│   │       ├── Money.java     # Valor monetário (preço)
+│   │       ├── Weight.java    # Peso do livro
+│   │       ├── WeightUnit.java # Unidade de peso (g/kg)
+│   │       └── Status.java    # Status (ACTIVE/INACTIVE)
+│   └── exception/             # Exceções de negócio
+│       ├── BusinessException.java
+│       └── ResourceNotFoundException.java
 │
-├── application/        # Casos de uso e lógica de aplicação
+├── application/               # Casos de uso e lógica de aplicação
+│   └── (a ser implementado)
 │
-└── infrastructure/     # Adaptadores e frameworks
-    ├── config/        # Configurações do Spring
-    └── exception/     # Tratamento global de erros
+└── infrastructure/           # Adaptadores e frameworks
+    ├── config/              # Configurações do Spring
+    │   └── StartupLogger.java
+    └── exception/           # Tratamento global de erros
+        ├── GlobalExceptionHandler.java
+        ├── ErrorResponse.java
+        └── ValidationError.java
 ```
 
 ### Princípios Aplicados
 
-- ✅ **Separação de responsabilidades**
-- ✅ **Inversão de dependências**
-- ✅ **Domínio sem dependência de frameworks**
-- ✅ **Controllers fora do domínio**
+- ✅ **Domain-Driven Design (DDD)**
+  - Aggregate Roots (`Book`, `Author`)
+  - Value Objects (`ISBN`, `Money`, `Weight`)
+  - Identidades tipadas (`BookId`, `AuthorId`)
+  - Associação via IDs, não entidades diretas
+- ✅ **Clean Architecture**
+  - Separação de responsabilidades
+  - Inversão de dependências
+  - Domínio sem dependência de frameworks (sem JPA no domain)
+- ✅ **Imutabilidade**
+  - Value Objects completamente imutáveis
+  - Entidades com campos `final` (apenas `status` mutável)
+- ✅ **Encapsulamento**
+  - Factory methods (`create`, `reconstitute`)
+  - Validações centralizadas no domínio
+  - Coleções expostas como imutáveis
 
-## 🚀 Requisitos
+## 📦 Modelo de Domínio
+
+### Aggregate Roots
+
+#### 📖 Book (Livro)
+Aggregate Root principal que representa um livro no sistema.
+
+**Atributos:**
+- `id: BookId` - Identificador único do livro
+- `title: String` - Título (obrigatório, máx. 300 caracteres)
+- `description: String` - Descrição (obrigatória)
+- `isbn: ISBN` - Código ISBN (opcional, validado para ISBN-10 ou ISBN-13)
+- `price: Money` - Preço (obrigatório, não negativo)
+- `weight: Weight` - Peso (obrigatório, maior que zero)
+- `authorIds: Set<AuthorId>` - Referências aos autores (mínimo 1)
+- `status: Status` - Status (ACTIVE/INACTIVE)
+
+**Regras de Negócio:**
+- Deve ter pelo menos um autor
+- Título não pode ser vazio ou exceder 300 caracteres
+- Preço não pode ser negativo
+- Peso deve ser maior que zero
+- ISBN é opcional, mas se fornecido deve ser válido
+
+**Métodos:**
+- `Book.create(...)` - Cria novo livro (gera ID automaticamente)
+- `Book.reconstitute(...)` - Reconstitui livro existente (ex: do banco)
+- `activate()` / `deactivate()` - Gerencia ciclo de vida
+- `isActive()` - Verifica se está ativo
+
+#### ✍️ Author (Autor)
+Aggregate Root que representa um autor no sistema.
+
+**Atributos:**
+- `id: AuthorId` - Identificador único do autor
+- `name: String` - Nome (obrigatório, máx. 200 caracteres)
+- `biography: String` - Biografia (obrigatória)
+- `photoUrl: String` - URL da foto (opcional)
+- `status: Status` - Status (ACTIVE/INACTIVE)
+
+**Regras de Negócio:**
+- Nome não pode ser vazio ou exceder 200 caracteres
+- Biografia é obrigatória
+
+**Métodos:**
+- `Author.create(...)` - Cria novo autor (gera ID automaticamente)
+- `Author.reconstitute(...)` - Reconstitui autor existente
+- `activate()` / `deactivate()` - Gerencia ciclo de vida
+- `isActive()` - Verifica se está ativo
+
+### Value Objects
+
+#### 📘 ISBN
+Representa o código International Standard Book Number.
+
+**Características:**
+- Imutável
+- Validação para ISBN-10 (10 dígitos) ou ISBN-13 (13 dígitos)
+- Remove automaticamente espaços e hifens na validação
+- `ISBN.of(String)` - Factory method com validação
+
+#### 💰 Money
+Representa valores monetários no sistema.
+
+**Características:**
+- Imutável
+- Não permite valores negativos
+- Suporta múltiplas moedas
+- `Money.brl(BigDecimal)` - Atalho para Real brasileiro
+- `Money.of(BigDecimal, String)` - Factory method genérico
+
+#### ⚖️ Weight
+Representa o peso físico do livro.
+
+**Características:**
+- Imutável
+- Não permite valores zero ou negativos
+- Suporta gramas (GRAMS) e quilogramas (KILOGRAMS)
+- `Weight.grams(BigDecimal)` - Atalho para gramas
+- `Weight.kilograms(BigDecimal)` - Atalho para quilogramas
+
+#### 🏷️ Status
+Enum simples que representa o status de uma entidade.
+
+**Valores:**
+- `ACTIVE` - Entidade ativa no sistema
+- `INACTIVE` - Entidade inativa (soft delete)
+
+### Identidades Tipadas
+
+#### BookId e AuthorId
+Identificadores tipados que encapsulam UUIDs.
+
+**Características:**
+- Imutáveis
+- Type-safe (evita confusão entre IDs de diferentes entidades)
+- `{Type}Id.generate()` - Gera novo UUID
+- `{Type}Id.of(String)` - Cria a partir de string existente
+
+### Relacionamentos
+
+```
+Book *----> AuthorId (1..*)
+      |
+      |     (O relacionamento é via ID, não via entidade)
+      |
+      └─────────────────────────────────┐
+                                        |
+Author (buscar separadamente)          |
+```
+
+**Importante:** `Book` referencia `AuthorId`, não a entidade `Author` diretamente. Isso garante:
+- Desacoplamento entre aggregates
+- Consistência eventual
+- Facilita distribuição e escalabilidade
+
+
 
 - **Java 25** ou superior
 - **Maven 3.8+**
@@ -267,24 +412,62 @@ backend/
 │   │   ├── java/
 │   │   │   └── br/com/iraquitantunoda/livrariatunoda/
 │   │   │       ├── StartupApplication.java
-│   │   │       ├── domain/
-│   │   │       │   ├── model/          # Entidades JPA
-│   │   │       │   └── exception/      # Exceções de negócio
-│   │   │       ├── application/        # Casos de uso (futuramente)
-│   │   │       └── infrastructure/
-│   │   │           ├── config/         # Configurações
-│   │   │           └── exception/      # Exception handlers
+│   │   │       │
+│   │   │       ├── domain/                    # 📦 Camada de Domínio (DDD)
+│   │   │       │   ├── model/
+│   │   │       │   │   ├── Author.java       # Aggregate Root - Autor
+│   │   │       │   │   ├── Book.java         # Aggregate Root - Livro
+│   │   │       │   │   ├── AuthorId.java     # Identidade tipada
+│   │   │       │   │   ├── BookId.java       # Identidade tipada
+│   │   │       │   │   └── vo/               # Value Objects
+│   │   │       │   │       ├── ISBN.java     # Código ISBN
+│   │   │       │   │       ├── Money.java    # Valor monetário
+│   │   │       │   │       ├── Weight.java   # Peso físico
+│   │   │       │   │       ├── WeightUnit.java # Unidade de peso
+│   │   │       │   │       └── Status.java   # Status ACTIVE/INACTIVE
+│   │   │       │   └── exception/
+│   │   │       │       ├── BusinessException.java
+│   │   │       │       └── ResourceNotFoundException.java
+│   │   │       │
+│   │   │       ├── application/              # 🎯 Casos de Uso (a implementar)
+│   │   │       │   ├── dto/                  # DTOs (Request/Response)
+│   │   │       │   ├── service/              # Services/Use Cases
+│   │   │       │   └── port/                 # Interfaces (repositories)
+│   │   │       │
+│   │   │       └── infrastructure/           # 🔌 Adaptadores
+│   │   │           ├── config/               # Configurações Spring
+│   │   │           │   └── StartupLogger.java
+│   │   │           ├── exception/            # Exception handlers
+│   │   │           │   ├── GlobalExceptionHandler.java
+│   │   │           │   ├── ErrorResponse.java
+│   │   │           │   └── ValidationError.java
+│   │   │           ├── persistence/          # (a implementar)
+│   │   │           │   ├── entity/          # Entidades JPA
+│   │   │           │   ├── repository/      # Repositories JPA
+│   │   │           │   └── adapter/         # Adapters para domain
+│   │   │           └── web/                  # (a implementar)
+│   │   │               ├── controller/      # REST Controllers
+│   │   │               └── mapper/          # Mappers DTO <-> Domain
+│   │   │
 │   │   └── resources/
-│   │       ├── application.yml         # Configuração base
-│   │       ├── application-dev.yml     # Perfil desenvolvimento
-│   │       ├── application-prod.yml    # Perfil produção
-│   │       └── db/migration/           # Scripts Flyway
-│   └── test/                           # Testes unitários e integração
-├── docker-compose.yml                  # Orquestração do MySQL
-├── .env                                # Variáveis de ambiente (não versionado)
-├── .env.example                        # Template de variáveis
-├── pom.xml                             # Dependências Maven
-└── README.md                           # Este arquivo
+│   │       ├── application.yml              # Configuração base
+│   │       ├── application-dev.yml          # Perfil desenvolvimento
+│   │       ├── application-prod.yml         # Perfil produção
+│   │       └── db/migration/                # Scripts Flyway
+│   │           └── V1__create-table-books.sql
+│   │
+│   └── test/                                # 🧪 Testes
+│       └── java/.../livrariatunoda/
+│           ├── StartupApplicationTests.java
+│           ├── domain/                      # (testes do domínio)
+│           ├── application/                 # (testes de casos de uso)
+│           └── infrastructure/              # (testes de integração)
+│
+├── docker-compose.yml                       # Orquestração do MySQL
+├── .env                                     # Variáveis de ambiente (não versionado)
+├── .env.example                             # Template de variáveis
+├── pom.xml                                  # Dependências Maven
+└── README.md                                # Este arquivo
 ```
 
 ## 🤝 Contribuindo
@@ -298,11 +481,29 @@ backend/
 
 ## 📋 Convenções de Código
 
-- **Entidades:** Sempre em português e no pacote `domain.model`
-- **Tabelas:** Prefixo `tb_` (ex: `tb_livros`)
+### Domínio (Domain)
+- **Aggregate Roots:** PascalCase, nomes em inglês (ex: `Book`, `Author`)
+- **Value Objects:** PascalCase, nomes em inglês (ex: `ISBN`, `Money`, `Weight`)
+- **Identidades:** Sufixo `Id` (ex: `BookId`, `AuthorId`)
+- **Factory Methods:** 
+  - `create(...)` - Para novas entidades
+  - `reconstitute(...)` - Para reconstruir entidades existentes
+  - `of(...)` - Para Value Objects
+- **Validações:** No construtor privado ou método `validate()`
+- **Imutabilidade:** Campos `final` sempre que possível
+
+### Infraestrutura
+- **Entidades JPA:** Sufixo `Entity` (ex: `BookEntity`, `AuthorEntity`)
+- **Tabelas:** Prefixo `tb_` (ex: `tb_books`, `tb_authors`)
 - **Constraints:** Prefixo `uk_` (unique), `fk_` (foreign key)
-- **DTOs:** Sufixo `Request` ou `Response`
+- **DTOs:** Sufixo `Request` ou `Response` (ex: `CreateBookRequest`)
 - **Exceptions:** Sufixo `Exception`
+- **Mappers:** Sufixo `Mapper` (ex: `BookMapper`)
+
+### Lombok
+- **Value Objects:** `@Value` (imutabilidade total)
+- **Entities:** `@Getter` + `@ToString` + `@EqualsAndHashCode`
+- **Coleções:** Usar `@Getter(AccessLevel.NONE)` e método manual para retornar coleção imutável
 
 ## 🔐 Segurança
 
@@ -312,11 +513,41 @@ backend/
 - ✅ Health check sem detalhes em produção
 - ✅ SQL injection prevenido (JPA/Hibernate)
 
+## ✨ Stories Implementadas
+
+### 📖 Story #1: Modelo de Domínio - Livros e Autores
+
+**Objetivo:** Representar livros e autores no domínio para permitir vendas, métricas, frete e exibição no frontend.
+
+**Implementado:**
+- ✅ Entidade `Book` criada como Aggregate Root
+- ✅ Entidade `Author` criada como Aggregate Root
+- ✅ `Book` possui referência a um ou mais `AuthorId`
+- ✅ Atributos completos de `Book` (título, descrição, ISBN, preço, peso, status)
+- ✅ Atributos completos de `Author` (nome, biografia, foto, status)
+- ✅ Value Objects: `ISBN`, `Money`, `Weight`, `WeightUnit`, `Status`
+- ✅ Identidades tipadas: `BookId`, `AuthorId`
+- ✅ Regras de consistência aplicadas nos construtores
+- ✅ Entidades imutáveis (campos `final`)
+- ✅ Domínio puro sem anotações JPA
+- ✅ Associação via `AuthorId`, não entidade direta
+- ✅ Regras de negócio centralizadas no domínio
+- ✅ Lombok para redução de boilerplate
+
+**Próximos Passos:**
+- 🔜 Repositories (interfaces no domínio)
+- 🔜 Adapters JPA (implementação na infra)
+- 🔜 Migrations Flyway (tabelas físicas)
+- 🔜 DTOs e Use Cases (camada application)
+- 🔜 REST Controllers (camada web)
+
 ## 📚 Referências
 
 - [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Flyway Documentation](https://flywaydb.org/documentation/)
 - [Clean Architecture - Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Domain-Driven Design - Eric Evans](https://www.domainlanguage.com/ddd/)
+- [Implementing Domain-Driven Design - Vaughn Vernon](https://vaughnvernon.com/)
 
 ---
 
