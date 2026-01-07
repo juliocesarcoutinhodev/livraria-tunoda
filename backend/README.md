@@ -21,7 +21,7 @@ O projeto segue os princípios de **Clean Architecture** e **Domain-Driven Desig
 ```
 br.com.iraquitantunoda.livrariatunoda/
 ├── domain/                      # Camada de Domínio (DDD)
-│   ├── model/                  # Aggregate Roots e Entidades
+│   ├── model/                  # Aggregate Roots - Catálogo
 │   │   ├── Author.java        # Aggregate Root - Autor
 │   │   ├── Book.java          # Aggregate Root - Livro
 │   │   ├── AuthorId.java      # Identidade tipada de Autor
@@ -32,6 +32,11 @@ br.com.iraquitantunoda.livrariatunoda/
 │   │       ├── Weight.java    # Peso do livro
 │   │       ├── WeightUnit.java # Unidade de peso (g/kg)
 │   │       └── Status.java    # Status (ACTIVE/INACTIVE)
+│   ├── metric/                # Aggregate Roots - Métricas
+│   │   ├── BookMetric.java   # Aggregate Root - Métrica
+│   │   ├── BookMetricId.java # Identidade tipada
+│   │   ├── EventType.java    # Enum (VIEW/CLICK)
+│   │   └── BookMetricRepository.java
 │   ├── repository/            # Interfaces de Repository (Ports)
 │   │   ├── AuthorRepository.java
 │   │   └── BookRepository.java
@@ -40,7 +45,32 @@ br.com.iraquitantunoda.livrariatunoda/
 │       └── ResourceNotFoundException.java
 │
 ├── application/               # Casos de uso e lógica de aplicação
-│   └── (a ser implementado)
+│   ├── dto/                   # DTOs (Request/Response)
+│   │   ├── AuthorDetailDTO.java
+│   │   ├── AuthorResponse.java
+│   │   ├── AuthorSummaryDTO.java
+│   │   ├── BookCatalogResponse.java
+│   │   ├── BookDetailResponse.java
+│   │   ├── BookResponse.java
+│   │   ├── ChangeStatusRequest.java
+│   │   ├── CreateAuthorRequest.java
+│   │   ├── CreateBookRequest.java
+│   │   ├── PageResponse.java
+│   │   ├── UpdateAuthorRequest.java
+│   │   └── UpdateBookRequest.java
+│   ├── mapper/                # MapStruct Mappers (Domain → DTO)
+│   │   ├── AuthorDTOMapper.java
+│   │   └── BookDTOMapper.java
+│   └── usecase/               # Casos de Uso
+│       ├── ChangeAuthorStatusUseCase.java
+│       ├── ChangeBookStatusUseCase.java
+│       ├── CreateAuthorUseCase.java
+│       ├── CreateBookUseCase.java
+│       ├── GetBookDetailUseCase.java
+│       ├── ListActiveBooksUseCase.java
+│       ├── RecordBookMetricUseCase.java
+│       ├── UpdateAuthorUseCase.java
+│       └── UpdateBookUseCase.java
 │
 └── infrastructure/           # Adaptadores e frameworks
     ├── config/              # Configurações do Spring
@@ -49,19 +79,27 @@ br.com.iraquitantunoda.livrariatunoda/
     │   ├── GlobalExceptionHandler.java
     │   ├── ErrorResponse.java
     │   └── ValidationError.java
-    └── persistence/         # Camada de Persistência
-        ├── entity/         # Entidades JPA
-        │   ├── AuthorEntity.java
-        │   └── BookEntity.java
-        ├── repository/     # Spring Data Repositories
-        │   ├── AuthorJpaRepository.java
-        │   └── BookJpaRepository.java
-        ├── mapper/         # MapStruct Mappers
-        │   ├── AuthorMapper.java
-        │   └── BookMapper.java
-        └── adapter/        # Adapters (implementam interfaces do domínio)
-            ├── AuthorRepositoryAdapter.java
-            └── BookRepositoryAdapter.java
+    ├── persistence/         # Camada de Persistência
+    │   ├── entity/         # Entidades JPA
+    │   │   ├── AuthorEntity.java
+    │   │   ├── BookEntity.java
+    │   │   └── BookMetricEntity.java
+    │   ├── repository/     # Spring Data Repositories
+    │   │   ├── AuthorJpaRepository.java
+    │   │   ├── BookJpaRepository.java
+    │   │   └── BookMetricJpaRepository.java
+    │   ├── mapper/         # MapStruct Mappers (Domain ↔ Entity)
+    │   │   ├── AuthorMapper.java
+    │   │   └── BookMapper.java
+    │   └── adapter/        # Adapters (implementam interfaces do domínio)
+    │       ├── AuthorRepositoryAdapter.java
+    │       ├── BookRepositoryAdapter.java
+    │       └── BookMetricRepositoryAdapter.java
+    └── web/                # Controllers REST
+        └── controller/
+            ├── AdminAuthorController.java
+            ├── AdminBookController.java
+            └── PublicBookController.java
 ```
 
 ### Princípios Aplicados
