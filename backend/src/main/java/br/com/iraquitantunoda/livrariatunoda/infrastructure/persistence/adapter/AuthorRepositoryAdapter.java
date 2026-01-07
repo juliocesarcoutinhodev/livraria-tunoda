@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +32,18 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     public Optional<Author> findById(AuthorId id) {
         return jpaRepository.findById(id.getValue())
             .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Author> findByIds(Set<AuthorId> ids) {
+        var stringIds = ids.stream()
+            .map(AuthorId::getValue)
+            .collect(Collectors.toSet());
+
+        return jpaRepository.findAllById(stringIds)
+            .stream()
+            .map(mapper::toDomain)
+            .toList();
     }
 
     @Override
