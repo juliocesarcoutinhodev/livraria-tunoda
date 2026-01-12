@@ -3,11 +3,13 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.AddItemToCartRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.ValidateCartResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.AddItemToCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.RemoveCartItemUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateCartItemUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.ValidateCartUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ public class CartController {
     private final AddItemToCartUseCase addItemToCartUseCase;
     private final UpdateCartItemUseCase updateCartItemUseCase;
     private final RemoveCartItemUseCase removeCartItemUseCase;
+    private final ValidateCartUseCase validateCartUseCase;
 
     @PostMapping
     public ResponseEntity<CartResponse> createCart() {
@@ -34,6 +37,12 @@ public class CartController {
     @GetMapping("/{cartId}")
     public ResponseEntity<CartResponse> getCart(@PathVariable String cartId) {
         var response = getCartUseCase.execute(cartId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{cartId}/validate")
+    public ResponseEntity<ValidateCartResponse> validateCart(@PathVariable String cartId) {
+        var response = validateCartUseCase.execute(cartId);
         return ResponseEntity.ok(response);
     }
 

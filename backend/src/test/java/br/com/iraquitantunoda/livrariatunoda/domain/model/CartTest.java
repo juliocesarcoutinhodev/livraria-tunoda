@@ -277,5 +277,66 @@ class CartTest {
 
         assertFalse(cart.isValid());
     }
+
+    @Test
+    @DisplayName("Deve validar carrinho válido para checkout")
+    void shouldValidateValidCartForCheckout() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var activeBookIds = java.util.Set.of(bookId);
+
+        assertDoesNotThrow(() -> cart.validateForCheckout(activeBookIds));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar carrinho inativo")
+    void shouldThrowExceptionWhenValidatingInactiveCart() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+        cart.markAsExpired();
+
+        var activeBookIds = java.util.Set.of(bookId);
+
+        var exception = assertThrows(BusinessException.class, () -> {
+            cart.validateForCheckout(activeBookIds);
+        });
+
+        assertEquals("Carrinho não está ativo", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar carrinho vazio")
+    void shouldThrowExceptionWhenValidatingEmptyCart() {
+        var cart = Cart.create();
+        var activeBookIds = new java.util.HashSet<BookId>();
+
+        var exception = assertThrows(BusinessException.class, () -> {
+            cart.validateForCheckout(activeBookIds);
+        });
+
+        assertEquals("Carrinho não possui itens", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar carrinho com livro inativo")
+    void shouldThrowExceptionWhenValidatingCartWithInactiveBook() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var activeBookIds = new java.util.HashSet<BookId>();
+
+        var exception = assertThrows(BusinessException.class, () -> {
+            cart.validateForCheckout(activeBookIds);
+        });
+
+        assertEquals("Um ou mais livros do carrinho não estão mais disponíveis", exception.getMessage());
+    }
 }
 

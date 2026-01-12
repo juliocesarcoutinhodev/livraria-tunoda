@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 19 endpoints implementados (13 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 20 endpoints implementados (14 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -321,6 +321,20 @@
 							"path": ["api", "carts", "{{cart_id}}"]
 						},
 						"description": "Consulta o estado atual do carrinho com todos os itens, subtotal e total. Carrinho pode estar em qualquer status e pode ser visualizado mesmo vazio."
+					},
+					"response": []
+				},
+				{
+					"name": "Validar Carrinho para Checkout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/{{cart_id}}/validate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "{{cart_id}}", "validate"]
+						},
+						"description": "Valida se o carrinho está pronto para checkout. Verifica status ativo, presença de itens, total maior que zero e se todos os livros estão ativos. Retorna resultado da validação sem alterar o carrinho."
 					},
 					"response": []
 				},

@@ -126,6 +126,30 @@ public class Cart {
         return !items.isEmpty() && status == CartStatus.ACTIVE;
     }
 
+    public void validateForCheckout(java.util.Set<BookId> activeBookIds) {
+        if (status != CartStatus.ACTIVE) {
+            throw new BusinessException("Carrinho não está ativo");
+        }
+
+        if (items.isEmpty()) {
+            throw new BusinessException("Carrinho não possui itens");
+        }
+
+        var total = calculateTotal();
+        if (total.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Total do carrinho deve ser maior que zero");
+        }
+
+        var inactiveBooks = items.stream()
+            .map(CartItem::getBookId)
+            .filter(bookId -> !activeBookIds.contains(bookId))
+            .toList();
+
+        if (!inactiveBooks.isEmpty()) {
+            throw new BusinessException("Um ou mais livros do carrinho não estão mais disponíveis");
+        }
+    }
+
     public void markAsExpired() {
         if (status == CartStatus.CONVERTED) {
             throw new BusinessException("Carrinho já foi convertido em pedido");
