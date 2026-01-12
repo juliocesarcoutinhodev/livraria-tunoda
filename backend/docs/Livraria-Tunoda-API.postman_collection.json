@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 16 endpoints implementados (11 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 18 endpoints implementados (12 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -330,6 +330,43 @@
 							"path": ["api", "carts", "{{cart_id}}", "items"]
 						},
 						"description": "Adiciona um livro ao carrinho de compras. Se o livro já existir, a quantidade será somada. Preço do livro é congelado no momento da adição."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Quantidade do Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "{{cart_id}}", "items", "{{book_id}}"]
+						},
+						"description": "Atualiza a quantidade de um item específico no carrinho. Quantidade deve ser maior que zero. Carrinho deve estar ativo."
+					},
+					"response": []
+				},
+				{
+					"name": "Remover Item do Carrinho",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "{{cart_id}}", "items", "{{book_id}}"]
+						},
+						"description": "Remove completamente um item do carrinho. Carrinho deve estar ativo e o item deve existir."
 					},
 					"response": []
 				}

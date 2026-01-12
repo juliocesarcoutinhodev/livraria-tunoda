@@ -2,8 +2,11 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.AddItemToCartRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.AddItemToCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateCartUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.RemoveCartItemUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateCartItemUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,8 @@ public class CartController {
 
     private final CreateCartUseCase createCartUseCase;
     private final AddItemToCartUseCase addItemToCartUseCase;
+    private final UpdateCartItemUseCase updateCartItemUseCase;
+    private final RemoveCartItemUseCase removeCartItemUseCase;
 
     @PostMapping
     public ResponseEntity<CartResponse> createCart() {
@@ -30,6 +35,25 @@ public class CartController {
         @Valid @RequestBody AddItemToCartRequest request
     ) {
         var response = addItemToCartUseCase.execute(cartId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{cartId}/items/{bookId}")
+    public ResponseEntity<CartResponse> updateCartItem(
+        @PathVariable String cartId,
+        @PathVariable String bookId,
+        @Valid @RequestBody UpdateCartItemRequest request
+    ) {
+        var response = updateCartItemUseCase.execute(cartId, bookId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{cartId}/items/{bookId}")
+    public ResponseEntity<CartResponse> removeCartItem(
+        @PathVariable String cartId,
+        @PathVariable String bookId
+    ) {
+        var response = removeCartItemUseCase.execute(cartId, bookId);
         return ResponseEntity.ok(response);
     }
 }
