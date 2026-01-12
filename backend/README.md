@@ -379,6 +379,7 @@ Representa um pedido no sistema (compra confirmada).
 - `total: Money` - Total congelado (snapshot)
 - `createdAt: LocalDateTime` - Data de criação
 - `status: OrderStatus` - Status do pedido
+- `paymentReference: String` - Referência externa do pagamento (nullable)
 
 **OrderStatus:**
 - `PENDING` - Pedido criado, aguardando confirmação/pagamento
@@ -387,6 +388,7 @@ Representa um pedido no sistema (compra confirmada).
 - `SHIPPED` - Pedido enviado para entrega
 - `DELIVERED` - Pedido entregue ao cliente
 - `CANCELLED` - Pedido cancelado
+- `EXPIRED` - Pedido expirado (não pago a tempo)
 
 **Regras de Negócio:**
 - Pedido nasce apenas de carrinho válido
@@ -399,14 +401,16 @@ Representa um pedido no sistema (compra confirmada).
 **Métodos:**
 - `Order.createFromCart(Cart)` - Cria pedido a partir do carrinho
 - `Order.reconstitute(...)` - Reconstitui pedido existente
-- `confirm()` - PENDING → CONFIRMED
+- `confirm()` - PENDING → CONFIRMED (exige paymentReference)
+- `expire()` - PENDING → EXPIRED (expiração antes do pagamento)
 - `startProcessing()` - CONFIRMED → PROCESSING
 - `ship()` - PROCESSING → SHIPPED
 - `deliver()` - SHIPPED → DELIVERED
 - `cancel()` - Qualquer (exceto DELIVERED) → CANCELLED
+- `associatePaymentReference(String)` - Associa referência de pagamento (uma única vez)
 - `calculateSubtotal()` - Recalcula a partir dos items (verificação)
 - `calculateTotal()` - Recalcula total (verificação)
-- `isPending()`, `isConfirmed()`, `isShipped()`, etc. - Verificações de status
+- `isPending()`, `isConfirmed()`, `isShipped()`, `isExpired()`, etc. - Verificações de status
 
 ### Value Object: OrderItem
 
@@ -616,6 +620,7 @@ subtotal_currency VARCHAR(3) NOT NULL
 total_amount DECIMAL(10,2) NOT NULL
 total_currency VARCHAR(3) NOT NULL
 created_at TIMESTAMP NOT NULL
+payment_reference VARCHAR(100) NULL
 INDEX idx_orders_cart_id (cart_id)
 INDEX idx_orders_status (status)
 INDEX idx_orders_created_at (created_at)
@@ -1503,6 +1508,147 @@ backend/
 
 ---
 
+### 🔄 Story #20: Alterar Status do Pedido
+
+**Objetivo:** Implementar métodos explícitos para controle de transições de status do pedido, refletindo eventos do ciclo de compra.
+
+**Implementado:**
+
+#### Métodos de Transição
+- ✅ `confirm()` - PENDING → CONFIRMED (marcar como pago)
+- ✅ `expire()` - PENDING → EXPIRED (expiração antes do pagamento)
+- ✅ `cancel()` - Qualquer → CANCELLED (exceto DELIVERED)
+- ✅ `startProcessing()` - CONFIRMED → PROCESSING
+- ✅ `ship()` - PROCESSING → SHIPPED
+- ✅ `deliver()` - SHIPPED → DELIVERED
+
+#### OrderStatus Atualizado
+- ✅ Status `EXPIRED` adicionado ao enum
+- ✅ Total de 7 estados: PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, EXPIRED
+
+#### Regras de Negócio Implementadas
+- ✅ Pedido cancelado não pode ser confirmado
+- ✅ Pedido expirado não pode ser confirmado
+- ✅ Expiração só ocorre antes do pagamento (apenas PENDING)
+- ✅ Transições inválidas geram BusinessException
+- ✅ Todas as regras encapsuladas no domínio
+- ✅ Nenhuma lógica de status no controller
+
+#### Validações de Transições
+- ✅ Cada método valida status atual antes da transição
+- ✅ Estados terminais: DELIVERED, CANCELLED, EXPIRED
+- ✅ Mensagens de erro claras e específicas
+
+#### Testes
+- ✅ 4 novos testes adicionados
+- ✅ Teste de expiração de pedido pendente
+- ✅ Teste de validação: não expirar pedido confirmado
+- ✅ Teste de validação: não confirmar pedido cancelado
+- ✅ Teste de validação: não confirmar pedido expirado
+- ✅ Total: 20 testes no OrderTest
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 💳 Story #21: Associar Referência de Pagamento
+
+**Objetivo:** Preparar o pedido para rastreabilidade com gateway de pagamento através de referência externa.
+
+**Implementado:**
+
+#### Campo no Domínio
+- ✅ `paymentReference: String` adicionado ao Order (nullable)
+- ✅ Método `associatePaymentReference(String)` implementado
+- ✅ Referência não pode ser alterada após associada (imutável)
+
+#### Regras de Negócio
+- ✅ Associação ocorre apenas uma vez
+- ✅ Referência não pode ser nula ou vazia
+- ✅ Tentativa de associar segunda vez lança BusinessException
+- ✅ Pedido não pode ser confirmado sem referência de pagamento
+
+#### Validações
+- ✅ Validação em `confirm()`: exige `paymentReference` válida
+- ✅ Impossível confirmar pedido sem referência
+- ✅ Garante rastreabilidade obrigatória
+
+#### Persistência
+- ✅ Migration V5: `ALTER TABLE tb_orders ADD COLUMN payment_reference VARCHAR(100)`
+- ✅ OrderEntity atualizada com campo
+- ✅ OrderMapper atualizado (Domain ↔ Entity)
+
+#### Preparado para Uso Futuro
+- ✅ Sem integração com Mercado Pago nesta story
+- ✅ Campo genérico: suporta qualquer gateway (Mercado Pago, PayPal, Stripe, etc.)
+- ✅ VARCHAR(100): suporta IDs longos de diversos gateways
+
+#### Testes
+- ✅ 7 novos testes adicionados
+- ✅ Teste de associação válida
+- ✅ Teste de validação: referência nula
+- ✅ Teste de validação: referência vazia
+- ✅ Teste de validação: associação múltipla (imutabilidade)
+- ✅ Teste de confirmação com referência
+- ✅ Teste de validação: confirmar sem referência
+- ✅ Total: 27 testes no OrderTest
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🌐 Story #22: Disponibilizar Endpoints de Pedido
+
+**Objetivo:** Expor API REST para criação e consulta de pedidos, permitindo integração com frontend.
+
+**Implementado:**
+
+#### Endpoints Disponíveis
+- ✅ `POST /api/carts/{cartId}/checkout` - Criar pedido (conversão)
+- ✅ `GET /api/orders/{orderId}` - Consultar pedido
+
+#### Controllers
+- ✅ `CartController` - Endpoint de checkout (atualizado)
+- ✅ `OrderController` - Endpoints de pedido
+- ✅ Controllers finos: apenas delegam para Use Cases
+
+#### Use Cases
+- ✅ `ConvertCartToOrderUseCase` - Lógica de conversão
+  - Valida carrinho existe
+  - Valida carrinho não convertido
+  - Valida livros ativos
+  - Valida carrinho para checkout
+  - Cria Order a partir do Cart
+  - Marca carrinho como convertido
+  - Persiste atomicamente (transacional)
+- ✅ `GetOrderUseCase` - Lógica de consulta
+  - Valida pedido existe
+  - Converte para DTO
+  - Read-only transaction
+
+#### Validações de Entrada
+- ✅ Validação de carrinho válido (status, items, livros ativos)
+- ✅ Validação de carrinho não convertido
+- ✅ Validação de pedido existente
+- ✅ Tratamento de erro padronizado (GlobalExceptionHandler)
+
+#### Tratamento de Erros
+- ✅ ResourceNotFoundException → 404 Not Found
+- ✅ BusinessException → 422 Unprocessable Entity
+- ✅ MethodArgumentNotValidException → 400 Bad Request
+- ✅ Exception genérica → 500 Internal Server Error
+
+#### Definição de Pronto do Epic Pedido
+- ✅ Pedido criado somente a partir de carrinho válido
+- ✅ Domínio consistente e testado (35 testes: 27 Order + 8 OrderItem)
+- ✅ API funcional e documentada
+- ✅ Nenhuma dependência de frete ou pagamento
+- ✅ Base pronta para próximos épicos
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -1594,7 +1740,7 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 12 Janeiro 2026  
-**Stories Implementadas:** 19/19 ✅  
+**Stories Implementadas:** 22/22 ✅  
 **Endpoints Disponíveis:** 22
 
 ---
@@ -1620,18 +1766,25 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - ✅ Cálculo automático de totais
 - ✅ Validação para checkout
 
-### Sprint 4: Pedidos (Stories #17-19) ✅
+### Sprint 4: Pedidos - Modelagem e Persistência (Stories #17-19) ✅
 - ✅ Modelo de domínio do pedido
 - ✅ Persistência de pedidos e itens
 - ✅ Conversão de carrinho em pedido
 - ✅ Consulta de pedidos
-- ✅ Transições de status
+- ✅ Transições de status básicas
+
+### Sprint 5: Pedidos - Gestão de Status e Pagamento (Stories #20-22) ✅
+- ✅ Controle completo de transições de status
+- ✅ Status EXPIRED implementado
+- ✅ Associação de referência de pagamento
+- ✅ Endpoints de pedido disponibilizados
+- ✅ Base pronta para integração com gateway
 
 ### Próximas Sprints 🔜
-- Sprint 5: Gestão Completa de Pedidos (listagem, cancelamento, atualização de status)
-- Sprint 6: Cálculo de Frete
-- Sprint 7: Integração com Pagamento
-- Sprint 8: Autenticação e Autorização
-- Sprint 9: Notificações e E-mail
-- Sprint 10: Dashboard e Relatórios
+- Sprint 6: Gestão Administrativa de Pedidos (listagem, cancelamento admin, relatórios)
+- Sprint 7: Integração com Gateway de Pagamento (Mercado Pago)
+- Sprint 8: Cálculo de Frete
+- Sprint 9: Autenticação e Autorização (JWT)
+- Sprint 10: Notificações e E-mail
+- Sprint 11: Dashboard e Analytics Avançado
 
