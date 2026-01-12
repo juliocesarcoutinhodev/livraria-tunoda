@@ -365,6 +365,83 @@ Representa um item dentro do carrinho.
 
 ---
 
+## 📦 Domínio de Pedidos
+
+### Aggregate Root: Order
+
+Representa um pedido no sistema (compra confirmada).
+
+**Atributos:**
+- `id: OrderId` - Identificador único do pedido
+- `cartId: CartId` - Rastreabilidade (qual carrinho originou)
+- `items: List<OrderItem>` - Lista de itens (imutável)
+- `subtotal: Money` - Subtotal congelado (snapshot)
+- `total: Money` - Total congelado (snapshot)
+- `createdAt: LocalDateTime` - Data de criação
+- `status: OrderStatus` - Status do pedido
+
+**OrderStatus:**
+- `PENDING` - Pedido criado, aguardando confirmação/pagamento
+- `CONFIRMED` - Pedido confirmado (pagamento aprovado)
+- `PROCESSING` - Pedido em preparação
+- `SHIPPED` - Pedido enviado para entrega
+- `DELIVERED` - Pedido entregue ao cliente
+- `CANCELLED` - Pedido cancelado
+
+**Regras de Negócio:**
+- Pedido nasce apenas de carrinho válido
+- Pedido é completamente imutável após criação (apenas status muda)
+- Sem métodos addItem/removeItem/updateItem
+- Status inicial sempre PENDING
+- Valores são snapshot (não recalculados)
+- Alterações no catálogo não afetam pedidos existentes
+
+**Métodos:**
+- `Order.createFromCart(Cart)` - Cria pedido a partir do carrinho
+- `Order.reconstitute(...)` - Reconstitui pedido existente
+- `confirm()` - PENDING → CONFIRMED
+- `startProcessing()` - CONFIRMED → PROCESSING
+- `ship()` - PROCESSING → SHIPPED
+- `deliver()` - SHIPPED → DELIVERED
+- `cancel()` - Qualquer (exceto DELIVERED) → CANCELLED
+- `calculateSubtotal()` - Recalcula a partir dos items (verificação)
+- `calculateTotal()` - Recalcula total (verificação)
+- `isPending()`, `isConfirmed()`, `isShipped()`, etc. - Verificações de status
+
+### Value Object: OrderItem
+
+Representa um item dentro do pedido (completamente imutável).
+
+**Atributos:**
+- `id: OrderItemId` - Identificador único do item
+- `bookId: BookId` - Referência ao livro
+- `bookTitle: String` - Título do livro (congelado)
+- `quantity: int` - Quantidade (final)
+- `unitPrice: Money` - Preço unitário (congelado)
+
+**Regras de Negócio:**
+- Completamente imutável (todos os campos final)
+- Sem métodos de alteração
+- Preço congelado no momento da criação do pedido
+- Título armazenado para histórico consistente
+- Subtotal sempre calculado: `unitPrice × quantity`
+
+**Métodos:**
+- `OrderItem.create(...)` - Cria novo item
+- `OrderItem.reconstitute(...)` - Reconstitui item existente
+- `getSubtotal()` - Calcula subtotal do item
+
+**Diferenças Chave: CartItem vs OrderItem**
+
+| Aspecto | CartItem | OrderItem |
+|---------|----------|-----------|
+| **Mutabilidade** | Mutável (updateQuantity) | **Imutável** (campos final) |
+| **Propósito** | Seleção temporária | Registro permanente |
+| **Alterações** | Pode ser modificado | **Não pode ser modificado** |
+| **Contexto** | Carrinho (temporário) | Pedido (histórico) |
+
+---
+
 ## 🚀 Pré-requisitos
 - **Maven 3.8+**
 - **Docker & Docker Compose**
@@ -527,6 +604,35 @@ quantity INT NOT NULL
 unit_price_amount DECIMAL(10,2) NOT NULL
 unit_price_currency VARCHAR(3) NOT NULL
 FOREIGN KEY (cart_id) REFERENCES tb_carts(id) ON DELETE CASCADE
+```
+
+**tb_orders** (pedidos)
+```sql
+id VARCHAR(36) PRIMARY KEY
+cart_id VARCHAR(36) NOT NULL
+status VARCHAR(20) NOT NULL
+subtotal_amount DECIMAL(10,2) NOT NULL
+subtotal_currency VARCHAR(3) NOT NULL
+total_amount DECIMAL(10,2) NOT NULL
+total_currency VARCHAR(3) NOT NULL
+created_at TIMESTAMP NOT NULL
+INDEX idx_orders_cart_id (cart_id)
+INDEX idx_orders_status (status)
+INDEX idx_orders_created_at (created_at)
+```
+
+**tb_order_items** (itens do pedido)
+```sql
+id VARCHAR(36) PRIMARY KEY
+order_id VARCHAR(36) NOT NULL
+book_id VARCHAR(36) NOT NULL
+book_title VARCHAR(300) NOT NULL
+quantity INT NOT NULL
+unit_price_amount DECIMAL(10,2) NOT NULL
+unit_price_currency VARCHAR(3) NOT NULL
+FOREIGN KEY (order_id) REFERENCES tb_orders(id) ON DELETE CASCADE
+INDEX idx_order_items_order_id (order_id)
+INDEX idx_order_items_book_id (book_id)
 ```
 
 ### Conexão Manual
@@ -1278,6 +1384,125 @@ backend/
 
 ---
 
+### 📦 Story #17: Modelar Pedido (Order)
+
+**Objetivo:** Criar modelo de domínio sólido para pedidos, representando uma compra de forma consistente e imutável.
+
+**Implementado:**
+
+#### Aggregate Root e Value Objects
+- ✅ `Order` criado como Aggregate Root
+- ✅ `OrderItem` criado como Value Object (imutável)
+- ✅ Identidades tipadas: `OrderId`, `OrderItemId`
+- ✅ Enum `OrderStatus` (PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
+
+#### Estrutura do Order
+- ✅ Atributos: id, cartId, items, subtotal, total, createdAt, status
+- ✅ Items completamente imutáveis (campos final)
+- ✅ Snapshot de valores (subtotal e total congelados)
+- ✅ Rastreabilidade via cartId
+
+#### Factory Method
+- ✅ `Order.createFromCart(Cart)` - Cria pedido a partir do carrinho
+- ✅ Copia items de CartItem para OrderItem
+- ✅ Status inicial: PENDING
+- ✅ Validações: carrinho ativo, não vazio
+
+#### Métodos de Transição de Status
+- ✅ `confirm()` - PENDING → CONFIRMED
+- ✅ `startProcessing()` - CONFIRMED → PROCESSING
+- ✅ `ship()` - PROCESSING → SHIPPED
+- ✅ `deliver()` - SHIPPED → DELIVERED
+- ✅ `cancel()` - Qualquer (exceto DELIVERED) → CANCELLED
+
+#### Regras de Negócio
+- ✅ Pedido nasce apenas de carrinho válido
+- ✅ Pedido não pode ser alterado após criação (apenas status)
+- ✅ Sem métodos addItem/removeItem/updateItem
+- ✅ Total sempre derivado dos items
+
+#### Características
+- ✅ Domínio puro (sem JPA)
+- ✅ Imutabilidade garantida (List.copyOf)
+- ✅ Validações no construtor
+- ✅ Testes unitários completos (16 testes)
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 💾 Story #18: Persistir Pedidos
+
+**Objetivo:** Criar infraestrutura de persistência para pedidos sem vazar JPA para o domínio.
+
+**Implementado:**
+
+#### Estrutura de Banco
+- ✅ Migration `V4__create-table-orders.sql` criada
+- ✅ Tabela `tb_orders` (id, cart_id, status, subtotal, total, created_at)
+- ✅ Tabela `tb_order_items` (id, order_id, book_id, book_title, quantity, unit_price)
+- ✅ Relacionamento com CASCADE DELETE
+- ✅ Índices: cart_id, status, created_at, order_id
+
+#### Entities JPA
+- ✅ `OrderEntity` - Entidade JPA do pedido
+- ✅ `OrderItemEntity` - Entidade JPA do item
+- ✅ Relacionamento OneToMany/ManyToOne bidirecional
+- ✅ Cascade ALL e Orphan Removal
+
+#### Repositório
+- ✅ `OrderJpaRepository` - Spring Data JPA
+- ✅ `OrderMapper` - MapStruct (Domain ↔ Entity)
+- ✅ `OrderRepositoryAdapter` - Implementação do domínio
+
+#### Conversão
+- ✅ Domain → Entity (toEntityWithItems)
+- ✅ Entity → Domain (toDomain)
+- ✅ Conversão de Money, IDs, Status
+- ✅ Items gerenciados pelo cascade
+
+#### Integração
+- ✅ `ConvertCartToOrderUseCase` funcional
+- ✅ Persistência transacional
+- ✅ Rollback automático em caso de erro
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🔍 Story #19: Consultar Pedido
+
+**Objetivo:** Permitir consulta de pedido pelo identificador para visualizar resumo e status da compra.
+
+**Implementado:**
+
+#### Endpoint
+- ✅ `GET /api/orders/{orderId}`
+- ✅ Retorna: id, status, items, subtotal, total, data de criação
+- ✅ Controller: `OrderController`
+- ✅ Use Case: `GetOrderUseCase`
+
+#### Comportamento
+- ✅ Consulta por ID
+- ✅ Pedido inexistente retorna 404
+- ✅ Todos os status podem ser consultados (incluindo CANCELLED)
+- ✅ Read-only transaction
+
+#### DTOs
+- ✅ `OrderResponse` reutilizado
+- ✅ `OrderItemDTO` com todos os dados
+- ✅ Nenhuma entidade de domínio exposta
+- ✅ Conversão via OrderDTOMapper
+
+#### Regras de Negócio
+- ✅ Sem validação de status (permite consultar histórico)
+- ✅ ResourceNotFoundException para pedido inexistente
+- ✅ Padrão consistente com GetCartUseCase
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -1297,9 +1522,16 @@ POST   /api/public/books/{id}/metrics/click → Registrar clique
 POST   /api/carts                           → Criar carrinho
 GET    /api/carts/{id}                      → Visualizar carrinho
 POST   /api/carts/{id}/validate             → Validar carrinho para checkout
+POST   /api/carts/{id}/checkout             → Converter carrinho em pedido
 POST   /api/carts/{id}/items                → Adicionar item
 PUT    /api/carts/{id}/items/{bookId}       → Atualizar quantidade
 DELETE /api/carts/{id}/items/{bookId}       → Remover item
+```
+
+### Pedidos
+
+```
+GET    /api/orders/{id}                     → Consultar pedido
 ```
 
 ### Administrativos
@@ -1323,15 +1555,16 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 1. Abra o Postman
 2. Clique em **Import**
 3. Selecione o arquivo `docs/Livraria-Tunoda-API.postman_collection.json`
-4. Configure as variáveis `author_id`, `book_id` e `cart_id` após criar os recursos
-5. Teste todos os **20 endpoints** disponíveis
+4. Configure as variáveis `author_id`, `book_id`, `cart_id` e `order_id` após criar os recursos
+5. Teste todos os **22 endpoints** disponíveis
 
 **Endpoints incluídos:**
 - 4 endpoints de catálogo público
 - 2 endpoints de métricas públicas
 - 6 endpoints administrativos (autores e livros)
 - 1 endpoint administrativo (métricas)
-- 6 endpoints de carrinho de compras
+- 7 endpoints de carrinho de compras
+- 2 endpoints de pedidos
 - 1 endpoint de health check
 
 📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
@@ -1340,11 +1573,12 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 
 **Próximos Passos:**
 - 🔜 Autenticação e autorização (JWT)
-- 🔜 Dashboard de métricas
-- 🔜 Carrinho de compras
-- 🔜 Processamento de pedidos
+- 🔜 Gestão de status de pedidos
+- 🔜 Listagem de pedidos do cliente
 - 🔜 Integração com gateway de pagamento
 - 🔜 Cálculo de frete
+- 🔜 Notificações por e-mail
+- 🔜 Dashboard de métricas
 - 🔜 Documentação OpenAPI/Swagger
 
 ## 📚 Referências
@@ -1360,8 +1594,8 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 12 Janeiro 2026  
-**Stories Implementadas:** 14/14 ✅  
-**Endpoints Disponíveis:** 20
+**Stories Implementadas:** 19/19 ✅  
+**Endpoints Disponíveis:** 22
 
 ---
 
@@ -1379,16 +1613,25 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - ✅ Consulta de métricas agregadas
 - ✅ Top livros mais visualizados/clicados
 
-### Sprint 3: Carrinho de Compras (Stories #10-14) ✅
+### Sprint 3: Carrinho de Compras (Stories #10-16) ✅
 - ✅ Modelo de domínio do carrinho
 - ✅ Persistência de carrinho e itens
 - ✅ CRUD de itens do carrinho
 - ✅ Cálculo automático de totais
 - ✅ Validação para checkout
 
+### Sprint 4: Pedidos (Stories #17-19) ✅
+- ✅ Modelo de domínio do pedido
+- ✅ Persistência de pedidos e itens
+- ✅ Conversão de carrinho em pedido
+- ✅ Consulta de pedidos
+- ✅ Transições de status
+
 ### Próximas Sprints 🔜
-- Sprint 4: Checkout e Pedidos
-- Sprint 5: Cálculo de Frete
-- Sprint 6: Integração com Pagamento
-- Sprint 7: Autenticação e Autorização
-- Sprint 8: Notificações e E-mail
+- Sprint 5: Gestão Completa de Pedidos (listagem, cancelamento, atualização de status)
+- Sprint 6: Cálculo de Frete
+- Sprint 7: Integração com Pagamento
+- Sprint 8: Autenticação e Autorização
+- Sprint 9: Notificações e E-mail
+- Sprint 10: Dashboard e Relatórios
+

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 20 endpoints implementados (14 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 22 endpoints implementados (16 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -402,6 +402,40 @@
 			"description": "Endpoints públicos para gerenciamento do carrinho de compras"
 		},
 		{
+			"name": "Pedidos",
+			"item": [
+				{
+					"name": "Converter Carrinho em Pedido (Checkout)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/{{cart_id}}/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "{{cart_id}}", "checkout"]
+						},
+						"description": "Converte um carrinho válido em pedido. Valida carrinho (status ativo, items, livros ativos) e marca carrinho como convertido. Pedido criado com status PENDING."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Pedido",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/orders/{{order_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", "{{order_id}}"]
+						},
+						"description": "Consulta um pedido específico pelo seu identificador. Retorna todos os detalhes: id, status, itens, subtotal, total e data de criação. Pedidos cancelados podem ser consultados."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de pedidos"
+		},
+		{
 			"name": "Health Check",
 			"item": [
 				{
@@ -461,6 +495,11 @@
 		{
 			"key": "cart_id",
 			"value": "cole-aqui-o-id-do-carrinho-criado",
+			"type": "string"
+		},
+		{
+			"key": "order_id",
+			"value": "cole-aqui-o-id-do-pedido-criado",
 			"type": "string"
 		}
 	]
