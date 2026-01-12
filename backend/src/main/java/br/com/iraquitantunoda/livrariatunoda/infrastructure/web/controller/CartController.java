@@ -2,9 +2,11 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.AddItemToCartRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ValidateCartResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.AddItemToCartUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.ConvertCartToOrderUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.RemoveCartItemUseCase;
@@ -27,6 +29,7 @@ public class CartController {
     private final UpdateCartItemUseCase updateCartItemUseCase;
     private final RemoveCartItemUseCase removeCartItemUseCase;
     private final ValidateCartUseCase validateCartUseCase;
+    private final ConvertCartToOrderUseCase convertCartToOrderUseCase;
 
     @PostMapping
     public ResponseEntity<CartResponse> createCart() {
@@ -44,6 +47,12 @@ public class CartController {
     public ResponseEntity<ValidateCartResponse> validateCart(@PathVariable String cartId) {
         var response = validateCartUseCase.execute(cartId);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{cartId}/checkout")
+    public ResponseEntity<OrderResponse> checkoutCart(@PathVariable String cartId) {
+        var response = convertCartToOrderUseCase.execute(cartId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{cartId}/items")
