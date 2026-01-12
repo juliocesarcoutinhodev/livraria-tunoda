@@ -17,13 +17,15 @@ class ShippingItemTest {
     void shouldCreateValidShippingItem() {
         var bookId = BookId.generate();
         var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
 
-        var item = ShippingItem.create(bookId, "Clean Code", 2, weight);
+        var item = ShippingItem.create(bookId, "Clean Code", 2, weight, unitPrice);
 
         assertEquals(bookId, item.getBookId());
         assertEquals("Clean Code", item.getBookTitle());
         assertEquals(2, item.getQuantity());
         assertEquals(weight, item.getWeight());
+        assertEquals(unitPrice, item.getUnitPrice());
     }
 
     @Test
@@ -31,7 +33,8 @@ class ShippingItemTest {
     void shouldCalculateTotalWeight() {
         var bookId = BookId.generate();
         var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
-        var item = ShippingItem.create(bookId, "Clean Code", 3, weight);
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
+        var item = ShippingItem.create(bookId, "Clean Code", 3, weight, unitPrice);
 
         var totalWeight = item.getTotalWeight();
 
@@ -43,9 +46,10 @@ class ShippingItemTest {
     @DisplayName("Deve lançar exceção ao criar item sem bookId")
     void shouldThrowExceptionWhenCreatingItemWithoutBookId() {
         var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingItem.create(null, "Clean Code", 2, weight));
+            () -> ShippingItem.create(null, "Clean Code", 2, weight, unitPrice));
 
         assertEquals("BookId é obrigatório para item de frete", exception.getMessage());
     }
@@ -55,9 +59,10 @@ class ShippingItemTest {
     void shouldThrowExceptionWhenCreatingItemWithoutTitle() {
         var bookId = BookId.generate();
         var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingItem.create(bookId, "", 2, weight));
+            () -> ShippingItem.create(bookId, "", 2, weight, unitPrice));
 
         assertEquals("Título do livro é obrigatório para item de frete", exception.getMessage());
     }
@@ -67,9 +72,10 @@ class ShippingItemTest {
     void shouldThrowExceptionWhenCreatingItemWithZeroQuantity() {
         var bookId = BookId.generate();
         var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingItem.create(bookId, "Clean Code", 0, weight));
+            () -> ShippingItem.create(bookId, "Clean Code", 0, weight, unitPrice));
 
         assertEquals("Quantidade deve ser maior que zero", exception.getMessage());
     }
@@ -78,11 +84,24 @@ class ShippingItemTest {
     @DisplayName("Deve lançar exceção ao criar item sem peso")
     void shouldThrowExceptionWhenCreatingItemWithoutWeight() {
         var bookId = BookId.generate();
+        var unitPrice = Money.brl(BigDecimal.valueOf(49.90));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingItem.create(bookId, "Clean Code", 2, null));
+            () -> ShippingItem.create(bookId, "Clean Code", 2, null, unitPrice));
 
         assertEquals("Peso é obrigatório para item de frete", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao criar item sem preço unitário")
+    void shouldThrowExceptionWhenCreatingItemWithoutUnitPrice() {
+        var bookId = BookId.generate();
+        var weight = Weight.kilograms(BigDecimal.valueOf(0.5));
+
+        var exception = assertThrows(BusinessException.class,
+            () -> ShippingItem.create(bookId, "Clean Code", 2, weight, null));
+
+        assertEquals("Preço unitário é obrigatório para item de frete", exception.getMessage());
     }
 }
 

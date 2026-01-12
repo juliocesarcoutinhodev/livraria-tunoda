@@ -15,21 +15,23 @@ public class ShippingOption {
     private final Money price;
     private final int deliveryDays;
     private final String company;
+    private final String externalReference;
 
-    private ShippingOption(String serviceCode, String serviceName, Money price, int deliveryDays, String company) {
+    private ShippingOption(String serviceCode, String serviceName, Money price, int deliveryDays, String company, String externalReference) {
         this.serviceCode = serviceCode;
         this.serviceName = serviceName;
         this.price = price;
         this.deliveryDays = deliveryDays;
         this.company = company;
+        this.externalReference = externalReference;
     }
 
-    public static ShippingOption create(String serviceCode, String serviceName, Money price, int deliveryDays, String company) {
-        validate(serviceCode, serviceName, price, deliveryDays, company);
-        return new ShippingOption(serviceCode, serviceName, price, deliveryDays, company);
+    public static ShippingOption create(String serviceCode, String serviceName, Money price, int deliveryDays, String company, String externalReference) {
+        validate(serviceCode, serviceName, price, deliveryDays, company, externalReference);
+        return new ShippingOption(serviceCode, serviceName, price, deliveryDays, company, externalReference);
     }
 
-    private static void validate(String serviceCode, String serviceName, Money price, int deliveryDays, String company) {
+    private static void validate(String serviceCode, String serviceName, Money price, int deliveryDays, String company, String externalReference) {
         if (serviceCode == null || serviceCode.isBlank()) {
             throw new BusinessException("Código do serviço é obrigatório");
         }
@@ -44,6 +46,9 @@ public class ShippingOption {
         }
         if (company == null || company.isBlank()) {
             throw new BusinessException("Transportadora é obrigatória");
+        }
+        if (externalReference == null || externalReference.isBlank()) {
+            throw new BusinessException("Referência externa é obrigatória");
         }
     }
 }

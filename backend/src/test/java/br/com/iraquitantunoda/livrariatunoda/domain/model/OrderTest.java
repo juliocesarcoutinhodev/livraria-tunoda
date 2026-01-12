@@ -80,6 +80,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
         assertEquals(OrderStatus.CONFIRMED, order.getStatus());
@@ -95,6 +96,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
 
@@ -111,6 +113,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
         order.ship();
@@ -128,6 +131,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
         order.ship();
@@ -161,6 +165,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
         var exception = assertThrows(BusinessException.class, order::confirm);
@@ -177,6 +182,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
         order.ship();
@@ -294,6 +300,7 @@ class OrderTest {
         cart.addItem(item);
 
         var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
         var exception = assertThrows(BusinessException.class, order::expire);

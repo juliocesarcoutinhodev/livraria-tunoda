@@ -16,13 +16,14 @@ class ShippingOptionTest {
     void shouldCreateValidShippingOption() {
         var price = Money.brl(BigDecimal.valueOf(25.00));
 
-        var option = ShippingOption.create("PAC", "PAC - Encomenda Normal", price, 10, "Correios");
+        var option = ShippingOption.create("PAC", "PAC - Encomenda Normal", price, 10, "Correios", "ME-123456");
 
         assertEquals("PAC", option.getServiceCode());
         assertEquals("PAC - Encomenda Normal", option.getServiceName());
         assertEquals(price, option.getPrice());
         assertEquals(10, option.getDeliveryDays());
         assertEquals("Correios", option.getCompany());
+        assertEquals("ME-123456", option.getExternalReference());
     }
 
     @Test
@@ -31,7 +32,7 @@ class ShippingOptionTest {
         var price = Money.brl(BigDecimal.valueOf(25.00));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingOption.create("", "PAC", price, 10, "Correios"));
+            () -> ShippingOption.create("", "PAC", price, 10, "Correios", "ME-123456"));
 
         assertEquals("Código do serviço é obrigatório", exception.getMessage());
     }
@@ -42,7 +43,7 @@ class ShippingOptionTest {
         var price = Money.brl(BigDecimal.valueOf(25.00));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingOption.create("PAC", "", price, 10, "Correios"));
+            () -> ShippingOption.create("PAC", "", price, 10, "Correios", "ME-123456"));
 
         assertEquals("Nome do serviço é obrigatório", exception.getMessage());
     }
@@ -51,7 +52,7 @@ class ShippingOptionTest {
     @DisplayName("Deve lançar exceção ao criar opção sem preço")
     void shouldThrowExceptionWhenCreatingOptionWithoutPrice() {
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingOption.create("PAC", "PAC", null, 10, "Correios"));
+            () -> ShippingOption.create("PAC", "PAC", null, 10, "Correios", "ME-123456"));
 
         assertEquals("Preço do frete é obrigatório", exception.getMessage());
     }
@@ -62,7 +63,7 @@ class ShippingOptionTest {
         var price = Money.brl(BigDecimal.valueOf(25.00));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingOption.create("PAC", "PAC", price, 0, "Correios"));
+            () -> ShippingOption.create("PAC", "PAC", price, 0, "Correios", "ME-123456"));
 
         assertEquals("Prazo de entrega deve ser maior que zero", exception.getMessage());
     }
@@ -73,9 +74,20 @@ class ShippingOptionTest {
         var price = Money.brl(BigDecimal.valueOf(25.00));
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingOption.create("PAC", "PAC", price, 10, ""));
+            () -> ShippingOption.create("PAC", "PAC", price, 10, "", "ME-123456"));
 
         assertEquals("Transportadora é obrigatória", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao criar opção sem referência externa")
+    void shouldThrowExceptionWhenCreatingOptionWithoutExternalReference() {
+        var price = Money.brl(BigDecimal.valueOf(25.00));
+
+        var exception = assertThrows(BusinessException.class,
+            () -> ShippingOption.create("PAC", "PAC", price, 10, "Correios", ""));
+
+        assertEquals("Referência externa é obrigatória", exception.getMessage());
     }
 }
 

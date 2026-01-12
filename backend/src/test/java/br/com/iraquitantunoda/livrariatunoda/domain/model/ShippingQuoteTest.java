@@ -202,13 +202,15 @@ class ShippingQuoteTest {
             BookId.generate(),
             "Clean Code",
             2,
-            Weight.kilograms(BigDecimal.valueOf(0.5))
+            Weight.kilograms(BigDecimal.valueOf(0.5)),
+            Money.brl(BigDecimal.valueOf(49.90))
         );
         var item2 = ShippingItem.create(
             BookId.generate(),
             "Clean Architecture",
             1,
-            Weight.kilograms(BigDecimal.valueOf(0.6))
+            Weight.kilograms(BigDecimal.valueOf(0.6)),
+            Money.brl(BigDecimal.valueOf(59.90))
         );
         return List.of(item1, item2);
     }
@@ -219,14 +221,16 @@ class ShippingQuoteTest {
             "PAC - Encomenda Normal",
             Money.brl(BigDecimal.valueOf(20.00)),
             10,
-            "Correios"
+            "Correios",
+            "ME-PAC-001"
         );
         var sedex = ShippingOption.create(
             "SEDEX",
             "SEDEX - Encomenda Expressa",
             Money.brl(BigDecimal.valueOf(35.00)),
             5,
-            "Correios"
+            "Correios",
+            "ME-SEDEX-001"
         );
         return List.of(pac, sedex);
     }

@@ -15,20 +15,22 @@ public class ShippingItem {
     private final String bookTitle;
     private final int quantity;
     private final Weight weight;
+    private final Money unitPrice;
 
-    private ShippingItem(BookId bookId, String bookTitle, int quantity, Weight weight) {
+    private ShippingItem(BookId bookId, String bookTitle, int quantity, Weight weight, Money unitPrice) {
         this.bookId = bookId;
         this.bookTitle = bookTitle;
         this.quantity = quantity;
         this.weight = weight;
+        this.unitPrice = unitPrice;
     }
 
-    public static ShippingItem create(BookId bookId, String bookTitle, int quantity, Weight weight) {
-        validate(bookId, bookTitle, quantity, weight);
-        return new ShippingItem(bookId, bookTitle, quantity, weight);
+    public static ShippingItem create(BookId bookId, String bookTitle, int quantity, Weight weight, Money unitPrice) {
+        validate(bookId, bookTitle, quantity, weight, unitPrice);
+        return new ShippingItem(bookId, bookTitle, quantity, weight, unitPrice);
     }
 
-    private static void validate(BookId bookId, String bookTitle, int quantity, Weight weight) {
+    private static void validate(BookId bookId, String bookTitle, int quantity, Weight weight, Money unitPrice) {
         if (bookId == null) {
             throw new BusinessException("BookId é obrigatório para item de frete");
         }
@@ -40,6 +42,9 @@ public class ShippingItem {
         }
         if (weight == null) {
             throw new BusinessException("Peso é obrigatório para item de frete");
+        }
+        if (unitPrice == null) {
+            throw new BusinessException("Preço unitário é obrigatório para item de frete");
         }
     }
 
