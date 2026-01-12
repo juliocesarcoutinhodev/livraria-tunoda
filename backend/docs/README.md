@@ -60,19 +60,20 @@ Endpoints administrativos para gerenciamento de autores.
 - **PUT** `/api/admin/authors/{id}` - Atualizar autor
 - **PUT** `/api/admin/authors/{id}/status` - Ativar/Desativar
 
-### 📖 Admin - Livros (3 endpoints)
+### 📖 Admin - Livros (4 endpoints)
 Endpoints administrativos para gerenciamento de livros.
 
 - **POST** `/api/admin/books` - Criar livro
 - **PUT** `/api/admin/books/{id}` - Atualizar livro
 - **PUT** `/api/admin/books/{id}/status` - Ativar/Desativar
+- **GET** `/api/admin/books/{id}/metrics` - Consultar métricas
 
 ### 🏥 Health Check (1 endpoint)
 Endpoint de monitoramento.
 
 - **GET** `/api/v1/actuator/health` - Status da aplicação
 
-**Total: 11 endpoints**
+**Total: 12 endpoints**
 
 ## 🚀 Fluxo de Teste Recomendado
 
@@ -113,27 +114,33 @@ POST /api/public/books/{book_id}/metrics/click
 ```
 ✅ Registra interações do usuário
 
-### 7️⃣ Atualizar Livro
+### 7️⃣ Consultar Métricas do Livro
+```
+GET /api/admin/books/{book_id}/metrics
+```
+✅ Retorna total de visualizações e cliques
+
+### 8️⃣ Atualizar Livro
 ```
 PUT /api/admin/books/{book_id}
 ```
 ✅ Atualiza informações do livro
 
-### 8️⃣ Desativar Livro
+### 9️⃣ Desativar Livro
 ```
 PUT /api/admin/books/{book_id}/status
 Body: { "status": "INACTIVE" }
 ```
 ✅ Livro não aparece mais no catálogo público
 
-### 9️⃣ Tentar Desativar Autor com Livro Ativo
+### 🔟 Tentar Desativar Autor com Livro Ativo
 ```
 PUT /api/admin/authors/{author_id}/status
 Body: { "status": "INACTIVE" }
 ```
 ❌ Deve retornar erro 422 (autor tem livro ativo)
 
-### 🔟 Ativar Livro Novamente
+### 1️⃣1️⃣ Ativar Livro Novamente
 ```
 PUT /api/admin/books/{book_id}/status
 Body: { "status": "ACTIVE" }
@@ -241,6 +248,38 @@ Content-Type: application/json
 }
 ```
 
+### Consultar Métricas do Livro (Sucesso)
+
+**Request:**
+```http
+GET /api/admin/books/{book_id}/metrics
+```
+
+**Response: 200 OK**
+```json
+{
+  "bookId": "book-uuid-here",
+  "views": 152,
+  "clicks": 34
+}
+```
+
+### Consultar Métricas - Livro Sem Métricas
+
+**Request:**
+```http
+GET /api/admin/books/{book_id}/metrics
+```
+
+**Response: 200 OK**
+```json
+{
+  "bookId": "book-uuid-here",
+  "views": 0,
+  "clicks": 0
+}
+```
+
 ## 🎯 Dicas
 
 ### 1. Salvando Variáveis Automaticamente
@@ -291,9 +330,11 @@ Use **Collection Runner** para executar todos os endpoints em sequência:
 - Use endpoints `/status` para ativar/desativar
 
 ### Métricas
-- Sempre retornam **204 No Content**
+- Registro sempre retorna **204 No Content**
 - Erros **não bloqueiam** a navegação
 - Registradas apenas para livros **ACTIVE**
+- Consulta de métricas retorna **0** para livros sem métricas
+- Livros **INACTIVE** podem ter métricas consultadas
 
 ## 🐛 Troubleshooting
 

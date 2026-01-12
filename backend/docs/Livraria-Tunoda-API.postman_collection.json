@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os endpoints implementados (8 stories)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 14 endpoints implementados (9 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -47,6 +47,48 @@
 							"path": ["api", "public", "books", "{{book_id}}"]
 						},
 						"description": "Retorna detalhes completos de um livro específico (apenas livros ativos). Inclui informações dos autores com biografia completa."
+					},
+					"response": []
+				},
+				{
+					"name": "Top Livros Mais Visualizados",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books/most-viewed?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books", "most-viewed"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Quantidade máxima de livros a retornar (padrão: 10)"
+								}
+							]
+						},
+						"description": "Retorna ranking dos livros mais visualizados (apenas livros ativos). Inclui total de views de cada livro."
+					},
+					"response": []
+				},
+				{
+					"name": "Top Livros Mais Clicados",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/public/books/most-clicked?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "public", "books", "most-clicked"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Quantidade máxima de livros a retornar (padrão: 10)"
+								}
+							]
+						},
+						"description": "Retorna ranking dos livros mais clicados (apenas livros ativos). Inclui total de clicks de cada livro."
 					},
 					"response": []
 				}
@@ -231,6 +273,20 @@
 							"path": ["api", "admin", "books", "{{book_id}}", "status"]
 						},
 						"description": "Altera apenas o status do livro. Regra: não pode ativar livro sem pelo menos um autor ativo. Valores aceitos: ACTIVE, INACTIVE."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Métricas do Livro",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/books/{{book_id}}/metrics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "books", "{{book_id}}", "metrics"]
+						},
+						"description": "Consulta métricas agregadas de um livro específico (visualizações e cliques). Retorna 404 se livro não existir. Livros inativos podem ter métricas consultadas."
 					},
 					"response": []
 				}

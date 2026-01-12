@@ -1,11 +1,13 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 
+import br.com.iraquitantunoda.livrariatunoda.application.dto.BookMetricsResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.BookResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ChangeStatusRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CreateBookRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateBookRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ChangeBookStatusUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateBookUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetBookMetricsUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateBookUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class AdminBookController {
     private final CreateBookUseCase createBookUseCase;
     private final UpdateBookUseCase updateBookUseCase;
     private final ChangeBookStatusUseCase changeBookStatusUseCase;
+    private final GetBookMetricsUseCase getBookMetricsUseCase;
 
     @PostMapping
     public ResponseEntity<BookResponse> createBook(@Valid @RequestBody CreateBookRequest request) {
@@ -43,6 +46,12 @@ public class AdminBookController {
         @Valid @RequestBody ChangeStatusRequest request
     ) {
         var response = changeBookStatusUseCase.execute(bookId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{bookId}/metrics")
+    public ResponseEntity<BookMetricsResponse> getBookMetrics(@PathVariable String bookId) {
+        var response = getBookMetricsUseCase.execute(bookId);
         return ResponseEntity.ok(response);
     }
 }

@@ -884,6 +884,45 @@ backend/
 
 ---
 
+### 📈 Story #9: Consulta Administrativa de Métricas
+
+**Objetivo:** Disponibilizar métricas agregadas de visualização e cliques via API administrativa.
+
+**Implementado:**
+
+#### Consulta de Métricas
+- ✅ Endpoint: `GET /api/admin/books/{bookId}/metrics`
+- ✅ DTO: `BookMetricsResponse` (bookId, views, clicks)
+- ✅ Use Case: `GetBookMetricsUseCase`
+- ✅ Métricas agregadas via COUNT
+- ✅ Retorna 0 para livros sem métricas
+- ✅ Retorna 404 se livro não existir
+
+#### Regras de Negócio
+- ✅ Livro inativo pode ter métricas consultadas
+- ✅ Apenas livros existentes podem ser consultados
+- ✅ Não retorna eventos individuais (apenas agregação)
+- ✅ Implementação read-only (sem alteração de métricas)
+
+#### Infraestrutura
+- ✅ Query agregada no `BookMetricJpaRepository`
+- ✅ Método `countByBookIdGroupedByEventType` no repositório de domínio
+- ✅ Implementação eficiente com `COUNT` e filtro por `event_type`
+- ✅ Integração com `AdminBookController`
+
+#### Extensão: Top Livros por Métricas
+- ✅ Endpoints públicos para top livros
+- ✅ DTO: `TopBookMetricDTO` e `TopBooksResponse`
+- ✅ Use Cases: `GetTopViewedBooksUseCase` e `GetTopClickedBooksUseCase`
+- ✅ Query agregada com GROUP BY e ORDER BY
+- ✅ Retorna apenas livros ativos
+- ✅ Limite configurável (padrão: 10)
+- ✅ Timestamp de geração do ranking
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -891,6 +930,8 @@ backend/
 ```
 GET    /api/public/books                    → Listar livros (paginado)
 GET    /api/public/books/{id}               → Detalhes do livro
+GET    /api/public/books/most-viewed        → Top livros mais visualizados
+GET    /api/public/books/most-clicked       → Top livros mais clicados
 POST   /api/public/books/{id}/metrics/view  → Registrar visualização
 POST   /api/public/books/{id}/metrics/click → Registrar clique
 ```
@@ -905,6 +946,7 @@ PUT    /api/admin/authors/{id}/status  → Ativar/Desativar autor
 POST   /api/admin/books                → Criar livro
 PUT    /api/admin/books/{id}           → Atualizar livro
 PUT    /api/admin/books/{id}/status    → Ativar/Desativar livro
+GET    /api/admin/books/{id}/metrics   → Consultar métricas
 ```
 
 ### 📬 Postman Collection
@@ -943,5 +985,5 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 ---
 
 **Versão:** 0.0.1-SNAPSHOT  
-**Última atualização:** 07 Janeiro 2026  
-**Stories Implementadas:** 8/8 ✅
+**Última atualização:** 10 Janeiro 2026  
+**Stories Implementadas:** 9/9 ✅
