@@ -136,6 +136,11 @@ O projeto está organizado em **contextos delimitados** independentes:
 - **Agregados:** `BookMetric`
 - **Propósito:** Observabilidade e análise de comportamento
 
+#### **Contexto 3: Carrinho de Compras** (`domain.model`)
+- **Responsabilidade:** Gerenciar carrinhos e itens
+- **Agregados:** `Cart`, `CartItem` (Value Object)
+- **Propósito:** Gestão do carrinho de compras antes da conversão em pedido
+
 **Vantagens dessa separação:**
 - ✅ Baixo acoplamento entre contextos
 - ✅ Evolução independente
@@ -289,7 +294,78 @@ Representa um evento de interação do usuário com um livro.
 
 ---
 
-- **Java 25** ou superior
+## 🛒 Domínio de Carrinho de Compras
+
+### Aggregate Root: Cart
+
+Representa um carrinho de compras no sistema.
+
+**Atributos:**
+- `id: CartId` - Identificador único do carrinho
+- `items: List<CartItem>` - Lista de itens no carrinho
+- `status: CartStatus` - Status do carrinho (ACTIVE, EXPIRED, CONVERTED)
+- `createdAt: LocalDateTime` - Data de criação
+- `updatedAt: LocalDateTime` - Data de última atualização
+
+**CartStatus:**
+- `ACTIVE` - Carrinho em uso, pode ser modificado
+- `EXPIRED` - Carrinho expirado, não editável
+- `CONVERTED` - Carrinho convertido em pedido
+
+**Regras de Negócio:**
+- Carrinho inicia sempre com status ACTIVE
+- Carrinho não pode ser modificado se estiver EXPIRED ou CONVERTED
+- Carrinho pode existir vazio
+- Carrinho vazio não é válido para conversão em pedido
+- Total do carrinho é sempre derivado dos itens
+- Valores são sempre calculados em tempo de execução
+
+**Métodos:**
+- `Cart.create()` - Cria novo carrinho vazio (status ACTIVE)
+- `Cart.reconstitute(...)` - Reconstitui carrinho existente
+- `addItem(CartItem)` - Adiciona item (ou incrementa quantidade se já existir)
+- `updateItem(BookId, quantity)` - Atualiza quantidade de um item
+- `removeItem(BookId)` - Remove item completamente
+- `calculateSubtotal()` - Calcula subtotal (soma dos itens)
+- `calculateTotal()` - Calcula total (igual ao subtotal, preparado para descontos futuros)
+- `isValid()` - Verifica se tem itens e está ACTIVE
+- `validateForCheckout(Set<BookId>)` - Valida se está pronto para checkout
+- `markAsExpired()` - Marca como expirado
+- `markAsConverted()` - Marca como convertido em pedido
+
+### Value Object: CartItem
+
+Representa um item dentro do carrinho.
+
+**Atributos:**
+- `id: CartItemId` - Identificador único do item
+- `bookId: BookId` - Referência ao livro
+- `bookTitle: String` - Título do livro (congelado no momento da adição)
+- `quantity: int` - Quantidade (mínimo 1)
+- `unitPrice: Money` - Preço unitário (congelado no momento da adição)
+
+**Regras de Negócio:**
+- Quantidade mínima é 1
+- Preço unitário é congelado no momento da adição
+- Título é armazenado para histórico consistente
+- Subtotal é sempre calculado: `unitPrice × quantity`
+
+**Métodos:**
+- `CartItem.create(...)` - Cria novo item
+- `CartItem.reconstitute(...)` - Reconstitui item existente
+- `updateQuantity(int)` - Atualiza quantidade
+- `incrementQuantity(int)` - Incrementa quantidade
+- `getSubtotal()` - Calcula subtotal do item
+- `isForBook(BookId)` - Verifica se item é de um livro específico
+
+**Decisões Importantes:**
+- **Título e preço congelados:** Evita divergências se o produto for alterado posteriormente
+- **Subtotal calculado:** Garante consistência matemática
+- **Value Object:** Não tem ciclo de vida independente do Cart
+
+---
+
+## 🚀 Pré-requisitos
 - **Maven 3.8+**
 - **Docker & Docker Compose**
 - **Git**
@@ -431,6 +507,26 @@ id VARCHAR(36) PRIMARY KEY
 book_id VARCHAR(36) NOT NULL
 event_type VARCHAR(20) NOT NULL
 occurred_at TIMESTAMP NOT NULL
+```
+
+**tb_carts** (carrinhos de compras)
+```sql
+id VARCHAR(36) PRIMARY KEY
+status VARCHAR(20) NOT NULL
+created_at TIMESTAMP NOT NULL
+updated_at TIMESTAMP NOT NULL
+```
+
+**tb_cart_items** (itens do carrinho)
+```sql
+id VARCHAR(36) PRIMARY KEY
+cart_id VARCHAR(36) NOT NULL
+book_id VARCHAR(36) NOT NULL
+book_title VARCHAR(300) NOT NULL
+quantity INT NOT NULL
+unit_price_amount DECIMAL(10,2) NOT NULL
+unit_price_currency VARCHAR(3) NOT NULL
+FOREIGN KEY (cart_id) REFERENCES tb_carts(id) ON DELETE CASCADE
 ```
 
 ### Conexão Manual
@@ -923,6 +1019,265 @@ backend/
 
 ---
 
+### 🛒 Story #10: Modelo de Domínio - Carrinho de Compras
+
+**Objetivo:** Criar modelo de domínio sólido para o carrinho de compras com regras claras de consistência.
+
+**Implementado:**
+
+#### Estrutura do Carrinho
+- ✅ Entidade `Cart` criada como Aggregate Root
+- ✅ Value Object `CartItem` criado
+- ✅ Identidades tipadas: `CartId`, `CartItemId`
+- ✅ Enum `CartStatus` (ACTIVE, EXPIRED, CONVERTED)
+- ✅ Lista de itens no carrinho
+- ✅ Data de criação e atualização
+
+#### Status do Carrinho
+- ✅ Carrinho inicia sempre com status ACTIVE
+- ✅ Status: ACTIVE (em uso), EXPIRED (expirado), CONVERTED (pedido criado)
+- ✅ Validação de status antes de modificações
+
+#### Regras de Negócio
+- ✅ Carrinho não pode ser alterado se EXPIRED ou CONVERTED
+- ✅ Carrinho pode existir vazio
+- ✅ Carrinho vazio não é válido para conversão
+- ✅ Preço e título congelados no CartItem
+- ✅ Quantidade mínima de 1 por item
+
+#### Comportamento do Agregado
+- ✅ `addItem()` - Adiciona ou incrementa quantidade
+- ✅ `updateItem()` - Atualiza quantidade
+- ✅ `removeItem()` - Remove item completamente
+- ✅ `calculateSubtotal()` - Calcula subtotal
+- ✅ `calculateTotal()` - Calcula total
+- ✅ `isValid()` - Valida estado
+- ✅ Métodos protegidos por validação de status
+
+#### Características
+- ✅ Domínio sem anotações JPA
+- ✅ Nenhuma dependência de infraestrutura
+- ✅ Regras centralizadas no domínio
+- ✅ Value Objects (Money, CartItem)
+- ✅ Testes unitários completos
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #11: Persistência de Carrinho
+
+**Objetivo:** Criar infraestrutura de persistência para carrinho sem vazar JPA para o domínio.
+
+**Implementado:**
+
+#### Estrutura de Banco
+- ✅ Migration `V3__create-table-carts.sql` criada
+- ✅ Tabela `tb_carts` (id, status, created_at, updated_at)
+- ✅ Tabela `tb_cart_items` (id, cart_id, book_id, book_title, quantity, unit_price_amount, unit_price_currency)
+- ✅ Relacionamento com CASCADE DELETE
+- ✅ Índice em `cart_id`
+
+#### Persistência Implementada
+- ✅ `Cart` persiste com sucesso
+- ✅ `CartItem` persiste com relação bidirecional
+- ✅ Carrinho pode ser criado vazio
+- ✅ Items são salvos junto com o carrinho
+
+#### Repositórios
+- ✅ Interface `CartRepository` no domínio
+- ✅ Implementação JPA na infraestrutura
+- ✅ Adapter: `CartRepositoryAdapter`
+
+#### Conversão Domain ↔ JPA
+- ✅ **MapStruct** configurado para mapeamento
+- ✅ `CartMapper` com métodos para conversão
+- ✅ Conversão de CartItem com Money
+- ✅ Método `toEntityWithItems()` para relação bidirecional
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #12: Adicionar Item ao Carrinho
+
+**Objetivo:** Permitir adicionar livros ao carrinho com preço congelado e soma automática de quantidade.
+
+**Implementado:**
+
+#### Endpoint
+- ✅ `POST /api/carts/{cartId}/items`
+- ✅ Request: `AddItemToCartRequest` (bookId, quantity)
+- ✅ Response: `CartResponse` completo com items, subtotal e total
+
+#### Comportamento
+- ✅ Livro adicionado ao carrinho
+- ✅ Quantidade respeitada
+- ✅ Se livro já existe: quantidade é somada
+- ✅ Carrinho atualizado e persistido
+
+#### Regras de Negócio
+- ✅ Carrinho deve existir
+- ✅ Carrinho deve estar ACTIVE
+- ✅ Livro deve existir e estar ACTIVE
+- ✅ Quantidade mínima de 1
+- ✅ Preço capturado e congelado no momento da adição
+- ✅ Total recalculado automaticamente
+
+#### Use Case
+- ✅ `AddItemToCartUseCase` criado
+- ✅ Validações de carrinho e livro
+- ✅ Criação de `CartItem` com preço congelado
+- ✅ Domínio gerencia soma de quantidade
+
+#### DTOs
+- ✅ `CartResponse` atualizado (items, subtotal, currency, total)
+- ✅ `CartItemDTO` criado (itemId, bookId, bookTitle, quantity, unitPrice, subtotal)
+- ✅ `CartDTOMapper` usando MapStruct
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #13: Atualizar/Remover Itens do Carrinho
+
+**Objetivo:** Permitir edição de itens do carrinho garantindo consistência de valores.
+
+**Implementado:**
+
+#### Atualizar Quantidade
+- ✅ Endpoint: `PUT /api/carts/{cartId}/items/{bookId}`
+- ✅ Request: `UpdateCartItemRequest` (quantity)
+- ✅ Use Case: `UpdateCartItemUseCase`
+- ✅ Quantidade validada (> 0)
+
+#### Remover Item
+- ✅ Endpoint: `DELETE /api/carts/{cartId}/items/{bookId}`
+- ✅ Use Case: `RemoveCartItemUseCase`
+- ✅ Remoção completa do item
+
+#### Regras de Negócio
+- ✅ Carrinho deve existir e estar ACTIVE
+- ✅ Item deve existir no carrinho
+- ✅ Quantidade deve ser inteira positiva
+- ✅ Quantidade zero não é permitida (usar DELETE)
+- ✅ Total recalculado após operação
+
+#### Decisões Arquiteturais
+- ✅ DELETE semântico para remoção
+- ✅ PUT para atualização completa
+- ✅ Validações no domínio
+- ✅ Total sempre derivado dos items
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #14: Visualizar Carrinho
+
+**Objetivo:** Permitir consulta do estado completo do carrinho.
+
+**Implementado:**
+
+#### Endpoint
+- ✅ `GET /api/carts/{cartId}`
+- ✅ Response: `CartResponse` completo
+- ✅ Use Case: `GetCartUseCase`
+
+#### Comportamento
+- ✅ Retorna dados completos do carrinho
+- ✅ Não altera estado (read-only)
+- ✅ Carrinho pode ser visualizado vazio
+- ✅ Pode ser visualizado em qualquer status
+
+#### Dados Retornados
+- ✅ cartId, status, createdAt, updatedAt
+- ✅ Lista de items com: itemId, bookId, bookTitle, quantity, unitPrice, currency, subtotal
+- ✅ Subtotal do carrinho
+- ✅ Currency
+- ✅ Total do carrinho
+
+#### Regras de Negócio
+- ✅ Carrinho deve existir
+- ✅ Visualização não altera dados
+- ✅ Valores calculados pelo domínio
+- ✅ `@Transactional(readOnly = true)`
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #15: Calcular Total do Carrinho
+
+**Objetivo:** Centralizar no domínio todas as regras de cálculo do carrinho.
+
+**Análise:** Esta story já estava 100% implementada nas stories anteriores.
+
+**Implementado:**
+
+#### Cálculo no Domínio
+- ✅ `Cart.calculateSubtotal()` - Soma subtotais dos itens
+- ✅ `Cart.calculateTotal()` - Total (igual ao subtotal, preparado para descontos)
+- ✅ `CartItem.getSubtotal()` - Calcula unitPrice × quantity
+- ✅ Nenhum cálculo em controller ou use case
+
+#### Características
+- ✅ Total derivado sempre dos items
+- ✅ Valores nunca persistidos (sempre calculados)
+- ✅ Money encapsula precisão e operações
+- ✅ Carrinho vazio retorna zero
+- ✅ Validações de quantidade garantem consistência
+
+#### Testes
+- ✅ Carrinho vazio (total = 0)
+- ✅ Carrinho com um item
+- ✅ Carrinho com múltiplos itens
+- ✅ Cálculo de subtotal por item
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🛒 Story #16: Validar Carrinho para Checkout
+
+**Objetivo:** Centralizar validações para garantir carrinho pronto para conversão em pedido.
+
+**Implementado:**
+
+#### Endpoint
+- ✅ `POST /api/carts/{cartId}/validate`
+- ✅ Response: `ValidateCartResponse` (cartId, valid, message)
+- ✅ Use Case: `ValidateCartUseCase`
+
+#### Método no Domínio
+- ✅ `Cart.validateForCheckout(Set<BookId> activeBookIds)`
+- ✅ Validação explícita e centralizada
+- ✅ Sem alteração de estado
+
+#### Regras Validadas
+- ✅ Carrinho deve existir
+- ✅ Carrinho deve estar ACTIVE
+- ✅ Carrinho deve ter ao menos 1 item
+- ✅ Todos os items devem ser válidos
+- ✅ Todos os livros devem estar ativos
+- ✅ Total do carrinho deve ser maior que zero
+
+#### Comportamento
+- ✅ Validação não altera carrinho
+- ✅ Erros de negócio claros e semânticos
+- ✅ Preparado para checkout, frete e pagamento
+- ✅ Use case busca livros via `BookRepository`
+
+#### Testes
+- ✅ Carrinho válido (sucesso)
+- ✅ Carrinho inativo (erro)
+- ✅ Carrinho vazio (erro)
+- ✅ Carrinho com livro inativo (erro)
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -934,6 +1289,17 @@ GET    /api/public/books/most-viewed        → Top livros mais visualizados
 GET    /api/public/books/most-clicked       → Top livros mais clicados
 POST   /api/public/books/{id}/metrics/view  → Registrar visualização
 POST   /api/public/books/{id}/metrics/click → Registrar clique
+```
+
+### Carrinho de Compras
+
+```
+POST   /api/carts                           → Criar carrinho
+GET    /api/carts/{id}                      → Visualizar carrinho
+POST   /api/carts/{id}/validate             → Validar carrinho para checkout
+POST   /api/carts/{id}/items                → Adicionar item
+PUT    /api/carts/{id}/items/{bookId}       → Atualizar quantidade
+DELETE /api/carts/{id}/items/{bookId}       → Remover item
 ```
 
 ### Administrativos
@@ -957,8 +1323,16 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 1. Abra o Postman
 2. Clique em **Import**
 3. Selecione o arquivo `docs/Livraria-Tunoda-API.postman_collection.json`
-4. Configure as variáveis `author_id` e `book_id` após criar os recursos
-5. Teste todos os 11 endpoints disponíveis
+4. Configure as variáveis `author_id`, `book_id` e `cart_id` após criar os recursos
+5. Teste todos os **20 endpoints** disponíveis
+
+**Endpoints incluídos:**
+- 4 endpoints de catálogo público
+- 2 endpoints de métricas públicas
+- 6 endpoints administrativos (autores e livros)
+- 1 endpoint administrativo (métricas)
+- 6 endpoints de carrinho de compras
+- 1 endpoint de health check
 
 📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
 
@@ -985,5 +1359,36 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 ---
 
 **Versão:** 0.0.1-SNAPSHOT  
-**Última atualização:** 10 Janeiro 2026  
-**Stories Implementadas:** 9/9 ✅
+**Última atualização:** 12 Janeiro 2026  
+**Stories Implementadas:** 14/14 ✅  
+**Endpoints Disponíveis:** 20
+
+---
+
+## 🎯 Progresso do Projeto
+
+### Sprint 1: Catálogo (Stories #1-7) ✅
+- ✅ Modelo de domínio completo
+- ✅ Persistência com MapStruct
+- ✅ Endpoints públicos e administrativos
+- ✅ CRUD completo de livros e autores
+
+### Sprint 2: Analytics (Stories #8-9) ✅
+- ✅ Domínio de métricas isolado
+- ✅ Registro de eventos (view/click)
+- ✅ Consulta de métricas agregadas
+- ✅ Top livros mais visualizados/clicados
+
+### Sprint 3: Carrinho de Compras (Stories #10-14) ✅
+- ✅ Modelo de domínio do carrinho
+- ✅ Persistência de carrinho e itens
+- ✅ CRUD de itens do carrinho
+- ✅ Cálculo automático de totais
+- ✅ Validação para checkout
+
+### Próximas Sprints 🔜
+- Sprint 4: Checkout e Pedidos
+- Sprint 5: Cálculo de Frete
+- Sprint 6: Integração com Pagamento
+- Sprint 7: Autenticação e Autorização
+- Sprint 8: Notificações e E-mail
