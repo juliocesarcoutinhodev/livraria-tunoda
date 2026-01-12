@@ -140,6 +140,26 @@ public class Order {
         return this.status == OrderStatus.CANCELLED;
     }
 
+    public Money calculateSubtotal() {
+        if (items.isEmpty()) {
+            return Money.brl(java.math.BigDecimal.ZERO);
+        }
+
+        var currency = items.get(0).getUnitPrice().getCurrency();
+        var totalAmount = items.stream()
+                .map(OrderItem::getSubtotal)
+                .map(Money::getAmount)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return Money.of(totalAmount, currency);
+    }
+
+    public Money calculateTotal() {
+        // Por enquanto, total é igual ao subtotal
+        // No futuro, aqui podem ser aplicados frete, impostos, etc.
+        return calculateSubtotal();
+    }
+
     private static void validateItems(List<OrderItem> items) {
         if (items == null || items.isEmpty()) {
             throw new BusinessException("Pedido deve ter ao menos um item");
@@ -152,6 +172,9 @@ public class Order {
         }
         if (total == null) {
             throw new BusinessException("Total é obrigatório");
+        }
+        if (total.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Total do pedido deve ser maior que zero");
         }
     }
 }

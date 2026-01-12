@@ -220,5 +220,54 @@ class OrderTest {
             order.getItems().clear();
         });
     }
+
+    @Test
+    @DisplayName("Deve calcular subtotal corretamente a partir dos items")
+    void shouldCalculateSubtotalFromItems() {
+        var cart = Cart.create();
+        var bookId1 = BookId.generate();
+        var bookId2 = BookId.generate();
+        var item1 = CartItem.create(bookId1, "Clean Code", 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item2 = CartItem.create(bookId2, "Clean Architecture", 1, Money.brl(BigDecimal.valueOf(59.90)));
+        cart.addItem(item1);
+        cart.addItem(item2);
+
+        var order = Order.createFromCart(cart);
+        var calculatedSubtotal = order.calculateSubtotal();
+
+        assertEquals(0, new BigDecimal("159.70").compareTo(calculatedSubtotal.getAmount()));
+        assertEquals("BRL", calculatedSubtotal.getCurrency());
+        assertEquals(order.getSubtotal().getAmount(), calculatedSubtotal.getAmount());
+    }
+
+    @Test
+    @DisplayName("Deve calcular total corretamente a partir dos items")
+    void shouldCalculateTotalFromItems() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 3, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        var calculatedTotal = order.calculateTotal();
+
+        assertEquals(0, new BigDecimal("149.70").compareTo(calculatedTotal.getAmount()));
+        assertEquals("BRL", calculatedTotal.getCurrency());
+        assertEquals(order.getTotal().getAmount(), calculatedTotal.getAmount());
+    }
+
+    @Test
+    @DisplayName("Deve garantir que total seja sempre maior que zero")
+    void shouldEnsureTotalIsGreaterThanZero() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+
+        assertTrue(order.getTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(order.calculateTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
+    }
 }
 
