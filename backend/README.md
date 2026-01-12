@@ -446,6 +446,112 @@ Representa um item dentro do pedido (completamente imutável).
 
 ---
 
+## 📦 Domínio de Frete
+
+### Aggregate Root: ShippingQuote
+
+Representa uma cotação de frete no sistema.
+
+**Atributos:**
+- `id: ShippingQuoteId` - Identificador único da cotação
+- `cartId: CartId` - Associação obrigatória com carrinho
+- `items: List<ShippingItem>` - Itens com peso e preço congelados
+- `options: List<ShippingOption>` - Opções de frete disponíveis
+- `createdAt: LocalDateTime` - Data de criação
+- `expiresAt: LocalDateTime` - Data de expiração (24h após criação)
+- `status: ShippingQuoteStatus` - Status da cotação
+- `selectedServiceCode: String` - Código do serviço selecionado (nullable)
+
+**ShippingQuoteStatus:**
+- `CREATED` - Cotação criada, aguardando seleção
+- `SELECTED` - Opção de frete selecionada
+- `EXPIRED` - Cotação expirada, não pode ser reutilizada
+
+**Regras de Negócio:**
+- Uma cotação pertence a um único carrinho
+- Cotação inicia com status CREATED
+- Expira automaticamente após 24 horas
+- Cotação expirada não pode ter opção selecionada
+- Cotação selecionada não pode ser alterada
+- Cotação selecionada não pode ser expirada
+- Deve ter ao menos um item e uma opção
+
+**Métodos:**
+- `ShippingQuote.create(cartId, items, options)` - Cria nova cotação
+- `ShippingQuote.reconstitute(...)` - Reconstitui cotação existente
+- `selectOption(serviceCode)` - Seleciona opção de frete (CREATED → SELECTED)
+- `expire()` - Marca como expirada (CREATED → EXPIRED)
+- `getSelectedOption()` - Retorna opção selecionada
+- `isExpired()` - Verifica se expirada (status ou tempo)
+- `isSelected()` - Verifica se selecionada
+- `isCreated()` - Verifica se criada
+
+### Value Object: ShippingItem
+
+Representa um item de frete com dados congelados (snapshot).
+
+**Atributos:**
+- `bookId: BookId` - Referência ao livro
+- `bookTitle: String` - Título do livro (congelado)
+- `quantity: int` - Quantidade
+- `weight: Weight` - Peso unitário (congelado)
+- `unitPrice: Money` - Preço unitário (congelado)
+
+**Regras de Negócio:**
+- Quantidade mínima: 1
+- Peso e preço obrigatórios
+- Completamente imutável (snapshot)
+- Não consulta catálogo após criação
+- Item não possui identidade própria
+
+**Métodos:**
+- `ShippingItem.create(...)` - Cria item
+- `getTotalWeight()` - Calcula peso total (weight × quantity)
+
+### Value Object: ShippingOption
+
+Representa uma opção de frete retornada pelo provedor.
+
+**Atributos:**
+- `serviceCode: String` - Código do serviço (PAC, SEDEX, etc)
+- `serviceName: String` - Nome do serviço
+- `price: Money` - Valor do frete
+- `deliveryDays: int` - Prazo de entrega em dias
+- `company: String` - Transportadora (Correios, Jadlog, etc)
+- `externalReference: String` - ID do provedor (Melhor Envio)
+
+**Regras de Negócio:**
+- Todos os campos obrigatórios
+- Prazo de entrega maior que zero
+- Opções são somente leitura após cálculo
+- Apenas opções existentes podem ser selecionadas
+
+**Métodos:**
+- `ShippingOption.create(...)` - Cria opção
+
+### Model: ShippingPayload
+
+Armazena payload bruto da API (auditoria).
+
+**Atributos:**
+- `id: String` - Identificador único
+- `shippingQuoteId: ShippingQuoteId` - Associação com cotação
+- `provider: ShippingProvider` - Provedor (MELHOR_ENVIO)
+- `rawPayload: String` - JSON bruto da resposta
+- `createdAt: LocalDateTime` - Data de criação
+
+**Regras de Negócio:**
+- Payload não é usado no domínio
+- Uso exclusivo para auditoria e debug
+- Persistência independente das opções normalizadas
+- Um payload por cotação
+
+**Métodos:**
+- `ShippingPayload.create(...)` - Cria payload
+- `ShippingPayload.reconstitute(...)` - Reconstitui payload
+
+---
+
 ## 🚀 Pré-requisitos
 - **Maven 3.8+**
 - **Docker & Docker Compose**
@@ -638,6 +744,64 @@ unit_price_currency VARCHAR(3) NOT NULL
 FOREIGN KEY (order_id) REFERENCES tb_orders(id) ON DELETE CASCADE
 INDEX idx_order_items_order_id (order_id)
 INDEX idx_order_items_book_id (book_id)
+```
+
+**tb_shipping_quotes** (cotações de frete)
+```sql
+id VARCHAR(36) PRIMARY KEY
+cart_id VARCHAR(36) NOT NULL
+status VARCHAR(20) NOT NULL
+created_at TIMESTAMP NOT NULL
+expires_at TIMESTAMP NOT NULL
+selected_service_code VARCHAR(50)
+INDEX idx_shipping_quotes_cart_id (cart_id)
+INDEX idx_shipping_quotes_status (status)
+INDEX idx_shipping_quotes_created_at (created_at)
+```
+
+**tb_shipping_items** (itens da cotação de frete)
+```sql
+id VARCHAR(36) PRIMARY KEY
+shipping_quote_id VARCHAR(36) NOT NULL
+book_id VARCHAR(36) NOT NULL
+book_title VARCHAR(300) NOT NULL
+quantity INT NOT NULL
+weight_value DECIMAL(10,3) NOT NULL
+weight_unit VARCHAR(20) NOT NULL
+unit_price_amount DECIMAL(10,2) NOT NULL
+unit_price_currency VARCHAR(3) NOT NULL
+FOREIGN KEY (shipping_quote_id) REFERENCES tb_shipping_quotes(id) ON DELETE CASCADE
+INDEX idx_shipping_items_quote_id (shipping_quote_id)
+INDEX idx_shipping_items_book_id (book_id)
+```
+
+**tb_shipping_options** (opções de frete)
+```sql
+id VARCHAR(36) PRIMARY KEY
+shipping_quote_id VARCHAR(36) NOT NULL
+service_code VARCHAR(50) NOT NULL
+service_name VARCHAR(100) NOT NULL
+price_amount DECIMAL(10,2) NOT NULL
+price_currency VARCHAR(3) NOT NULL
+delivery_days INT NOT NULL
+company VARCHAR(100) NOT NULL
+external_reference VARCHAR(100) NOT NULL
+FOREIGN KEY (shipping_quote_id) REFERENCES tb_shipping_quotes(id) ON DELETE CASCADE
+INDEX idx_shipping_options_quote_id (shipping_quote_id)
+INDEX idx_shipping_options_service_code (service_code)
+```
+
+**tb_shipping_payloads** (auditoria de payloads)
+```sql
+id VARCHAR(36) PRIMARY KEY
+shipping_quote_id VARCHAR(36) NOT NULL
+provider VARCHAR(50) NOT NULL
+raw_payload JSON NOT NULL
+created_at TIMESTAMP NOT NULL
+FOREIGN KEY (shipping_quote_id) REFERENCES tb_shipping_quotes(id) ON DELETE CASCADE
+INDEX idx_shipping_payloads_quote_id (shipping_quote_id)
+INDEX idx_shipping_payloads_provider (provider)
+INDEX idx_shipping_payloads_created_at (created_at)
 ```
 
 ### Conexão Manual
@@ -1649,6 +1813,147 @@ backend/
 
 ---
 
+### 📦 Story #23: Modelar Cotação de Frete (ShippingQuote)
+
+**Objetivo:** Representar uma cotação de frete no domínio para permitir cálculo, persistência, auditoria e seleção.
+
+**Implementado:**
+
+#### Aggregate Root ShippingQuote
+- ✅ `ShippingQuoteId` - Identidade tipada
+- ✅ Associação obrigatória com `CartId`
+- ✅ Status controlado: CREATED, SELECTED, EXPIRED
+- ✅ Data de criação e expiração (24h)
+- ✅ Lista de itens (ShippingItem)
+- ✅ Lista de opções (ShippingOption)
+- ✅ Seleção de opção de frete
+
+#### Regras de Negócio
+- ✅ Uma cotação pertence a um único carrinho
+- ✅ Cotação inicia com status CREATED
+- ✅ Cotação expirada não pode ser reutilizada
+- ✅ Cotação selecionada não pode ser alterada
+- ✅ Apenas opções existentes podem ser selecionadas
+
+#### Testes
+- ✅ 14 testes unitários no ShippingQuoteTest
+- ✅ Cobertura completa de cenários
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 📋 Story #24: Congelar Dados dos Itens (ShippingItem)
+
+**Objetivo:** Garantir consistência dos dados de frete mesmo que o catálogo mude posteriormente.
+
+**Implementado:**
+
+#### Value Object ShippingItem
+- ✅ Contém: bookId, bookTitle, quantity, weight, unitPrice
+- ✅ Peso e preço congelados no momento da cotação
+- ✅ Não consulta catálogo após criação
+- ✅ Completamente imutável
+
+#### Regras de Negócio
+- ✅ Quantidade mínima: 1
+- ✅ Peso e preço obrigatórios
+- ✅ Item não possui identidade própria fora da cotação
+- ✅ Reuso de Weight e Money
+
+#### Testes
+- ✅ 7 testes unitários no ShippingItemTest
+- ✅ Validações completas
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🚚 Story #25: Representar Opções de Frete (ShippingOption)
+
+**Objetivo:** Representar opções de frete retornadas pelo Melhor Envio para escolha explícita.
+
+**Implementado:**
+
+#### Value Object ShippingOption
+- ✅ Contém: transportadora, serviceCode, serviceName, price, deliveryDays, externalReference
+- ✅ Opções associadas à cotação
+- ✅ Somente leitura após cálculo
+
+#### Regras de Negócio
+- ✅ Uma cotação pode ter múltiplas opções
+- ✅ Opções são imutáveis
+- ✅ Apenas opções existentes podem ser selecionadas
+- ✅ Moeda obrigatória (via Money)
+
+#### Observações Técnicas
+- ✅ Normaliza dados do Melhor Envio
+- ✅ Domínio não conhece formato externo
+- ✅ ExternalReference para rastreabilidade
+
+#### Testes
+- ✅ 7 testes unitários no ShippingOptionTest
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 💾 Story #26: Persistir Cotações de Frete
+
+**Objetivo:** Permitir rastreabilidade, auditoria e recuperação posterior de cotações.
+
+**Implementado:**
+
+#### Tabelas Criadas
+- ✅ `tb_shipping_quotes` - Cotações
+- ✅ `tb_shipping_items` - Itens da cotação
+- ✅ `tb_shipping_options` - Opções de frete
+
+#### Relacionamentos
+- ✅ ShippingQuote 1→N ShippingItem (OneToMany)
+- ✅ ShippingQuote 1→N ShippingOption (OneToMany)
+- ✅ Cascade DELETE configurado
+- ✅ Índices em cart_id e status
+
+#### Persistência
+- ✅ Migration V6 criada
+- ✅ Entities JPA completas
+- ✅ ShippingQuoteJpaRepository com findByCartId
+- ✅ ShippingQuoteMapper (MapStruct)
+- ✅ ShippingQuoteRepository (interface domínio)
+- ✅ ShippingQuoteRepositoryAdapter
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 📝 Story #27: Armazenar Payload Bruto do Melhor Envio
+
+**Objetivo:** Permitir auditoria, debug e rastreabilidade de cálculos com payload original da API.
+
+**Implementado:**
+
+#### Tabela tb_shipping_payloads
+- ✅ Payload salvo em formato JSON
+- ✅ Associação com ShippingQuote
+- ✅ Provider identificado (MELHOR_ENVIO)
+- ✅ Timestamp de criação
+
+#### Model ShippingPayload
+- ✅ ShippingProvider enum (MELHOR_ENVIO)
+- ✅ Armazena JSON bruto da resposta
+- ✅ Persistência independente das opções normalizadas
+
+#### Observações Técnicas
+- ✅ Payload não é usado no domínio
+- ✅ Uso exclusivo para auditoria
+- ✅ Migration V7 criada
+- ✅ ShippingPayloadRepository implementado
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -1740,8 +2045,9 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 12 Janeiro 2026  
-**Stories Implementadas:** 22/22 ✅  
-**Endpoints Disponíveis:** 22
+**Stories Implementadas:** 27/27 ✅  
+**Endpoints Disponíveis:** 22  
+**Tabelas no Banco:** 12
 
 ---
 
@@ -1780,11 +2086,19 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - ✅ Endpoints de pedido disponibilizados
 - ✅ Base pronta para integração com gateway
 
+### Sprint 6: Frete - Modelagem e Persistência (Stories #23-27) ✅
+- ✅ Domínio de frete completo (ShippingQuote)
+- ✅ ShippingItem com dados congelados
+- ✅ ShippingOption normalizada
+- ✅ Persistência de cotações (4 tabelas)
+- ✅ Armazenamento de payload bruto (auditoria)
+- ✅ Base pronta para integração Melhor Envio
+
 ### Próximas Sprints 🔜
-- Sprint 6: Gestão Administrativa de Pedidos (listagem, cancelamento admin, relatórios)
-- Sprint 7: Integração com Gateway de Pagamento (Mercado Pago)
-- Sprint 8: Cálculo de Frete
-- Sprint 9: Autenticação e Autorização (JWT)
-- Sprint 10: Notificações e E-mail
-- Sprint 11: Dashboard e Analytics Avançado
+- Sprint 7: Cálculo de Frete com Melhor Envio (integração API)
+- Sprint 8: Seleção de Frete no Checkout
+- Sprint 9: Integração com Gateway de Pagamento (Mercado Pago)
+- Sprint 10: Autenticação e Autorização (JWT)
+- Sprint 11: Notificações e E-mail
+- Sprint 12: Dashboard e Analytics Avançado
 
