@@ -19,7 +19,7 @@ public class CartRepositoryAdapter implements CartRepository {
 
     @Override
     public Cart save(Cart cart) {
-        var entity = mapper.toEntity(cart);
+        var entity = mapper.toEntityWithItems(cart);
         var saved = jpaRepository.save(entity);
         return mapper.toDomain(saved);
     }

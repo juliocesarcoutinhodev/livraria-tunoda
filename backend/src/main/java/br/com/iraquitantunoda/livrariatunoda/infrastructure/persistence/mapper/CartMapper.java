@@ -10,7 +10,6 @@ import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.C
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.CartItemEntity;
 import org.mapstruct.*;
 
-import java.util.List;
 
 @Mapper(
     componentModel = "spring",
@@ -20,8 +19,22 @@ import java.util.List;
 public interface CartMapper {
 
     @Mapping(target = "id", source = "id", qualifiedByName = "cartIdToString")
-    @Mapping(target = "items", source = "items", qualifiedByName = "itemsToEntities")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
+    @Mapping(target = "items", ignore = true)
     CartEntity toEntity(Cart cart);
+
+    default CartEntity toEntityWithItems(Cart cart) {
+        var entity = toEntity(cart);
+
+        var itemEntities = cart.getItems().stream()
+            .map(item -> itemDomainToEntity(item, entity))
+            .toList();
+
+        entity.setItems(itemEntities);
+        return entity;
+    }
 
     default Cart toDomain(CartEntity entity) {
         var items = entity.getItems().stream()
@@ -46,19 +59,13 @@ public interface CartMapper {
         return id != null ? CartId.of(id) : null;
     }
 
-    @Named("itemsToEntities")
-    default List<CartItemEntity> itemsToEntities(List<CartItem> items) {
-        return items != null
-            ? items.stream().map(this::itemDomainToEntity).toList()
-            : List.of();
-    }
-
-    default CartItemEntity itemDomainToEntity(CartItem item) {
+    default CartItemEntity itemDomainToEntity(CartItem item, CartEntity cart) {
         if (item == null) {
             return null;
         }
         var entity = new CartItemEntity();
         entity.setId(item.getId().getValue());
+        entity.setCart(cart);
         entity.setBookId(item.getBookId().getValue());
         entity.setBookTitle(item.getBookTitle());
         entity.setQuantity(item.getQuantity());
