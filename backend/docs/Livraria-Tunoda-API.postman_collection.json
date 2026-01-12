@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 18 endpoints implementados (12 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 19 endpoints implementados (13 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -307,6 +307,20 @@
 							"path": ["api", "carts"]
 						},
 						"description": "Cria um novo carrinho de compras vazio com status ACTIVE. Não requer autenticação. Retorna o identificador único do carrinho."
+					},
+					"response": []
+				},
+				{
+					"name": "Visualizar Carrinho",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/{{cart_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "{{cart_id}}"]
+						},
+						"description": "Consulta o estado atual do carrinho com todos os itens, subtotal e total. Carrinho pode estar em qualquer status e pode ser visualizado mesmo vazio."
 					},
 					"response": []
 				},

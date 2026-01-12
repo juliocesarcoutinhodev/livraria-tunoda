@@ -32,6 +32,7 @@ public interface CartDTOMapper {
     default CartItemDTO toItemDTO(CartItem item) {
         var subtotal = item.getSubtotal();
         return new CartItemDTO(
+            item.getId().getValue(),
             item.getBookId().getValue(),
             item.getBookTitle(),
             item.getQuantity(),

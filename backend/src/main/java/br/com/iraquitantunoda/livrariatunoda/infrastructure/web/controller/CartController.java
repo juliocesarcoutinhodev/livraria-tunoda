@@ -5,6 +5,7 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.AddItemToCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateCartUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.RemoveCartItemUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateCartItemUseCase;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CreateCartUseCase createCartUseCase;
+    private final GetCartUseCase getCartUseCase;
     private final AddItemToCartUseCase addItemToCartUseCase;
     private final UpdateCartItemUseCase updateCartItemUseCase;
     private final RemoveCartItemUseCase removeCartItemUseCase;
@@ -27,6 +29,12 @@ public class CartController {
     public ResponseEntity<CartResponse> createCart() {
         var response = createCartUseCase.execute();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartResponse> getCart(@PathVariable String cartId) {
+        var response = getCartUseCase.execute(cartId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{cartId}/items")
