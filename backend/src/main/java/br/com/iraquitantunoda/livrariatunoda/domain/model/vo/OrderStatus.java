@@ -18,6 +18,9 @@ public enum OrderStatus {
     DELIVERED,
 
     // Pedido cancelado
-    CANCELLED
+    CANCELLED,
+
+    // Pedido expirado (não pago a tempo)
+    EXPIRED
 }
 

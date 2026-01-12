@@ -27,7 +27,8 @@ public interface OrderMapper {
             subtotal,
             total,
             entity.getCreatedAt(),
-            entity.getStatus()
+            entity.getStatus(),
+            entity.getPaymentReference()
         );
     }
 
@@ -53,6 +54,7 @@ public interface OrderMapper {
         entity.setTotalAmount(order.getTotal().getAmount());
         entity.setTotalCurrency(order.getTotal().getCurrency());
         entity.setCreatedAt(order.getCreatedAt());
+        entity.setPaymentReference(order.getPaymentReference());
 
         var itemEntities = new ArrayList<OrderItemEntity>();
         for (var item : order.getItems()) {

@@ -24,8 +24,9 @@ public class Order {
     private final Money total;
     private final LocalDateTime createdAt;
     private OrderStatus status;
+    private String paymentReference;
 
-    private Order(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status) {
+    private Order(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status, String paymentReference) {
         validateItems(items);
         validateAmounts(subtotal, total);
 
@@ -36,6 +37,7 @@ public class Order {
         this.total = total;
         this.createdAt = createdAt;
         this.status = status;
+        this.paymentReference = paymentReference;
     }
 
     public static Order createFromCart(Cart cart) {
@@ -70,19 +72,46 @@ public class Order {
                 subtotal,
                 total,
                 LocalDateTime.now(),
-                OrderStatus.PENDING
+                OrderStatus.PENDING,
+                null
         );
     }
 
-    public static Order reconstitute(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status) {
-        return new Order(id, cartId, items, subtotal, total, createdAt, status);
+    public static Order reconstitute(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status, String paymentReference) {
+        return new Order(id, cartId, items, subtotal, total, createdAt, status, paymentReference);
+    }
+
+    public void associatePaymentReference(String reference) {
+        if (reference == null || reference.isBlank()) {
+            throw new BusinessException("Referência de pagamento não pode ser nula ou vazia");
+        }
+        if (this.paymentReference != null) {
+            throw new BusinessException("Referência de pagamento já foi associada e não pode ser alterada");
+        }
+        this.paymentReference = reference;
     }
 
     public void confirm() {
+        if (status == OrderStatus.CANCELLED) {
+            throw new BusinessException("Pedido cancelado não pode ser confirmado");
+        }
+        if (status == OrderStatus.EXPIRED) {
+            throw new BusinessException("Pedido expirado não pode ser confirmado");
+        }
         if (status != OrderStatus.PENDING) {
             throw new BusinessException("Apenas pedidos pendentes podem ser confirmados");
         }
+        if (paymentReference == null || paymentReference.isBlank()) {
+            throw new BusinessException("Pedido não pode ser confirmado sem referência de pagamento");
+        }
         this.status = OrderStatus.CONFIRMED;
+    }
+
+    public void expire() {
+        if (status != OrderStatus.PENDING) {
+            throw new BusinessException("Apenas pedidos pendentes podem expirar");
+        }
+        this.status = OrderStatus.EXPIRED;
     }
 
     public void startProcessing() {
@@ -140,12 +169,16 @@ public class Order {
         return this.status == OrderStatus.CANCELLED;
     }
 
+    public boolean isExpired() {
+        return this.status == OrderStatus.EXPIRED;
+    }
+
     public Money calculateSubtotal() {
         if (items.isEmpty()) {
             return Money.brl(java.math.BigDecimal.ZERO);
         }
 
-        var currency = items.get(0).getUnitPrice().getCurrency();
+        var currency = items.getFirst().getUnitPrice().getCurrency();
         var totalAmount = items.stream()
                 .map(OrderItem::getSubtotal)
                 .map(Money::getAmount)

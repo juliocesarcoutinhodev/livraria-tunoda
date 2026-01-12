@@ -269,5 +269,161 @@ class OrderTest {
         assertTrue(order.getTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
         assertTrue(order.calculateTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
     }
+
+    @Test
+    @DisplayName("Deve expirar pedido pendente")
+    void shouldExpirePendingOrder() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.expire();
+
+        assertEquals(OrderStatus.EXPIRED, order.getStatus());
+        assertTrue(order.isExpired());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar expirar pedido que não está pendente")
+    void shouldThrowExceptionWhenExpiringNonPendingOrder() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.confirm();
+
+        var exception = assertThrows(BusinessException.class, order::expire);
+
+        assertEquals("Apenas pedidos pendentes podem expirar", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar confirmar pedido cancelado")
+    void shouldThrowExceptionWhenConfirmingCancelledOrder() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.cancel();
+
+        var exception = assertThrows(BusinessException.class, order::confirm);
+
+        assertEquals("Pedido cancelado não pode ser confirmado", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar confirmar pedido expirado")
+    void shouldThrowExceptionWhenConfirmingExpiredOrder() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.expire();
+
+        var exception = assertThrows(BusinessException.class, order::confirm);
+
+        assertEquals("Pedido expirado não pode ser confirmado", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve associar referência de pagamento ao pedido")
+    void shouldAssociatePaymentReference() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        var paymentReference = "MP-123456789";
+
+        order.associatePaymentReference(paymentReference);
+
+        assertEquals(paymentReference, order.getPaymentReference());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar associar referência nula")
+    void shouldThrowExceptionWhenAssociatingNullReference() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+
+        var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference(null));
+
+        assertEquals("Referência de pagamento não pode ser nula ou vazia", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar associar referência vazia")
+    void shouldThrowExceptionWhenAssociatingBlankReference() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+
+        var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference("   "));
+
+        assertEquals("Referência de pagamento não pode ser nula ou vazia", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar associar referência mais de uma vez")
+    void shouldThrowExceptionWhenAssociatingReferenceMultipleTimes() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-123456789");
+
+        var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference("MP-987654321"));
+
+        assertEquals("Referência de pagamento já foi associada e não pode ser alterada", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve confirmar pedido que possui referência de pagamento")
+    void shouldConfirmOrderWithPaymentReference() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+        order.associatePaymentReference("MP-123456789");
+        order.confirm();
+
+        assertEquals(OrderStatus.CONFIRMED, order.getStatus());
+        assertTrue(order.isConfirmed());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar confirmar pedido sem referência de pagamento")
+    void shouldThrowExceptionWhenConfirmingOrderWithoutPaymentReference() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+
+        var order = Order.createFromCart(cart);
+
+        var exception = assertThrows(BusinessException.class, order::confirm);
+
+        assertEquals("Pedido não pode ser confirmado sem referência de pagamento", exception.getMessage());
+    }
 }
 
