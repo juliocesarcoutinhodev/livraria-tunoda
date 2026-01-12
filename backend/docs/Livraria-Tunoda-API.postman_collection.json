@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 14 endpoints implementados (9 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com todos os 15 endpoints implementados (10 stories concluídas)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -294,6 +294,26 @@
 			"description": "Endpoints administrativos para gerenciamento de livros"
 		},
 		{
+			"name": "Carrinho de Compras",
+			"item": [
+				{
+					"name": "Criar Carrinho",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts"]
+						},
+						"description": "Cria um novo carrinho de compras vazio com status ACTIVE. Não requer autenticação. Retorna o identificador único do carrinho."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints públicos para gerenciamento do carrinho de compras"
+		},
+		{
 			"name": "Health Check",
 			"item": [
 				{
@@ -348,6 +368,11 @@
 		{
 			"key": "book_id",
 			"value": "cole-aqui-o-id-do-livro-criado",
+			"type": "string"
+		},
+		{
+			"key": "cart_id",
+			"value": "cole-aqui-o-id-do-carrinho-criado",
 			"type": "string"
 		}
 	]

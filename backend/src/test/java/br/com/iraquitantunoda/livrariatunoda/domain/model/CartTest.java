@@ -31,13 +31,13 @@ class CartTest {
     void shouldAddItemToCart() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 2, Money.brl(BigDecimal.valueOf(49.90)));
 
         cart.addItem(item);
 
         assertEquals(1, cart.getItems().size());
-        assertEquals(bookId, cart.getItems().get(0).getBookId());
-        assertEquals(2, cart.getItems().get(0).getQuantity());
+        assertEquals(bookId, cart.getItems().getFirst().getBookId());
+        assertEquals(2, cart.getItems().getFirst().getQuantity());
     }
 
     @Test
@@ -45,14 +45,14 @@ class CartTest {
     void shouldIncrementQuantityWhenAddingSameBook() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item1 = CartItem.of(bookId, 2, Money.brl(BigDecimal.valueOf(49.90)));
-        var item2 = CartItem.of(bookId, 3, Money.brl(BigDecimal.valueOf(49.90)));
+        var item1 = CartItem.create(bookId, "Livro de Teste", 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item2 = CartItem.create(bookId, "Livro de Teste", 3, Money.brl(BigDecimal.valueOf(49.90)));
 
         cart.addItem(item1);
         cart.addItem(item2);
 
         assertEquals(1, cart.getItems().size());
-        assertEquals(5, cart.getItems().get(0).getQuantity());
+        assertEquals(5, cart.getItems().getFirst().getQuantity());
     }
 
     @Test
@@ -60,13 +60,13 @@ class CartTest {
     void shouldUpdateExistingItemQuantity() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 2, Money.brl(BigDecimal.valueOf(49.90)));
 
         cart.addItem(item);
         cart.updateItem(bookId, 5);
 
         assertEquals(1, cart.getItems().size());
-        assertEquals(5, cart.getItems().get(0).getQuantity());
+        assertEquals(5, cart.getItems().getFirst().getQuantity());
     }
 
     @Test
@@ -87,7 +87,7 @@ class CartTest {
     void shouldRemoveItemFromCart() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 2, Money.brl(BigDecimal.valueOf(49.90)));
 
         cart.addItem(item);
         cart.removeItem(bookId);
@@ -114,8 +114,8 @@ class CartTest {
         var cart = Cart.create();
         var bookId1 = BookId.generate();
         var bookId2 = BookId.generate();
-        var item1 = CartItem.of(bookId1, 2, Money.brl(BigDecimal.valueOf(49.90)));
-        var item2 = CartItem.of(bookId2, 1, Money.brl(BigDecimal.valueOf(29.90)));
+        var item1 = CartItem.create(bookId1, "Livro 1", 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item2 = CartItem.create(bookId2, "Livro 2", 1, Money.brl(BigDecimal.valueOf(29.90)));
 
         cart.addItem(item1);
         cart.addItem(item2);
@@ -131,7 +131,7 @@ class CartTest {
     void shouldCalculateTotalCorrectly() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 3, Money.brl(BigDecimal.valueOf(19.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 3, Money.brl(BigDecimal.valueOf(19.90)));
 
         cart.addItem(item);
 
@@ -165,7 +165,7 @@ class CartTest {
     void cartWithItemsShouldBeValid() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
 
         cart.addItem(item);
 
@@ -188,7 +188,7 @@ class CartTest {
     void shouldMarkCartAsConverted() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
         cart.markAsConverted();
@@ -202,9 +202,7 @@ class CartTest {
     void shouldNotAllowConvertingEmptyCart() {
         var cart = Cart.create();
 
-        var exception = assertThrows(BusinessException.class, () -> {
-            cart.markAsConverted();
-        });
+        var exception = assertThrows(BusinessException.class, cart::markAsConverted);
 
         assertEquals("Carrinho vazio não pode ser convertido", exception.getMessage());
     }
@@ -215,7 +213,7 @@ class CartTest {
         var cart = Cart.create();
         cart.markAsExpired();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
 
         var exception = assertThrows(BusinessException.class, () -> {
             cart.addItem(item);
@@ -229,7 +227,7 @@ class CartTest {
     void shouldNotAllowModifyingConvertedCart() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
         cart.markAsConverted();
 
@@ -245,13 +243,11 @@ class CartTest {
     void shouldNotAllowConvertingAlreadyConvertedCart() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
         cart.markAsConverted();
 
-        var exception = assertThrows(BusinessException.class, () -> {
-            cart.markAsConverted();
-        });
+        var exception = assertThrows(BusinessException.class, cart::markAsConverted);
 
         assertEquals("Carrinho já foi convertido em pedido", exception.getMessage());
     }
@@ -261,13 +257,11 @@ class CartTest {
     void shouldNotAllowExpiringConvertedCart() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
         cart.markAsConverted();
 
-        var exception = assertThrows(BusinessException.class, () -> {
-            cart.markAsExpired();
-        });
+        var exception = assertThrows(BusinessException.class, cart::markAsExpired);
 
         assertEquals("Carrinho já foi convertido em pedido", exception.getMessage());
     }
@@ -277,7 +271,7 @@ class CartTest {
     void expiredCartShouldNotBeValid() {
         var cart = Cart.create();
         var bookId = BookId.generate();
-        var item = CartItem.of(bookId, 1, Money.brl(BigDecimal.valueOf(49.90)));
+        var item = CartItem.create(bookId, "Livro de Teste", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
         cart.markAsExpired();
 

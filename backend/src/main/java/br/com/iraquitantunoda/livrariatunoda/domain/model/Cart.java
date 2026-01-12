@@ -62,9 +62,7 @@ public class Cart {
 
         var existingItem = findItemByBookId(item.getBookId());
         if (existingItem != null) {
-            items.remove(existingItem);
-            var newQuantity = existingItem.getQuantity() + item.getQuantity();
-            items.add(CartItem.of(item.getBookId(), newQuantity, item.getUnitPrice()));
+            existingItem.incrementQuantity(item.getQuantity());
         } else {
             items.add(item);
         }
@@ -84,12 +82,7 @@ public class Cart {
             throw new BusinessException("Item não encontrado no carrinho");
         }
 
-        if (quantity <= 0) {
-            throw new BusinessException("A quantidade deve ser maior que zero");
-        }
-
-        items.remove(existingItem);
-        items.add(CartItem.of(bookId, quantity, existingItem.getUnitPrice()));
+        existingItem.updateQuantity(quantity);
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -175,7 +168,7 @@ public class Cart {
 
     private CartItem findItemByBookId(BookId bookId) {
         return items.stream()
-            .filter(item -> item.getBookId().equals(bookId))
+            .filter(item -> item.isForBook(bookId))
             .findFirst()
             .orElse(null);
     }
