@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com todos os 22 endpoints implementados (16 stories concluídas)",
+		"description": "Collection completa da API REST da Livraria Tunoda com 23 endpoints implementados",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -429,6 +429,29 @@
 							"path": ["api", "orders", "{{order_id}}"]
 						},
 						"description": "Consulta um pedido específico pelo seu identificador. Retorna todos os detalhes: id, status, itens, subtotal, total e data de criação. Pedidos cancelados podem ser consultados."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Pagamento para Pedido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"paymentMethod\": \"PIX\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/orders/{{order_id}}/payments",
+							"host": ["{{base_url}}"],
+							"path": ["api", "orders", "{{order_id}}", "payments"]
+						},
+						"description": "Cria um pagamento para um pedido. Pedido deve existir e estar com status PENDING. Valor do pagamento será igual ao total do pedido. Métodos aceitos: PIX, CREDIT_CARD, DEBIT_CARD, BOLETO, BANK_TRANSFER. Pagamento inicia com status CREATED."
 					},
 					"response": []
 				}
