@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "livraria-tunoda-api",
     "name": "Livraria Tunoda API",
-    "description": "Collection completa da API REST da Livraria Tunoda com 30 endpoints implementados (incluindo refresh token)",
+    "description": "Collection completa da API REST da Livraria Tunoda com 31 endpoints implementados (incluindo /me)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "livraria-tunoda"
   },
@@ -1071,6 +1071,71 @@
               ]
             },
             "description": "Renova tokens de autenticação usando o refresh token. Implementa TOKEN ROTATION: o refresh token antigo é invalidado e um novo é gerado. Validações: refresh token deve existir, não estar expirado, não estar revogado, e o usuário deve estar ativo. SCRIPT AUTOMÁTICO: Os novos tokens são salvos automaticamente nas variáveis."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User (Me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Valida resposta do endpoint /me",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    ",
+                  "    console.log(\"Usuario autenticado:\");",
+                  "    console.log(\"- ID: \" + jsonData.id);",
+                  "    console.log(\"- Email: \" + jsonData.email);",
+                  "    console.log(\"- Role: \" + jsonData.role);",
+                  "    ",
+                  "    pm.test(\"Usuario retornado com sucesso\", function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"ID do usuario presente\", function () {",
+                  "        pm.expect(jsonData.id).to.not.be.empty;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Email do usuario presente\", function () {",
+                  "        pm.expect(jsonData.email).to.not.be.empty;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Role do usuario presente\", function () {",
+                  "        pm.expect(jsonData.role).to.not.be.empty;",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    console.log(\"Nao autenticado - token invalido ou expirado\");",
+                  "} else {",
+                  "    console.log(\"Erro ao buscar usuario: \" + pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "me"
+              ]
+            },
+            "description": "Retorna dados do usuário autenticado extraídos do token JWT. ENDPOINT PROTEGIDO: requer header Authorization com access token válido. Não consulta banco de dados - dados vêm exclusivamente do token. Retorna: id, email e role."
           },
           "response": []
         }

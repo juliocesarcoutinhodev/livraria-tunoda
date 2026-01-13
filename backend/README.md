@@ -917,6 +917,25 @@ IMPORTANTE: Token Rotation aplicado
 - Tentativas com token antigo serão rejeitadas
 ```
 
+**Endpoint de Dados do Usuário:**
+```http
+GET /api/user/me
+Authorization: Bearer {accessToken}
+
+Response: 200 OK
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "admin@livraria.com",
+  "role": "ADMIN"
+}
+
+IMPORTANTE: Endpoint Protegido
+- Requer header Authorization com token válido
+- Token expirado retorna 401 Unauthorized
+- Dados extraídos exclusivamente do token JWT
+- Nenhuma consulta ao banco de dados
+```
+
 **Configuração JWT:**
 ```yaml
 app:
@@ -2970,12 +2989,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 45/45 ✅  
-**Endpoints Disponíveis:** 30 (incluindo /api/auth/refresh)  
+**Stories Implementadas:** 46/46 ✅  
+**Endpoints Disponíveis:** 31 (incluindo /api/user/me)  
 **Tabelas no Banco:** 15 (incluindo tb_users e tb_refresh_tokens)  
 **Migrations:** 12 (V1 a V12)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Refresh Token com Token Rotation ✅
+**Novidade:** Endpoint /me com JWT Filter ✅
 
 ---
 
@@ -3138,6 +3157,19 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Mensagens de erro específicas
 - ✅ Token rotation obrigatório (segurança)
 
+- ✅ Story #46: Recuperar dados do usuário autenticado
+- ✅ Endpoint GET /api/user/me implementado (protegido)
+- ✅ JwtAuthenticationFilter criado
+- ✅ Extração de userId, email e role do token JWT
+- ✅ Dados retornados sem consulta ao banco
+- ✅ CurrentUserResponse DTO específico
+- ✅ GetCurrentUserUseCase independente
+- ✅ SecurityConfiguration com endpoints protegidos
+- ✅ Contexto de segurança do Spring Security
+- ✅ Logs de autenticação via JWT
+- ✅ Nenhuma informação sensível exposta
+- ✅ Validação automática de token em requests
+
 **Arquitetura Implementada:**
 - ✅ User (Aggregate Root)
 - ✅ UserId (Identidade tipada)
@@ -3158,6 +3190,7 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 **Endpoints Implementados:**
 - POST `/api/auth/login` - Autentica usuário admin e retorna tokens
 - POST `/api/auth/refresh` - Renova tokens usando refresh token
+- GET `/api/user/me` - Retorna dados do usuário autenticado (protegido)
 
 **Próximas Sprints 🔜**
 - Sprint 10: JWT Filter e Autorização

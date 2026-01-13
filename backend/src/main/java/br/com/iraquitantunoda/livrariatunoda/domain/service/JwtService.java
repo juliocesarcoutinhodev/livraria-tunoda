@@ -35,6 +35,14 @@ public interface JwtService {
     UserRole extractRole(String token);
 
     /**
+     * Extrai o email do token JWT.
+     *
+     * @param token Token JWT
+     * @return Email extraido
+     */
+    String extractEmail(String token);
+
+    /**
      * Valida se o token JWT e valido.
      *
      * @param token Token JWT

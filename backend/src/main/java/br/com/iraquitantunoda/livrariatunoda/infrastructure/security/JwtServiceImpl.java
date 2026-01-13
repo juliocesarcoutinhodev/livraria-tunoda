@@ -75,6 +75,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public String extractEmail(String token) {
+        var claims = extractAllClaims(token);
+        return claims.get("email", String.class);
+    }
+
+    @Override
     public boolean validateToken(String token) {
         try {
             extractAllClaims(token);
