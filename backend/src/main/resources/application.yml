@@ -20,3 +20,14 @@ management:
   endpoint:
     health:
       show-details: never  # segurança - não expor detalhes por padrão
+
+melhor-envio:
+  base-url: https://sandbox.melhorenvio.com.br
+  token: ${MELHOR_ENVIO_TOKEN:your-token-here}
+  from-postal-code: ${MELHOR_ENVIO_FROM_CEP:01310-100}
+  timeout-seconds: 10
+  max-retries: 2
+  default-width: 15
+  default-height: 2
+  default-length: 20
+

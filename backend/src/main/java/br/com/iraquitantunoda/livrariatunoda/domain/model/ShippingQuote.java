@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -34,8 +36,8 @@ public class ShippingQuote {
 
         this.id = id;
         this.cartId = cartId;
-        this.items = List.copyOf(items);
-        this.options = List.copyOf(options);
+        this.items = new ArrayList<>(items);
+        this.options = new ArrayList<>(options);
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.status = status;
@@ -71,6 +73,9 @@ public class ShippingQuote {
         if (status == ShippingQuoteStatus.SELECTED) {
             throw new BusinessException("Cotação já possui opção selecionada e não pode ser alterada");
         }
+        if (status != ShippingQuoteStatus.CALCULATED && status != ShippingQuoteStatus.CREATED) {
+            throw new BusinessException("Cotação deve estar calculada para selecionar opção");
+        }
         if (!hasOption(serviceCode)) {
             throw new BusinessException("Serviço não encontrado nas opções disponíveis");
         }
@@ -86,6 +91,19 @@ public class ShippingQuote {
         this.status = ShippingQuoteStatus.EXPIRED;
     }
 
+    public void updateCalculatedOptions(List<ShippingOption> calculatedOptions) {
+        if (status != ShippingQuoteStatus.CREATED) {
+            throw new BusinessException("Apenas cotações com status CREATED podem ser calculadas");
+        }
+        if (calculatedOptions == null || calculatedOptions.isEmpty()) {
+            throw new BusinessException("Opções calculadas não podem estar vazias");
+        }
+
+        this.options.clear();
+        this.options.addAll(calculatedOptions);
+        this.status = ShippingQuoteStatus.CALCULATED;
+    }
+
     public boolean isExpired() {
         return status == ShippingQuoteStatus.EXPIRED || LocalDateTime.now().isAfter(expiresAt);
     }
@@ -96,6 +114,10 @@ public class ShippingQuote {
 
     public boolean isCreated() {
         return status == ShippingQuoteStatus.CREATED;
+    }
+
+    public boolean isCalculated() {
+        return status == ShippingQuoteStatus.CALCULATED;
     }
 
     public ShippingOption getSelectedOption() {
@@ -129,6 +151,16 @@ public class ShippingQuote {
         if (options == null || options.isEmpty()) {
             throw new BusinessException("Cotação deve ter ao menos uma opção de frete");
         }
+    }
+
+    // Sobrescreve getter do Lombok para retornar lista imutável
+    public List<ShippingItem> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
+    // Sobrescreve getter do Lombok para retornar lista imutável
+    public List<ShippingOption> getOptions() {
+        return Collections.unmodifiableList(options);
     }
 }
 
