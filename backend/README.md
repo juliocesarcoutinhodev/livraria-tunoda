@@ -985,6 +985,94 @@ INDEX idx_refresh_tokens_expires_at
 - ✅ Limpeza de tokens expirados
 - ✅ Zero dependência de Spring no domínio
 
+### Autorização e Controle de Acesso
+
+**Configuração Centralizada de Segurança**
+
+Todas as regras de autorização estão centralizadas em `SecurityConfiguration`:
+
+```java
+// Endpoints publicos (sem autenticacao)
+/api/auth/**           → Login, refresh token
+/api/public/**         → Catalogo publico de livros
+/api/webhooks/**       → Webhooks Mercado Pago
+/api/v1/actuator/**    → Health check
+/api/carts/**          → Carrinho de compras
+/api/orders/**         → Pedidos
+/api/payments/**       → Pagamentos
+/api/shipping/**       → Calculo de frete
+
+// Endpoints autenticados (requer token valido)
+/api/user/**           → Dados do usuario autenticado
+
+// Endpoints administrativos (requer ROLE_ADMIN)
+/api/admin/**          → CRUD de autores e livros
+
+// Qualquer outro endpoint
+anyRequest()           → Negado por padrao (seguranca)
+```
+
+**Respostas de Erro Padronizadas:**
+
+**401 Unauthorized** (não autenticado):
+```json
+{
+  "timestamp": "2026-01-13T10:00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Autenticacao necessaria. Por favor, faca login",
+  "path": "/api/user/me"
+}
+```
+
+**403 Forbidden** (não autorizado):
+```json
+{
+  "timestamp": "2026-01-13T10:00:00",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Acesso negado. Voce nao tem permissao para acessar este recurso",
+  "path": "/api/admin/books"
+}
+```
+
+**Handlers Customizados:**
+- `CustomAuthenticationEntryPoint` - Trata 401 (não autenticado)
+- `CustomAccessDeniedHandler` - Trata 403 (acesso negado)
+- Respostas JSON padronizadas
+- Logs de tentativas não autorizadas
+
+**Fluxo de Autorização:**
+```
+1. Request chega ao servidor
+   ↓
+2. JwtAuthenticationFilter intercepta
+   - Extrai token do header
+   - Valida assinatura e expiração
+   - Extrai userId e role
+   - Define no SecurityContext
+   ↓
+3. Spring Security verifica regras
+   - Endpoint é público? → Permite
+   - Endpoint requer autenticação? → Verifica token
+   - Endpoint requer ADMIN? → Verifica role
+   ↓
+4. Decisão:
+   - Permitido → Controller processa
+   - Não autenticado → 401 Unauthorized
+   - Não autorizado → 403 Forbidden
+```
+
+**Características de Segurança:**
+- ✅ Configuração centralizada (um único ponto)
+- ✅ Separação clara de rotas (pública, autenticada, admin)
+- ✅ Nenhuma regra de autorização nos controllers
+- ✅ Segurança por padrão (anyRequest().denyAll())
+- ✅ Preparado para expansão de roles (CUSTOMER, MANAGER, etc)
+- ✅ Logs de tentativas não autorizadas
+- ✅ Respostas padronizadas e informativas
+- ✅ Stateless (sem sessão no servidor)
+
 ---
 
 ## 🚀 Pré-requisitos
@@ -2989,12 +3077,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 46/46 ✅  
-**Endpoints Disponíveis:** 31 (incluindo /api/user/me)  
+**Stories Implementadas:** 47/47 ✅  
+**Endpoints Disponíveis:** 31  
 **Tabelas no Banco:** 15 (incluindo tb_users e tb_refresh_tokens)  
 **Migrations:** 12 (V1 a V12)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Endpoint /me com JWT Filter ✅
+**Novidade:** Endpoints Administrativos Protegidos ✅
 
 ---
 
@@ -3169,6 +3257,19 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Logs de autenticação via JWT
 - ✅ Nenhuma informação sensível exposta
 - ✅ Validação automática de token em requests
+
+- ✅ Story #47: Restrição de acesso a endpoints administrativos
+- ✅ SecurityConfiguration centralizada e documentada
+- ✅ Endpoints /api/admin/** protegidos com ROLE_ADMIN
+- ✅ Endpoints públicos bem definidos (/api/auth/**, /api/public/**)
+- ✅ Endpoints autenticados separados (/api/user/**)
+- ✅ CustomAccessDeniedHandler (403 Forbidden)
+- ✅ CustomAuthenticationEntryPoint (401 Unauthorized)
+- ✅ Respostas JSON padronizadas para erros
+- ✅ Logs de tentativas de acesso não autorizado
+- ✅ Separação clara entre rotas públicas e protegidas
+- ✅ anyRequest().denyAll() (segurança por padrão)
+- ✅ Preparado para expansão de papéis (roles)
 
 **Arquitetura Implementada:**
 - ✅ User (Aggregate Root)

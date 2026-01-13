@@ -1,5 +1,7 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.config;
 
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.security.CustomAccessDeniedHandler;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.security.CustomAuthenticationEntryPoint;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +17,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * Configuracao de seguranca do Spring Security.
- * Configura JWT filter e define endpoints protegidos.
+ * Centraliza todas as regras de autorizacao de endpoints.
+ * Separacao clara entre rotas publicas, autenticadas e administrativas.
+ *
+ * Estrutura de seguranca:
+ * - Rotas publicas: /api/auth/**, /api/public/**, /api/webhooks/**, /api/v1/actuator/**
+ * - Rotas autenticadas: /api/user/**
+ * - Rotas administrativas: /api/admin/** (requer ROLE_ADMIN)
+ * - Outras rotas: /api/carts/**, /api/orders/**, /api/payments/**, /api/shipping/** (publicas por enquanto)
  */
 @Configuration
 @EnableWebSecurity
@@ -23,6 +32,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,17 +45,31 @@ public class SecurityConfiguration {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                // Endpoints publicos
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/v1/actuator/**").permitAll()
+                // Endpoints publicos - sem autenticacao necessaria
+                .requestMatchers("/api/auth/**").permitAll()              // Login, refresh token
+                .requestMatchers("/api/public/**").permitAll()            // Catalogo publico
+                .requestMatchers("/api/webhooks/**").permitAll()          // Webhooks Mercado Pago
+                .requestMatchers("/api/v1/actuator/**").permitAll()       // Health check
 
-                // Endpoints protegidos - requer autenticacao
-                .requestMatchers("/api/user/**").authenticated()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Endpoints administrativos - requer ROLE_ADMIN
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")        // CRUD autores e livros
 
-                // Qualquer outro endpoint requer autenticacao
-                .anyRequest().permitAll()
+                // Endpoints autenticados - requer token valido
+                .requestMatchers("/api/user/**").authenticated()          // Dados do usuario autenticado
+
+                // Endpoints de carrinho, pedidos, pagamentos e frete
+                // Publicos por enquanto - podem ser protegidos futuramente
+                .requestMatchers("/api/carts/**").permitAll()             // Carrinho de compras
+                .requestMatchers("/api/orders/**").permitAll()            // Pedidos
+                .requestMatchers("/api/payments/**").permitAll()          // Pagamentos
+                .requestMatchers("/api/shipping/**").permitAll()          // Calculo de frete
+
+                // Qualquer outro endpoint - negado por padrao (seguranca)
+                .anyRequest().denyAll()
+            )
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint)       // 401 Unauthorized
+                .accessDeniedHandler(accessDeniedHandler)                 // 403 Forbidden
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
