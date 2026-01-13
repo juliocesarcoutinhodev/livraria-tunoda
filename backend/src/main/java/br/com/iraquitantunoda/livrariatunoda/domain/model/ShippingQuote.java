@@ -21,6 +21,7 @@ public class ShippingQuote {
     @EqualsAndHashCode.Include
     private final ShippingQuoteId id;
     private final CartId cartId;
+    private final String toPostalCode;
     private final List<ShippingItem> items;
     private final List<ShippingOption> options;
     private final LocalDateTime createdAt;
@@ -28,14 +29,16 @@ public class ShippingQuote {
     private ShippingQuoteStatus status;
     private String selectedServiceCode;
 
-    private ShippingQuote(ShippingQuoteId id, CartId cartId, List<ShippingItem> items, List<ShippingOption> options,
+    private ShippingQuote(ShippingQuoteId id, CartId cartId, String toPostalCode, List<ShippingItem> items, List<ShippingOption> options,
                           LocalDateTime createdAt, LocalDateTime expiresAt, ShippingQuoteStatus status, String selectedServiceCode) {
         validateItems(items);
         validateOptions(options);
         validateCartId(cartId);
+        validateToPostalCode(toPostalCode);
 
         this.id = id;
         this.cartId = cartId;
+        this.toPostalCode = toPostalCode;
         this.items = new ArrayList<>(items);
         this.options = new ArrayList<>(options);
         this.createdAt = createdAt;
@@ -44,13 +47,14 @@ public class ShippingQuote {
         this.selectedServiceCode = selectedServiceCode;
     }
 
-    public static ShippingQuote create(CartId cartId, List<ShippingItem> items, List<ShippingOption> options) {
+    public static ShippingQuote create(CartId cartId, String toPostalCode, List<ShippingItem> items, List<ShippingOption> options) {
         var now = LocalDateTime.now();
         var expiresAt = now.plusHours(24);
 
         return new ShippingQuote(
             ShippingQuoteId.generate(),
             cartId,
+            toPostalCode,
             items,
             options,
             now,
@@ -60,10 +64,10 @@ public class ShippingQuote {
         );
     }
 
-    public static ShippingQuote reconstitute(ShippingQuoteId id, CartId cartId, List<ShippingItem> items,
+    public static ShippingQuote reconstitute(ShippingQuoteId id, CartId cartId, String toPostalCode, List<ShippingItem> items,
                                              List<ShippingOption> options, LocalDateTime createdAt,
                                              LocalDateTime expiresAt, ShippingQuoteStatus status, String selectedServiceCode) {
-        return new ShippingQuote(id, cartId, items, options, createdAt, expiresAt, status, selectedServiceCode);
+        return new ShippingQuote(id, cartId, toPostalCode, items, options, createdAt, expiresAt, status, selectedServiceCode);
     }
 
     public void selectOption(String serviceCode) {
@@ -138,6 +142,17 @@ public class ShippingQuote {
     private static void validateCartId(CartId cartId) {
         if (cartId == null) {
             throw new BusinessException("CartId é obrigatório para cotação de frete");
+        }
+    }
+
+    private static void validateToPostalCode(String toPostalCode) {
+        if (toPostalCode == null || toPostalCode.isBlank()) {
+            throw new BusinessException("CEP de destino é obrigatório");
+        }
+        // Remove hífen e valida se tem 8 dígitos
+        var cleanCep = toPostalCode.replace("-", "");
+        if (!cleanCep.matches("\\d{8}")) {
+            throw new BusinessException("CEP de destino inválido. Use o formato: 00000-000 ou 00000000");
         }
     }
 

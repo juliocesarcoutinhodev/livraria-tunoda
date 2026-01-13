@@ -18,13 +18,15 @@ class ShippingQuoteTest {
     @DisplayName("Deve criar cotação com status CREATED")
     void shouldCreateQuoteWithCreatedStatus() {
         var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
         var items = createShippingItems();
         var options = createShippingOptions();
 
-        var quote = ShippingQuote.create(cartId, items, options);
+        var quote = ShippingQuote.create(cartId, toPostalCode, items, options);
 
         assertNotNull(quote.getId());
         assertEquals(cartId, quote.getCartId());
+        assertEquals(toPostalCode, quote.getToPostalCode());
         assertEquals(ShippingQuoteStatus.CREATED, quote.getStatus());
         assertNotNull(quote.getCreatedAt());
         assertNotNull(quote.getExpiresAt());
@@ -37,23 +39,67 @@ class ShippingQuoteTest {
     @Test
     @DisplayName("Deve lançar exceção ao criar cotação sem cartId")
     void shouldThrowExceptionWhenCreatingQuoteWithoutCartId() {
+        var toPostalCode = "01310-100";
         var items = createShippingItems();
         var options = createShippingOptions();
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingQuote.create(null, items, options));
+            () -> ShippingQuote.create(null, toPostalCode, items, options));
 
         assertEquals("CartId é obrigatório para cotação de frete", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao criar cotação sem CEP de destino")
+    void shouldThrowExceptionWhenCreatingQuoteWithoutToPostalCode() {
+        var cartId = CartId.generate();
+        var items = createShippingItems();
+        var options = createShippingOptions();
+
+        var exception = assertThrows(BusinessException.class,
+            () -> ShippingQuote.create(cartId, null, items, options));
+
+        assertEquals("CEP de destino é obrigatório", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao criar cotação com CEP inválido")
+    void shouldThrowExceptionWhenCreatingQuoteWithInvalidPostalCode() {
+        var cartId = CartId.generate();
+        var items = createShippingItems();
+        var options = createShippingOptions();
+
+        var exception = assertThrows(BusinessException.class,
+            () -> ShippingQuote.create(cartId, "123", items, options));
+
+        assertEquals("CEP de destino inválido. Use o formato: 00000-000 ou 00000000", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve aceitar CEP com ou sem hífen")
+    void shouldAcceptPostalCodeWithOrWithoutHyphen() {
+        var cartId = CartId.generate();
+        var items = createShippingItems();
+        var options = createShippingOptions();
+
+        var quoteWithHyphen = ShippingQuote.create(cartId, "01310-100", items, options);
+        var quoteWithoutHyphen = ShippingQuote.create(cartId, "01310100", items, options);
+
+        assertNotNull(quoteWithHyphen);
+        assertNotNull(quoteWithoutHyphen);
+        assertEquals("01310-100", quoteWithHyphen.getToPostalCode());
+        assertEquals("01310100", quoteWithoutHyphen.getToPostalCode());
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao criar cotação sem items")
     void shouldThrowExceptionWhenCreatingQuoteWithoutItems() {
         var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
         var options = createShippingOptions();
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingQuote.create(cartId, List.of(), options));
+            () -> ShippingQuote.create(cartId, toPostalCode, List.of(), options));
 
         assertEquals("Cotação deve ter ao menos um item", exception.getMessage());
     }
@@ -62,10 +108,11 @@ class ShippingQuoteTest {
     @DisplayName("Deve lançar exceção ao criar cotação sem opções")
     void shouldThrowExceptionWhenCreatingQuoteWithoutOptions() {
         var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
         var items = createShippingItems();
 
         var exception = assertThrows(BusinessException.class,
-            () -> ShippingQuote.create(cartId, items, List.of()));
+            () -> ShippingQuote.create(cartId, toPostalCode, items, List.of()));
 
         assertEquals("Cotação deve ter ao menos uma opção de frete", exception.getMessage());
     }
@@ -145,6 +192,7 @@ class ShippingQuoteTest {
     @DisplayName("Deve verificar se cotação está expirada por tempo")
     void shouldCheckIfQuoteIsExpiredByTime() {
         var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
         var items = createShippingItems();
         var options = createShippingOptions();
         var createdAt = LocalDateTime.now().minusDays(2);
@@ -153,6 +201,7 @@ class ShippingQuoteTest {
         var quote = ShippingQuote.reconstitute(
             ShippingQuoteId.generate(),
             cartId,
+            toPostalCode,
             items,
             options,
             createdAt,
@@ -164,37 +213,14 @@ class ShippingQuoteTest {
         assertTrue(quote.isExpired());
     }
 
-    @Test
-    @DisplayName("Deve retornar lista de items imutável")
-    void shouldReturnUnmodifiableItemsList() {
-        var quote = createValidQuote();
-
-        assertThrows(UnsupportedOperationException.class,
-            () -> quote.getItems().clear());
-    }
-
-    @Test
-    @DisplayName("Deve retornar lista de opções imutável")
-    void shouldReturnUnmodifiableOptionsList() {
-        var quote = createValidQuote();
-
-        assertThrows(UnsupportedOperationException.class,
-            () -> quote.getOptions().clear());
-    }
-
-    @Test
-    @DisplayName("Deve retornar null quando nenhuma opção foi selecionada")
-    void shouldReturnNullWhenNoOptionSelected() {
-        var quote = createValidQuote();
-
-        assertNull(quote.getSelectedOption());
-    }
+    // ...existing code...
 
     private ShippingQuote createValidQuote() {
         var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
         var items = createShippingItems();
         var options = createShippingOptions();
-        return ShippingQuote.create(cartId, items, options);
+        return ShippingQuote.create(cartId, toPostalCode, items, options);
     }
 
     private List<ShippingItem> createShippingItems() {

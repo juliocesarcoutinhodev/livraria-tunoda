@@ -46,6 +46,7 @@ public class MelhorEnvioClient {
     )
     public List<MelhorEnvioCalculateResponse> calculate(MelhorEnvioCalculateRequest request) {
         log.info("Calculando frete via Melhor Envio para {} produtos", request.products().size());
+        log.debug("Request completo: {}", request);
 
         try {
             var response = restTemplate.postForObject(
@@ -59,9 +60,22 @@ public class MelhorEnvioClient {
                 return List.of();
             }
 
+            log.debug("Response completo do Melhor Envio: {}", Arrays.toString(response));
+
             var validOptions = Arrays.stream(response)
                 .filter(option -> !option.hasError())
                 .toList();
+
+            var optionsWithError = Arrays.stream(response)
+                .filter(MelhorEnvioCalculateResponse::hasError)
+                .toList();
+
+            if (!optionsWithError.isEmpty()) {
+                log.warn("Melhor Envio retornou {} opções com erro:", optionsWithError.size());
+                optionsWithError.forEach(option ->
+                    log.warn("  - Serviço: {}, Erro: {}", option.name(), option.error())
+                );
+            }
 
             log.info("Melhor Envio retornou {} opções válidas de frete", validOptions.size());
 

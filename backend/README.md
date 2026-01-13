@@ -2006,8 +2006,8 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 1. Abra o Postman
 2. Clique em **Import**
 3. Selecione o arquivo `docs/Livraria-Tunoda-API.postman_collection.json`
-4. Configure as variáveis `author_id`, `book_id`, `cart_id` e `order_id` após criar os recursos
-5. Teste todos os **22 endpoints** disponíveis
+4. Configure as variáveis `author_id`, `book_id`, `cart_id`, `order_id` e `quote_id` após criar os recursos
+5. Teste todos os **25 endpoints** disponíveis
 
 **Endpoints incluídos:**
 - 4 endpoints de catálogo público
@@ -2016,18 +2016,61 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - 1 endpoint administrativo (métricas)
 - 7 endpoints de carrinho de compras
 - 2 endpoints de pedidos
+- 3 endpoints de frete (Melhor Envio)
 - 1 endpoint de health check
 
 📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
 
 ---
 
+## 🚚 Integração Melhor Envio
+
+A aplicação está integrada com o **Melhor Envio** para cálculo de frete em tempo real.
+
+### Configuração
+
+Configure as variáveis de ambiente no arquivo `.env`:
+
+```bash
+# Melhor Envio - Sandbox
+MELHOR_ENVIO_TOKEN=seu-token-aqui
+MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
+```
+
+### Como obter o token:
+
+1. Acesse [sandbox.melhorenvio.com.br](https://sandbox.melhorenvio.com.br)
+2. Crie uma conta de testes
+3. Vá em **Configurações → Tokens**
+4. Gere um novo token com os escopos necessários
+5. Copie e cole no `.env`
+
+### Funcionalidades:
+
+✅ Cálculo de frete via API do Melhor Envio  
+✅ Suporte a múltiplas transportadoras (Correios, Jadlog, etc.)  
+✅ Peso enviado corretamente em quilogramas  
+✅ Snapshot de itens para garantir consistência  
+✅ Armazenamento de payload bruto para auditoria  
+✅ Tratamento de erros e retry automático  
+✅ Logs detalhados para debug  
+
+### Fluxo:
+
+1. Cliente cria um carrinho e adiciona livros
+2. Sistema cria cotação congelando dados dos itens
+3. API chama Melhor Envio com peso correto (0.82 kg, não 820 kg!)
+4. Sistema normaliza e persiste opções de frete
+5. Cliente visualiza transportadoras, preços e prazos
+
+---
+
 **Próximos Passos:**
+- 🔜 Seleção de opção de frete no checkout
+- 🔜 Integração com gateway de pagamento (Mercado Pago)
 - 🔜 Autenticação e autorização (JWT)
-- 🔜 Gestão de status de pedidos
+- 🔜 Gestão avançada de status de pedidos
 - 🔜 Listagem de pedidos do cliente
-- 🔜 Integração com gateway de pagamento
-- 🔜 Cálculo de frete
 - 🔜 Notificações por e-mail
 - 🔜 Dashboard de métricas
 - 🔜 Documentação OpenAPI/Swagger
@@ -2037,6 +2080,7 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Flyway Documentation](https://flywaydb.org/documentation/)
 - [MapStruct Documentation](https://mapstruct.org/)
+- [Melhor Envio API Documentation](https://docs.melhorenvio.com.br/)
 - [Clean Architecture - Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Domain-Driven Design - Eric Evans](https://www.domainlanguage.com/ddd/)
 - [Implementing Domain-Driven Design - Vaughn Vernon](https://vaughnvernon.com/)
@@ -2044,10 +2088,11 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 ---
 
 **Versão:** 0.0.1-SNAPSHOT  
-**Última atualização:** 12 Janeiro 2026  
-**Stories Implementadas:** 27/27 ✅  
-**Endpoints Disponíveis:** 22  
-**Tabelas no Banco:** 12
+**Última atualização:** 13 Janeiro 2026  
+**Stories Implementadas:** 31/33 (Sprint 6 em andamento)  
+**Endpoints Disponíveis:** 25  
+**Tabelas no Banco:** 12  
+**Integrações:** Melhor Envio ✅
 
 ---
 
@@ -2086,19 +2131,76 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - ✅ Endpoints de pedido disponibilizados
 - ✅ Base pronta para integração com gateway
 
-### Sprint 6: Frete - Modelagem e Persistência (Stories #23-27) ✅
+### Sprint 6: Frete - Integração Melhor Envio (Stories #23-31) 🚧 Em Andamento
+#### Concluído:
+- ✅ Domínio de frete completo (ShippingQuote, ShippingItem, ShippingOption)
+- ✅ Persistência de cotações (4 tabelas: quotes, items, options, payloads)
+- ✅ Armazenamento de payload bruto (auditoria)
+- ✅ Endpoint: Criar cotação de frete (com CEP de destino)
+- ✅ Endpoint: Calcular frete via Melhor Envio
+- ✅ Endpoint: Consultar cotação
+- ✅ Integração completa com API do Melhor Envio
+- ✅ Peso correto em quilogramas (0.82 kg)
+- ✅ CEP dinâmico do cliente (validação completa)
+- ✅ Suporte a múltiplas transportadoras (Correios, Jadlog)
+- ✅ Tratamento de erros e retry automático
+- ✅ Logs detalhados para debug
+- ✅ Migration V8 (coluna to_postal_code)
+
+#### Pendente:
+- 🔜 Story #32: Seleção de opção de frete
+- 🔜 Story #33: Associação de frete ao pedido
+
+### Próximas Sprints 🔜
+- Sprint 7: Checkout Completo (carrinho + frete + validações)
+- Sprint 8: Integração com Gateway de Pagamento (Mercado Pago)
+- Sprint 9: Autenticação e Autorização (JWT)
+- Sprint 10: Notificações e E-mail
+- Sprint 11: Dashboard e Analytics Avançado
+
+### Sprint 2: Analytics (Stories #8-9) ✅
+- ✅ Domínio de métricas isolado
+- ✅ Registro de eventos (view/click)
+- ✅ Consulta de métricas agregadas
+- ✅ Top livros mais visualizados/clicados
+
+### Sprint 3: Carrinho de Compras (Stories #10-16) ✅
+- ✅ Modelo de domínio do carrinho
+- ✅ Persistência de carrinho e itens
+- ✅ CRUD de itens do carrinho
+- ✅ Cálculo automático de totais
+- ✅ Validação para checkout
+
+### Sprint 4: Pedidos - Modelagem e Persistência (Stories #17-19) ✅
+- ✅ Modelo de domínio do pedido
+- ✅ Persistência de pedidos e itens
+- ✅ Conversão de carrinho em pedido
+- ✅ Consulta de pedidos
+- ✅ Transições de status básicas
+
+### Sprint 5: Pedidos - Gestão de Status e Pagamento (Stories #20-22) ✅
+- ✅ Controle completo de transições de status
+- ✅ Status EXPIRED implementado
+- ✅ Associação de referência de pagamento
+- ✅ Endpoints de pedido disponibilizados
+- ✅ Base pronta para integração com gateway
+
+### Sprint 6: Frete - Integração Melhor Envio (Stories #23-30) ✅
 - ✅ Domínio de frete completo (ShippingQuote)
 - ✅ ShippingItem com dados congelados
 - ✅ ShippingOption normalizada
 - ✅ Persistência de cotações (4 tabelas)
 - ✅ Armazenamento de payload bruto (auditoria)
-- ✅ Base pronta para integração Melhor Envio
+- ✅ Criação de cotação de frete
+- ✅ Integração com API do Melhor Envio
+- ✅ Cálculo de frete com peso em quilogramas
+- ✅ Suporte a múltiplas transportadoras
+- ✅ Consulta de cotações
 
 ### Próximas Sprints 🔜
-- Sprint 7: Cálculo de Frete com Melhor Envio (integração API)
-- Sprint 8: Seleção de Frete no Checkout
-- Sprint 9: Integração com Gateway de Pagamento (Mercado Pago)
-- Sprint 10: Autenticação e Autorização (JWT)
-- Sprint 11: Notificações e E-mail
-- Sprint 12: Dashboard e Analytics Avançado
+- Sprint 7: Seleção de Frete no Checkout
+- Sprint 8: Integração com Gateway de Pagamento (Mercado Pago)
+- Sprint 9: Autenticação e Autorização (JWT)
+- Sprint 10: Notificações e E-mail
+- Sprint 11: Dashboard e Analytics Avançado
 

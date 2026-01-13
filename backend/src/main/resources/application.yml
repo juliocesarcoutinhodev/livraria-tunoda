@@ -11,6 +11,10 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+logging:
+  level:
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: DEBUG
+
 management:
   endpoints:
     web:
@@ -23,8 +27,8 @@ management:
 
 melhor-envio:
   base-url: https://sandbox.melhorenvio.com.br
-  token: ${MELHOR_ENVIO_TOKEN:your-token-here}
-  from-postal-code: ${MELHOR_ENVIO_FROM_CEP:01310-100}
+  token: ${MELHOR_ENVIO_TOKEN}
+  from-postal-code: ${MELHOR_ENVIO_FROM_CEP:03295-000}
   timeout-seconds: 10
   max-retries: 2
   default-width: 15

@@ -17,7 +17,7 @@ public class MelhorEnvioProperties {
 
     private String baseUrl = "https://sandbox.melhorenvio.com.br";
     private String token;
-    private String fromPostalCode = "01310-100";
+    private String fromPostalCode = "03295-000";
     private int timeoutSeconds = 10;
     private int maxRetries = 2;
 

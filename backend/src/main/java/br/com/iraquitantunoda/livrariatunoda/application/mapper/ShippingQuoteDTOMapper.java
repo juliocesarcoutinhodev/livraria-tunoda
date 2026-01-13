@@ -17,6 +17,7 @@ public class ShippingQuoteDTOMapper {
         return new ShippingQuoteResponse(
                 quote.getId().getValue(),
                 quote.getCartId().getValue(),
+                quote.getToPostalCode(),
                 quote.getStatus(),
                 quote.getCreatedAt(),
                 quote.getExpiresAt(),

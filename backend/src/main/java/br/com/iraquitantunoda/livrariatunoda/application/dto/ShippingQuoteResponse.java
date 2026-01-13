@@ -8,6 +8,7 @@ import java.util.List;
 public record ShippingQuoteResponse(
     String id,
     String cartId,
+    String toPostalCode,
     ShippingQuoteStatus status,
     LocalDateTime createdAt,
     LocalDateTime expiresAt,

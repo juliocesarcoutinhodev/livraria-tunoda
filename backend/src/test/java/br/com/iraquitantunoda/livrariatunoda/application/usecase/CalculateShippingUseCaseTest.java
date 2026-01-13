@@ -1,5 +1,6 @@
 package br.com.iraquitantunoda.livrariatunoda.application.usecase;
 
+import br.com.iraquitantunoda.livrariatunoda.application.dto.ShippingQuoteResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.mapper.ShippingQuoteDTOMapper;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundException;
@@ -74,14 +75,17 @@ class CalculateShippingUseCaseTest {
         when(shippingCalculator.calculate(quote)).thenReturn(calculatedQuote);
         when(shippingQuoteRepository.save(any(ShippingQuote.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(shippingPayloadRepository.save(any(ShippingPayload.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toResponse(any(ShippingQuote.class))).thenReturn(createMockResponse());
 
         var result = useCase.execute(quoteId.getValue());
 
         assertNotNull(result);
+        assertEquals(ShippingQuoteStatus.CALCULATED, result.status());
         verify(shippingQuoteRepository).findById(quoteId);
         verify(shippingCalculator).calculate(quote);
         verify(shippingQuoteRepository).save(any(ShippingQuote.class));
         verify(shippingPayloadRepository).save(any(ShippingPayload.class));
+        verify(mapper).toResponse(any(ShippingQuote.class));
     }
 
     @Test
@@ -114,6 +118,7 @@ class CalculateShippingUseCaseTest {
         var expiredQuote = ShippingQuote.reconstitute(
             quoteId,
             CartId.generate(),
+            "01310-100",
             createShippingItems(),
             createTempOptions(),
             LocalDateTime.now().minusDays(2),
@@ -148,6 +153,7 @@ class CalculateShippingUseCaseTest {
         return ShippingQuote.reconstitute(
             quoteId,
             CartId.generate(),
+            "01310-100",
             createShippingItems(),
             createTempOptions(),
             LocalDateTime.now(),
@@ -161,6 +167,7 @@ class CalculateShippingUseCaseTest {
         return ShippingQuote.reconstitute(
             quoteId,
             CartId.generate(),
+            "01310-100",
             createShippingItems(),
             createCalculatedOptions(),
             LocalDateTime.now(),
@@ -213,6 +220,20 @@ class CalculateShippingUseCaseTest {
                 "Correios",
                 "ext-456"
             )
+        );
+    }
+
+    private ShippingQuoteResponse createMockResponse() {
+        return new ShippingQuoteResponse(
+            quoteId.getValue(),
+            CartId.generate().getValue(),
+            "01310-100",
+            ShippingQuoteStatus.CALCULATED,
+            LocalDateTime.now(),
+            LocalDateTime.now().plusHours(24),
+            List.of(),
+            List.of(),
+            null
         );
     }
 }

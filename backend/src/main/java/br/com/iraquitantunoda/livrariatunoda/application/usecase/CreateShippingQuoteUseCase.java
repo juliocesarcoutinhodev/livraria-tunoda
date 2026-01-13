@@ -30,7 +30,7 @@ public class CreateShippingQuoteUseCase {
     private final ShippingQuoteDTOMapper mapper;
 
     @Transactional
-    public ShippingQuoteResponse execute(String cartId) {
+    public ShippingQuoteResponse execute(String cartId, String toPostalCode) {
         var cart = cartRepository.findById(CartId.of(cartId))
             .orElseThrow(() -> new ResourceNotFoundException("Carrinho não encontrado"));
 
@@ -55,7 +55,7 @@ public class CreateShippingQuoteUseCase {
             "PENDING"
         );
 
-        var quote = ShippingQuote.create(cart.getId(), shippingItems, List.of(temporaryOption));
+        var quote = ShippingQuote.create(cart.getId(), toPostalCode, shippingItems, List.of(temporaryOption));
 
         var savedQuote = shippingQuoteRepository.save(quote);
 

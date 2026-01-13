@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -27,12 +26,10 @@ public class MelhorEnvioShippingCalculator implements ShippingCalculator {
     private final MelhorEnvioClient client;
     private final MelhorEnvioProperties properties;
 
-    // CEP padrão de destino para testes (pode ser parametrizado futuramente)
-    private static final String DEFAULT_TO_POSTAL_CODE = "05508-900";
-
     @Override
     public ShippingQuote calculate(ShippingQuote quote) {
-        log.info("Calculando frete para cotação {}", quote.getId().getValue());
+        log.info("Calculando frete para cotação {} - Destino: {}",
+            quote.getId().getValue(), quote.getToPostalCode());
 
         try {
             var request = buildRequest(quote);
@@ -48,6 +45,7 @@ public class MelhorEnvioShippingCalculator implements ShippingCalculator {
             // Cria nova cotação com as opções calculadas
             return ShippingQuote.create(
                 quote.getCartId(),
+                quote.getToPostalCode(),
                 quote.getItems(),
                 options
             );
@@ -67,8 +65,9 @@ public class MelhorEnvioShippingCalculator implements ShippingCalculator {
             properties.getFromPostalCode()
         );
 
+        // Usa o CEP de destino da cotação (informado pelo cliente)
         var to = new MelhorEnvioCalculateRequest.ToAddress(
-            DEFAULT_TO_POSTAL_CODE
+            quote.getToPostalCode()
         );
 
         var products = quote.getItems().stream()
@@ -82,26 +81,20 @@ public class MelhorEnvioShippingCalculator implements ShippingCalculator {
      * Converte ShippingItem do domínio para Product da API.
      */
     private MelhorEnvioCalculateRequest.Product convertToProduct(ShippingItem item) {
-        // Converte peso para gramas (API espera em gramas)
-        var weightInGrams = convertToGrams(item.getWeight().getValue());
+        // API do Melhor Envio espera peso em QUILOGRAMAS como double
+        var weightInKg = item.getWeight().getValue();
+
+        log.debug("Convertendo peso: {} {} para API", weightInKg, item.getWeight().getUnit());
 
         return new MelhorEnvioCalculateRequest.Product(
             item.getBookId().getValue(),
             properties.getDefaultWidth(),
             properties.getDefaultHeight(),
             properties.getDefaultLength(),
-            weightInGrams,
+            weightInKg.doubleValue(),
             item.getUnitPrice().getAmount(),
             item.getQuantity()
         );
-    }
-
-    /**
-     * Converte peso para gramas (API do Melhor Envio usa gramas).
-     */
-    private BigDecimal convertToGrams(BigDecimal weight) {
-        // Assume que o peso vem em kg, converte para gramas
-        return weight.multiply(BigDecimal.valueOf(1000));
     }
 
     /**

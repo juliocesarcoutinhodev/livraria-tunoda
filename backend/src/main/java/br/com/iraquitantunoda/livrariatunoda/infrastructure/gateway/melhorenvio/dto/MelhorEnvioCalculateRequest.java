@@ -28,7 +28,7 @@ public record MelhorEnvioCalculateRequest(
         @JsonProperty("width") int width,
         @JsonProperty("height") int height,
         @JsonProperty("length") int length,
-        @JsonProperty("weight") BigDecimal weight,
+        @JsonProperty("weight") double weight,
         @JsonProperty("insurance_value") BigDecimal insuranceValue,
         @JsonProperty("quantity") int quantity
     ) {}

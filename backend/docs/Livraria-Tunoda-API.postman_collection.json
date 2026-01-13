@@ -436,6 +436,63 @@
 			"description": "Endpoints para gerenciamento de pedidos"
 		},
 		{
+			"name": "Frete - Melhor Envio",
+			"item": [
+				{
+					"name": "Criar Cotação de Frete",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"toPostalCode\": \"05508-900\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/shipping/quotes",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shipping", "quotes"]
+						},
+						"description": "Cria uma nova cotação de frete para um carrinho. Requer cartId e CEP de destino (toPostalCode). Congela os dados dos itens (título, peso, preço) no momento da cotação."
+					},
+					"response": []
+				},
+				{
+					"name": "Calcular Frete via Melhor Envio",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/calculate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shipping", "quotes", "{{quote_id}}", "calculate"]
+						},
+						"description": "Calcula opções de frete para uma cotação via API do Melhor Envio. Retorna transportadoras disponíveis com preços e prazos."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Cotação",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shipping", "quotes", "{{quote_id}}"]
+						},
+						"description": "Consulta os detalhes de uma cotação de frete, incluindo todas as opções calculadas."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para cálculo de frete integrado com Melhor Envio"
+		},
+		{
 			"name": "Health Check",
 			"item": [
 				{
@@ -500,6 +557,11 @@
 		{
 			"key": "order_id",
 			"value": "cole-aqui-o-id-do-pedido-criado",
+			"type": "string"
+		},
+		{
+			"key": "quote_id",
+			"value": "cole-aqui-o-id-da-cotacao-criada",
 			"type": "string"
 		}
 	]

@@ -26,6 +26,9 @@ public class ShippingQuoteEntity {
     @Column(name = "cart_id", nullable = false, length = 36)
     private String cartId;
 
+    @Column(name = "to_postal_code", nullable = false, length = 9)
+    private String toPostalCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ShippingQuoteStatus status;

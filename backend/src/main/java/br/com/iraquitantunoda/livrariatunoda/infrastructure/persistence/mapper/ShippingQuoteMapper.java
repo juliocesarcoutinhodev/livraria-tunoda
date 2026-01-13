@@ -31,6 +31,7 @@ public interface ShippingQuoteMapper {
         return ShippingQuote.reconstitute(
             ShippingQuoteId.of(entity.getId()),
             CartId.of(entity.getCartId()),
+            entity.getToPostalCode(),
             items,
             options,
             entity.getCreatedAt(),
@@ -70,6 +71,7 @@ public interface ShippingQuoteMapper {
         var entity = new ShippingQuoteEntity();
         entity.setId(quote.getId().getValue());
         entity.setCartId(quote.getCartId().getValue());
+        entity.setToPostalCode(quote.getToPostalCode());
         entity.setStatus(quote.getStatus());
         entity.setCreatedAt(quote.getCreatedAt());
         entity.setExpiresAt(quote.getExpiresAt());

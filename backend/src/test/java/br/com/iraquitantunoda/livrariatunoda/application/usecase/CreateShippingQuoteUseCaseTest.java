@@ -1,5 +1,6 @@
 package br.com.iraquitantunoda.livrariatunoda.application.usecase;
 
+import br.com.iraquitantunoda.livrariatunoda.application.dto.ShippingQuoteResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.mapper.ShippingQuoteDTOMapper;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundException;
@@ -48,10 +49,12 @@ class CreateShippingQuoteUseCaseTest {
     private CartId cartId;
     private Cart cart;
     private Book book;
+    private String toPostalCode;
 
     @BeforeEach
     void setUp() {
         cartId = CartId.generate();
+        toPostalCode = "01310-100";
         cart = createCart();
         book = createBook();
     }
@@ -62,13 +65,17 @@ class CreateShippingQuoteUseCaseTest {
         when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
         when(bookRepository.findById(any(BookId.class))).thenReturn(Optional.of(book));
         when(shippingQuoteRepository.save(any(ShippingQuote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toResponse(any(ShippingQuote.class))).thenReturn(createMockResponse());
 
-        var result = useCase.execute(cartId.getValue());
+        var result = useCase.execute(cartId.getValue(), toPostalCode);
 
         assertNotNull(result);
+        assertEquals(cartId.getValue(), result.cartId());
+        assertEquals(toPostalCode, result.toPostalCode());
         verify(cartRepository).findById(cartId);
         verify(bookRepository, atLeastOnce()).findById(any(BookId.class));
         verify(shippingQuoteRepository).save(any(ShippingQuote.class));
+        verify(mapper).toResponse(any(ShippingQuote.class));
     }
 
     @Test
@@ -76,7 +83,7 @@ class CreateShippingQuoteUseCaseTest {
     void shouldThrowExceptionWhenCartNotFound() {
         when(cartRepository.findById(cartId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> useCase.execute(cartId.getValue()));
+        assertThrows(ResourceNotFoundException.class, () -> useCase.execute(cartId.getValue(), toPostalCode));
 
         verify(cartRepository).findById(cartId);
         verify(shippingQuoteRepository, never()).save(any(ShippingQuote.class));
@@ -89,7 +96,7 @@ class CreateShippingQuoteUseCaseTest {
 
         when(cartRepository.findById(cartId)).thenReturn(Optional.of(inactiveCart));
 
-        assertThrows(BusinessException.class, () -> useCase.execute(cartId.getValue()));
+        assertThrows(BusinessException.class, () -> useCase.execute(cartId.getValue(), toPostalCode));
 
         verify(cartRepository).findById(cartId);
         verify(shippingQuoteRepository, never()).save(any(ShippingQuote.class));
@@ -102,7 +109,7 @@ class CreateShippingQuoteUseCaseTest {
 
         when(cartRepository.findById(cartId)).thenReturn(Optional.of(emptyCart));
 
-        assertThrows(BusinessException.class, () -> useCase.execute(cartId.getValue()));
+        assertThrows(BusinessException.class, () -> useCase.execute(cartId.getValue(), toPostalCode));
 
         verify(cartRepository).findById(cartId);
         verify(shippingQuoteRepository, never()).save(any(ShippingQuote.class));
@@ -114,7 +121,7 @@ class CreateShippingQuoteUseCaseTest {
         when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
         when(bookRepository.findById(any(BookId.class))).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> useCase.execute(cartId.getValue()));
+        assertThrows(ResourceNotFoundException.class, () -> useCase.execute(cartId.getValue(), toPostalCode));
 
         verify(cartRepository).findById(cartId);
         verify(bookRepository).findById(any(BookId.class));
@@ -151,6 +158,20 @@ class CreateShippingQuoteUseCaseTest {
             Weight.kilograms(BigDecimal.valueOf(0.5)),
             Set.of(AuthorId.generate()),
             Status.ACTIVE
+        );
+    }
+
+    private ShippingQuoteResponse createMockResponse() {
+        return new ShippingQuoteResponse(
+            ShippingQuoteId.generate().getValue(),
+            cartId.getValue(),
+            toPostalCode,
+            ShippingQuoteStatus.CREATED,
+            LocalDateTime.now(),
+            LocalDateTime.now().plusHours(24),
+            List.of(),
+            List.of(),
+            null
         );
     }
 }
