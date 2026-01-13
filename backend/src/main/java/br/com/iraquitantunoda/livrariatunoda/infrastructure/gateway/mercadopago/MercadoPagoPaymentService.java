@@ -2,6 +2,8 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago
 
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Order;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Payment;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.PaymentGateway;
+import br.com.iraquitantunoda.livrariatunoda.domain.service.PaymentGatewayService;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.config.MercadoPagoProperties;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.dto.MercadoPagoPreferenceRequest;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.dto.MercadoPagoPreferenceResponse;
@@ -12,22 +14,29 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
+ * Implementação do gateway de pagamento para Mercado Pago.
  * Service adapter que converte dados do domínio para o formato do Mercado Pago.
  * O domínio não conhece Mercado Pago - essa camada faz a tradução.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MercadoPagoPaymentService {
+public class MercadoPagoPaymentService implements PaymentGatewayService {
 
     private final MercadoPagoClient client;
     private final MercadoPagoProperties properties;
+
+    @Override
+    public PaymentGateway getGateway() {
+        return PaymentGateway.MERCADO_PAGO;
+    }
 
     /**
      * Cria uma preferência de pagamento no Mercado Pago para um pedido.
      * Converte dados do domínio (Order, Payment) para o formato da API.
      */
-    public MercadoPagoPreferenceResponse createPaymentPreference(Order order, Payment payment) {
+    @Override
+    public PaymentPreference createPaymentPreference(Order order, Payment payment) {
         log.info("Criando preferência de pagamento para Order: {} e Payment: {}",
             order.getId().getValue(), payment.getId().getValue());
 
@@ -36,7 +45,18 @@ public class MercadoPagoPaymentService {
 
         log.info("Preferência criada. ID: {}, URL: {}", response.id(), response.getPaymentUrl());
 
-        return response;
+        return toPaymentPreference(response);
+    }
+
+    /**
+     * Converte response do Mercado Pago para formato do domínio.
+     */
+    private PaymentPreference toPaymentPreference(MercadoPagoPreferenceResponse response) {
+        return new PaymentPreference(
+            response.id(),
+            response.getPaymentUrl(),
+            response.externalReference()
+        );
     }
 
     /**
