@@ -134,6 +134,37 @@ public class ShippingQuote {
             .orElse(null);
     }
 
+    /**
+     * Valida se a cotação está apta para ser usada em um pedido.
+     * Será usado futuramente no Epic de Pedido para garantir consistência no checkout.
+     */
+    public void validateForOrder() {
+        if (!isSelected()) {
+            throw new BusinessException("Cotação deve ter uma opção de frete selecionada para criar pedido");
+        }
+
+        if (isExpired()) {
+            throw new BusinessException("Cotação expirada não pode ser usada para criar pedido");
+        }
+
+        if (selectedServiceCode == null) {
+            throw new BusinessException("Código do serviço selecionado é obrigatório");
+        }
+
+        var selectedOption = getSelectedOption();
+        if (selectedOption == null) {
+            throw new BusinessException("Opção de frete selecionada não encontrada");
+        }
+
+        if (items.isEmpty()) {
+            throw new BusinessException("Cotação sem itens não pode ser usada para pedido");
+        }
+
+        if (options.isEmpty()) {
+            throw new BusinessException("Cotação sem opções de frete não pode ser usada para pedido");
+        }
+    }
+
     private boolean hasOption(String serviceCode) {
         return options.stream()
             .anyMatch(option -> option.getServiceCode().equals(serviceCode));

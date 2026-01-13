@@ -2092,6 +2092,177 @@ Body: {"serviceCode": "PAC"}
 
 ---
 
+### 🚚 Story #32: Expirar Cotações Automaticamente
+
+**Objetivo**: Garantir que cotações de frete não sejam usadas após o prazo de validade.
+
+#### Critérios de Aceite
+- ✅ Campo expiresAt definido
+- ✅ Validação de expiração no domínio
+- ✅ Cotação expirada não pode ser usada
+- ✅ Sem job automático nesta fase
+- ✅ Validação feita no uso
+- ✅ Preparado para scheduler futuro
+
+#### Campo expiresAt
+- ✅ Tipo: `LocalDateTime`
+- ✅ Definido automaticamente: `now.plusHours(24)` (24 horas)
+- ✅ Persistido no banco (migration V6)
+- ✅ Retornado no DTO `ShippingQuoteResponse`
+
+#### Validação no Domínio
+```java
+public boolean isExpired() {
+    return status == ShippingQuoteStatus.EXPIRED 
+        || LocalDateTime.now().isAfter(expiresAt);
+}
+
+public void expire() {
+    if (status == ShippingQuoteStatus.SELECTED) {
+        throw new BusinessException("Cotação selecionada não pode ser expirada");
+    }
+    this.status = ShippingQuoteStatus.EXPIRED;
+}
+```
+
+#### Validações em Uso
+- ✅ **CalculateShippingUseCase**: Marca como expirada antes de lançar erro
+- ✅ **GetShippingQuoteUseCase**: Impede consulta de cotação expirada
+- ✅ **SelectShippingOptionUseCase**: Impede seleção em cotação expirada
+
+#### Regras de Negócio
+- ✅ Cotação criada expira em 24 horas
+- ✅ Cotação com status EXPIRED não pode ser usada
+- ✅ Cotação além do expiresAt é considerada expirada
+- ✅ Cotação SELECTED não pode ser marcada como expirada
+- ✅ Validação automática em todas as operações
+
+#### Testes
+- ✅ 4 testes no ShippingQuoteTest
+- ✅ 2 testes no CalculateShippingUseCaseTest
+- ✅ 1 teste no GetShippingQuoteUseCaseTest
+- ✅ 1 teste no SelectShippingOptionUseCaseTest
+
+#### Preparado para Scheduler Futuro
+```java
+// Exemplo para implementação futura (não obrigatório agora)
+@Scheduled(cron = "0 0 * * * *")
+public void expireOldQuotes() {
+    var oldQuotes = shippingQuoteRepository.findExpiredQuotes();
+    oldQuotes.forEach(quote -> {
+        if (!quote.isSelected()) {
+            quote.expire();
+            shippingQuoteRepository.save(quote);
+        }
+    });
+}
+```
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🚚 Story #33: Validar Cotação para Pedido
+
+**Objetivo**: Garantir que apenas cotações válidas e consistentes sejam usadas na criação de pedidos.
+
+#### Critérios de Aceite
+- ✅ Método validateForOrder() no domínio
+- ✅ Verifica status SELECTED
+- ✅ Verifica se não está expirada
+- ✅ Verifica valores válidos (items, options, selectedOption)
+- ✅ Erros de negócio claros
+- ✅ Nenhuma dependência direta com Order
+- ✅ Usado futuramente pelo Epic de Pedido
+
+#### Método validateForOrder()
+```java
+/**
+ * Valida se a cotação está apta para ser usada em um pedido.
+ * Será usado futuramente no Epic de Pedido para garantir consistência no checkout.
+ */
+public void validateForOrder() {
+    if (!isSelected()) {
+        throw new BusinessException(
+            "Cotação deve ter uma opção de frete selecionada para criar pedido"
+        );
+    }
+
+    if (isExpired()) {
+        throw new BusinessException(
+            "Cotação expirada não pode ser usada para criar pedido"
+        );
+    }
+
+    if (selectedServiceCode == null) {
+        throw new BusinessException(
+            "Código do serviço selecionado é obrigatório"
+        );
+    }
+
+    var selectedOption = getSelectedOption();
+    if (selectedOption == null) {
+        throw new BusinessException(
+            "Opção de frete selecionada não encontrada"
+        );
+    }
+
+    if (items.isEmpty()) {
+        throw new BusinessException(
+            "Cotação sem itens não pode ser usada para pedido"
+        );
+    }
+
+    if (options.isEmpty()) {
+        throw new BusinessException(
+            "Cotação sem opções de frete não pode ser usada para pedido"
+        );
+    }
+}
+```
+
+#### Validações Realizadas
+1. ✅ **Status SELECTED**: Cotação deve ter opção escolhida
+2. ✅ **Não expirada**: Valida tempo e status
+3. ✅ **ServiceCode presente**: Campo selectedServiceCode não pode ser nulo
+4. ✅ **Opção válida**: Opção selecionada deve existir nas options
+5. ✅ **Items válidos**: Lista de items não pode estar vazia
+6. ✅ **Options válidas**: Lista de options não pode estar vazia
+
+#### Uso Futuro no Epic de Pedido
+```java
+// Exemplo de uso futuro (não implementado ainda)
+public Order createOrderWithShipping(CartId cartId, ShippingQuoteId quoteId) {
+    var cart = cartRepository.findById(cartId);
+    var shippingQuote = shippingQuoteRepository.findById(quoteId);
+    
+    // Validações
+    cart.validateForCheckout(...);
+    shippingQuote.validateForOrder(); // ← USO DO MÉTODO
+    
+    // Cria pedido com frete
+    return Order.createWithShipping(cart, shippingQuote);
+}
+```
+
+#### Testes
+- ✅ 4 testes unitários no ShippingQuoteTest
+- ✅ Valida cotação selecionada com sucesso
+- ✅ Valida erro quando não selecionada
+- ✅ Valida erro quando expirada
+- ✅ Valida erro quando opção inválida
+
+#### Benefícios
+- ✅ **Validação centralizada**: Todas as regras em um método
+- ✅ **Erros claros**: Mensagens específicas para cada caso
+- ✅ **Desacoplamento**: Não depende de Order
+- ✅ **Reutilizável**: Pode ser usado em qualquer contexto
+- ✅ **Testável**: Fácil de testar isoladamente
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -2163,7 +2334,7 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 - 1 endpoint administrativo (métricas)
 - 7 endpoints de carrinho de compras
 - 2 endpoints de pedidos
-- 3 endpoints de frete (Melhor Envio)
+- 4 endpoints de frete (Melhor Envio)
 - 1 endpoint de health check
 
 📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
@@ -2332,7 +2503,7 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Endpoints de pedido disponibilizados
 - ✅ Base pronta para integração com gateway
 
-### Sprint 6: Frete - Integração Melhor Envio (Stories #23-31) ✅
+### Sprint 6: Frete - Integração Melhor Envio (Stories #23-33) ✅
 - ✅ Domínio de frete completo (ShippingQuote)
 - ✅ ShippingItem com dados congelados
 - ✅ ShippingOption normalizada
@@ -2345,6 +2516,8 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Consulta de cotações calculadas
 - ✅ Seleção de opção de frete
 - ✅ Bloqueio de alteração após seleção
+- ✅ Expiração automática de cotações (24h)
+- ✅ Validação para uso em pedidos
 
 ### Próximas Sprints 🔜
 - Sprint 7: Checkout Completo (validações + confirmação)

@@ -213,7 +213,79 @@ class ShippingQuoteTest {
         assertTrue(quote.isExpired());
     }
 
-    // ...existing code...
+    @Test
+    @DisplayName("Deve validar cotação para pedido com sucesso")
+    void shouldValidateQuoteForOrderSuccessfully() {
+        var quote = createValidQuote();
+        quote.selectOption("PAC");
+
+        assertDoesNotThrow(quote::validateForOrder);
+        assertTrue(quote.isSelected());
+        assertNotNull(quote.getSelectedOption());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar cotação não selecionada para pedido")
+    void shouldThrowExceptionWhenValidatingNotSelectedQuoteForOrder() {
+        var quote = createValidQuote();
+
+        var exception = assertThrows(BusinessException.class, quote::validateForOrder);
+
+        assertEquals("Cotação deve ter uma opção de frete selecionada para criar pedido", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar cotação expirada para pedido")
+    void shouldThrowExceptionWhenValidatingExpiredQuoteForOrder() {
+        var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
+        var items = createShippingItems();
+        var options = createShippingOptions();
+        var createdAt = LocalDateTime.now().minusDays(2);
+        var expiresAt = LocalDateTime.now().minusDays(1);
+
+        var quote = ShippingQuote.reconstitute(
+            ShippingQuoteId.generate(),
+            cartId,
+            toPostalCode,
+            items,
+            options,
+            createdAt,
+            expiresAt,
+            ShippingQuoteStatus.SELECTED,
+            "PAC"
+        );
+
+        var exception = assertThrows(BusinessException.class, quote::validateForOrder);
+
+        assertEquals("Cotação expirada não pode ser usada para criar pedido", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao validar cotação sem opção selecionada válida")
+    void shouldThrowExceptionWhenValidatingQuoteWithoutValidSelectedOption() {
+        var cartId = CartId.generate();
+        var toPostalCode = "01310-100";
+        var items = createShippingItems();
+        var options = createShippingOptions();
+
+        // Força estado inconsistente para testar validação
+        var quote = ShippingQuote.reconstitute(
+            ShippingQuoteId.generate(),
+            cartId,
+            toPostalCode,
+            items,
+            options,
+            LocalDateTime.now(),
+            LocalDateTime.now().plusHours(24),
+            ShippingQuoteStatus.SELECTED,
+            "INVALID_SERVICE"
+        );
+
+        var exception = assertThrows(BusinessException.class, quote::validateForOrder);
+
+        assertEquals("Opção de frete selecionada não encontrada", exception.getMessage());
+    }
 
     private ShippingQuote createValidQuote() {
         var cartId = CartId.generate();
