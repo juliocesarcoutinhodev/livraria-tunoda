@@ -2,6 +2,7 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.AddItemToCartRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.CheckoutRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ValidateCartResponse;
@@ -50,8 +51,15 @@ public class CartController {
     }
 
     @PostMapping("/{cartId}/checkout")
-    public ResponseEntity<OrderResponse> checkoutCart(@PathVariable String cartId) {
-        var response = convertCartToOrderUseCase.execute(cartId);
+    @Deprecated(since = "V10", forRemoval = true)
+    public ResponseEntity<OrderResponse> checkoutCartLegacy(@PathVariable String cartId) {
+        var response = convertCartToOrderUseCase.execute(cartId, null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<OrderResponse> checkout(@Valid @RequestBody CheckoutRequest request) {
+        var response = convertCartToOrderUseCase.execute(request.cartId(), request.shippingQuoteId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

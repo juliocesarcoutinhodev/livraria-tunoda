@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com 25 endpoints implementados",
+		"description": "Collection completa da API REST da Livraria Tunoda com 28 endpoints implementados (incluindo checkout com frete)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -405,7 +405,53 @@
 			"name": "Pedidos",
 			"item": [
 				{
-					"name": "Converter Carrinho em Pedido (Checkout)",
+					"name": "Checkout COM Frete",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/carts/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "checkout"]
+						},
+						"description": "Converte carrinho em pedido COM frete. Valida carrinho (ativo, items, livros) e cotação de frete (selecionada, não expirada). Total = subtotal + frete. Pedido criado com status PENDING."
+					},
+					"response": []
+				},
+				{
+					"name": "Checkout SEM Frete (Grátis)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/carts/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "carts", "checkout"]
+						},
+						"description": "Converte carrinho em pedido SEM frete (frete grátis). Valida carrinho e cria pedido com shippingCost = 0.00. Total = subtotal. Pedido criado com status PENDING."
+					},
+					"response": []
+				},
+				{
+					"name": "Checkout Legacy (Deprecated)",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -414,7 +460,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "carts", "{{cart_id}}", "checkout"]
 						},
-						"description": "Converte um carrinho válido em pedido. Valida carrinho (status ativo, items, livros ativos) e marca carrinho como convertido. Pedido criado com status PENDING."
+						"description": "[DEPRECATED] Endpoint antigo mantido para compatibilidade. Use POST /api/carts/checkout. Cria pedido sem frete."
 					},
 					"response": []
 				},
@@ -665,6 +711,11 @@
 		{
 			"key": "quote_id",
 			"value": "cole-aqui-o-id-da-cotacao-criada",
+			"type": "string"
+		},
+		{
+			"key": "shipping_quote_id",
+			"value": "cole-aqui-o-id-da-cotacao-de-frete",
 			"type": "string"
 		},
 		{

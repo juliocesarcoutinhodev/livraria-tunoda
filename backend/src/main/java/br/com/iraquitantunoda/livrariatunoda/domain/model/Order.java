@@ -19,21 +19,27 @@ public class Order {
     @EqualsAndHashCode.Include
     private final OrderId id;
     private final CartId cartId;
+    private final ShippingQuoteId shippingQuoteId;
     private final List<OrderItem> items;
     private final Money subtotal;
+    private final Money shippingCost;
     private final Money total;
     private final LocalDateTime createdAt;
     private OrderStatus status;
     private String paymentReference;
 
-    private Order(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status, String paymentReference) {
+    private Order(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId, List<OrderItem> items,
+                  Money subtotal, Money shippingCost, Money total, LocalDateTime createdAt,
+                  OrderStatus status, String paymentReference) {
         validateItems(items);
-        validateAmounts(subtotal, total);
+        validateAmounts(subtotal, shippingCost, total);
 
         this.id = id;
         this.cartId = cartId;
+        this.shippingQuoteId = shippingQuoteId;
         this.items = List.copyOf(items);
         this.subtotal = subtotal;
+        this.shippingCost = shippingCost;
         this.total = total;
         this.createdAt = createdAt;
         this.status = status;
@@ -63,13 +69,71 @@ public class Order {
                 .toList();
 
         var subtotal = cart.calculateSubtotal();
-        var total = cart.calculateTotal();
+        var shippingCost = Money.brl(java.math.BigDecimal.ZERO);
 
         return new Order(
                 OrderId.generate(),
                 cart.getId(),
+                null,
                 orderItems,
                 subtotal,
+                shippingCost,
+                subtotal,
+                LocalDateTime.now(),
+                OrderStatus.PENDING,
+                null
+        );
+    }
+
+    public static Order createFromCartWithShipping(Cart cart, ShippingQuote shippingQuote) {
+        if (cart == null) {
+            throw new BusinessException("Carrinho não pode ser nulo");
+        }
+
+        if (shippingQuote == null) {
+            throw new BusinessException("Cotação de frete não pode ser nula");
+        }
+
+        if (!cart.isActive()) {
+            throw new BusinessException("Carrinho não está ativo");
+        }
+
+        if (cart.getItems().isEmpty()) {
+            throw new BusinessException("Não é possível criar pedido sem itens");
+        }
+
+        // Valida se a cotação pertence ao carrinho
+        if (!shippingQuote.getCartId().equals(cart.getId())) {
+            throw new BusinessException("Cotação de frete não pertence ao carrinho informado");
+        }
+
+        // Valida se a cotação está pronta para pedido
+        shippingQuote.validateForOrder();
+
+        var orderItems = cart.getItems().stream()
+                .map(cartItem -> OrderItem.create(
+                        cartItem.getBookId(),
+                        cartItem.getBookTitle(),
+                        cartItem.getQuantity(),
+                        cartItem.getUnitPrice()
+                ))
+                .toList();
+
+        var subtotal = cart.calculateSubtotal();
+        var selectedOption = shippingQuote.getSelectedOption();
+        var shippingCost = selectedOption.getPrice();
+
+        // Total = subtotal + frete
+        var totalAmount = subtotal.getAmount().add(shippingCost.getAmount());
+        var total = Money.of(totalAmount, subtotal.getCurrency());
+
+        return new Order(
+                OrderId.generate(),
+                cart.getId(),
+                shippingQuote.getId(),
+                orderItems,
+                subtotal,
+                shippingCost,
                 total,
                 LocalDateTime.now(),
                 OrderStatus.PENDING,
@@ -77,8 +141,12 @@ public class Order {
         );
     }
 
-    public static Order reconstitute(OrderId id, CartId cartId, List<OrderItem> items, Money subtotal, Money total, LocalDateTime createdAt, OrderStatus status, String paymentReference) {
-        return new Order(id, cartId, items, subtotal, total, createdAt, status, paymentReference);
+    public static Order reconstitute(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId,
+                                     List<OrderItem> items, Money subtotal, Money shippingCost,
+                                     Money total, LocalDateTime createdAt, OrderStatus status,
+                                     String paymentReference) {
+        return new Order(id, cartId, shippingQuoteId, items, subtotal, shippingCost, total,
+                        createdAt, status, paymentReference);
     }
 
     public void associatePaymentReference(String reference) {
@@ -188,9 +256,9 @@ public class Order {
     }
 
     public Money calculateTotal() {
-        // Por enquanto, total é igual ao subtotal
-        // No futuro, aqui podem ser aplicados frete, impostos, etc.
-        return calculateSubtotal();
+        // Total já está calculado e congelado no momento da criação
+        // Inclui subtotal + frete
+        return this.total;
     }
 
     private static void validateItems(List<OrderItem> items) {
@@ -199,12 +267,21 @@ public class Order {
         }
     }
 
-    private static void validateAmounts(Money subtotal, Money total) {
+    private static void validateAmounts(Money subtotal, Money shippingCost, Money total) {
         if (subtotal == null) {
             throw new BusinessException("Subtotal é obrigatório");
         }
+        if (shippingCost == null) {
+            throw new BusinessException("Custo de frete é obrigatório");
+        }
         if (total == null) {
             throw new BusinessException("Total é obrigatório");
+        }
+        if (subtotal.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Subtotal do pedido deve ser maior que zero");
+        }
+        if (shippingCost.getAmount().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Custo de frete não pode ser negativo");
         }
         if (total.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             throw new BusinessException("Total do pedido deve ser maior que zero");

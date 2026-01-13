@@ -787,7 +787,16 @@ O Flyway gerencia automaticamente as migrations do banco. Os arquivos ficam em:
 
 ```
 src/main/resources/db/migration/
-└── V1__create-table-books.sql
+├── V1__create-table-books.sql
+├── V2__create-table-book-metrics.sql
+├── V3__create-table-carts.sql
+├── V4__create-table-orders.sql
+├── V5__add-payment-reference-to-orders.sql
+├── V6__create-table-shipping-quotes.sql
+├── V7__create-table-shipping-payloads.sql
+├── V8__add-to-postal-code-to-shipping-quotes.sql
+├── V9__create-table-payments.sql
+└── V10__add-shipping-to-orders.sql
 ```
 
 **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
@@ -862,14 +871,18 @@ FOREIGN KEY (cart_id) REFERENCES tb_carts(id) ON DELETE CASCADE
 ```sql
 id VARCHAR(36) PRIMARY KEY
 cart_id VARCHAR(36) NOT NULL
+shipping_quote_id VARCHAR(36) NULL
 status VARCHAR(20) NOT NULL
 subtotal_amount DECIMAL(10,2) NOT NULL
 subtotal_currency VARCHAR(3) NOT NULL
+shipping_cost_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00
+shipping_cost_currency VARCHAR(3) NOT NULL DEFAULT 'BRL'
 total_amount DECIMAL(10,2) NOT NULL
 total_currency VARCHAR(3) NOT NULL
 created_at TIMESTAMP NOT NULL
 payment_reference VARCHAR(100) NULL
 INDEX idx_orders_cart_id (cart_id)
+INDEX idx_orders_shipping_quote_id (shipping_quote_id)
 INDEX idx_orders_status (status)
 INDEX idx_orders_created_at (created_at)
 ```
@@ -2424,10 +2437,16 @@ POST   /api/public/books/{id}/metrics/click → Registrar clique
 POST   /api/carts                           → Criar carrinho
 GET    /api/carts/{id}                      → Visualizar carrinho
 POST   /api/carts/{id}/validate             → Validar carrinho para checkout
-POST   /api/carts/{id}/checkout             → Converter carrinho em pedido
 POST   /api/carts/{id}/items                → Adicionar item
 PUT    /api/carts/{id}/items/{bookId}       → Atualizar quantidade
 DELETE /api/carts/{id}/items/{bookId}       → Remover item
+```
+
+### Checkout
+
+```
+POST   /api/carts/checkout                  → Checkout com ou sem frete (novo)
+POST   /api/carts/{id}/checkout             → Checkout legacy (deprecated)
 ```
 
 ### Pedidos
@@ -2475,20 +2494,137 @@ Uma collection completa do Postman está disponível em `docs/Livraria-Tunoda-AP
 1. Abra o Postman
 2. Clique em **Import**
 3. Selecione o arquivo `docs/Livraria-Tunoda-API.postman_collection.json`
-4. Configure as variáveis `author_id`, `book_id`, `cart_id`, `order_id` e `quote_id` após criar os recursos
-5. Teste todos os **25 endpoints** disponíveis
+4. Configure as variáveis `author_id`, `book_id`, `cart_id`, `order_id`, `shipping_quote_id` após criar os recursos
+5. Teste todos os **28 endpoints** disponíveis
 
 **Endpoints incluídos:**
 - 4 endpoints de catálogo público
 - 2 endpoints de métricas públicas
 - 6 endpoints administrativos (autores e livros)
 - 1 endpoint administrativo (métricas)
-- 7 endpoints de carrinho de compras
+- 6 endpoints de carrinho de compras
+- 3 endpoints de checkout (novo unificado + 2 variações)
 - 2 endpoints de pedidos
+- 3 endpoints de pagamento
 - 4 endpoints de frete (Melhor Envio)
 - 1 endpoint de health check
 
 📖 **Documentação completa:** Consulte `docs/README.md` para instruções detalhadas, exemplos e fluxo de testes.
+
+---
+
+## 🛒 Checkout com Frete
+
+A aplicação suporta checkout **com ou sem frete**, permitindo flexibilidade no modelo de negócio.
+
+### Endpoint Unificado
+
+```http
+POST /api/carts/checkout
+Content-Type: application/json
+
+{
+  "cartId": "uuid-do-carrinho",
+  "shippingQuoteId": "uuid-da-cotacao"  // opcional
+}
+```
+
+### Cenário 1: Checkout COM Frete
+
+**Fluxo Completo:**
+
+```
+1. Criar carrinho e adicionar livros
+   POST /api/carts
+   POST /api/carts/{id}/items
+
+2. Criar cotação de frete
+   POST /api/shipping/quotes
+   Body: {"cartId": "...", "toPostalCode": "05508-900"}
+
+3. Calcular frete
+   POST /api/shipping/quotes/{id}/calculate
+
+4. Selecionar opção de frete
+   PUT /api/shipping/quotes/{id}/select
+   Body: {"serviceCode": "PAC"}
+
+5. Finalizar checkout com frete
+   POST /api/carts/checkout
+   Body: {"cartId": "...", "shippingQuoteId": "..."}
+   
+   → Order criado com:
+     - subtotal: valor dos produtos
+     - shippingCost: valor do frete
+     - total: subtotal + shippingCost
+```
+
+**Response:**
+```json
+{
+  "orderId": "uuid",
+  "cartId": "uuid",
+  "shippingQuoteId": "uuid",
+  "status": "PENDING",
+  "items": [...],
+  "subtotal": 100.00,
+  "shippingCost": 15.50,
+  "currency": "BRL",
+  "total": 115.50,
+  "createdAt": "2026-01-13T15:30:00"
+}
+```
+
+### Cenário 2: Checkout SEM Frete (Grátis)
+
+**Fluxo Simplificado:**
+
+```
+1. Criar carrinho e adicionar livros
+   POST /api/carts
+   POST /api/carts/{id}/items
+
+2. Finalizar checkout sem frete
+   POST /api/carts/checkout
+   Body: {"cartId": "...", "shippingQuoteId": null}
+   
+   → Order criado com:
+     - subtotal: valor dos produtos
+     - shippingCost: 0.00
+     - total: subtotal
+```
+
+**Response:**
+```json
+{
+  "orderId": "uuid",
+  "cartId": "uuid",
+  "shippingQuoteId": null,
+  "status": "PENDING",
+  "items": [...],
+  "subtotal": 100.00,
+  "shippingCost": 0.00,
+  "currency": "BRL",
+  "total": 100.00,
+  "createdAt": "2026-01-13T15:30:00"
+}
+```
+
+### Validações Aplicadas
+
+**Checkout COM Frete:**
+- ✅ Carrinho deve existir e estar ativo
+- ✅ Carrinho não pode estar vazio
+- ✅ Livros devem estar ativos
+- ✅ Cotação deve existir e pertencer ao carrinho
+- ✅ Cotação deve estar com status SELECTED
+- ✅ Cotação não pode estar expirada
+- ✅ Opção de frete selecionada deve existir
+
+**Checkout SEM Frete:**
+- ✅ Carrinho deve existir e estar ativo
+- ✅ Carrinho não pode estar vazio
+- ✅ Livros devem estar ativos
 
 ---
 
@@ -2558,10 +2694,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 40/40 (Sprint 7 concluída) ✅  
+**Stories Implementadas:** 41/41 ✅  
 **Endpoints Disponíveis:** 28  
 **Tabelas no Banco:** 13  
-**Integrações:** Melhor Envio ✅ | Mercado Pago ✅
+**Migrations:** 10 (V1 a V10)  
+**Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
+**Novidade:** Checkout com frete integrado ✅
 
 ---
 
@@ -2641,8 +2779,33 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - GET `/api/payments/{paymentId}` - Consultar status
 - POST `/api/webhooks/mercadopago` - Receber notificações
 
+### Sprint 8: Checkout Completo - Integração Order + Frete ✅
+- ✅ Story #41: Integração Order + ShippingQuote
+- ✅ Adicionado shippingQuoteId ao Order
+- ✅ Adicionado shippingCost ao Order (separado do subtotal)
+- ✅ Criado endpoint unificado POST /api/carts/checkout
+- ✅ Suporte a checkout COM frete (frete calculado)
+- ✅ Suporte a checkout SEM frete (frete grátis)
+- ✅ Validações completas no domínio
+- ✅ Migration V10 (colunas de frete em orders)
+- ✅ Total = subtotal + shippingCost
+- ✅ Endpoint legacy mantido (deprecated)
+- ✅ Backward compatibility garantida
+
+**Arquitetura Implementada:**
+- ✅ Order.createFromCartWithShipping(Cart, ShippingQuote)
+- ✅ Validação: cotação pertence ao carrinho
+- ✅ Validação: cotação selecionada e não expirada
+- ✅ CheckoutRequest DTO com cartId + shippingQuoteId opcional
+- ✅ ConvertCartToOrderUseCase refatorado
+- ✅ Logs detalhados do processo
+
+**Endpoints Disponíveis:**
+- POST `/api/carts/checkout` - Checkout unificado (COM ou SEM frete)
+- POST `/api/carts/{cartId}/checkout` - Checkout legacy (deprecated)
+
 **Próximas Sprints 🔜**
-- Sprint 8: Checkout Completo (carrinho + frete + validações)
 - Sprint 9: Autenticação e Autorização (JWT)
 - Sprint 10: Notificações e E-mail
+- Sprint 11: Dashboard e Analytics Avançado
 - Sprint 11: Dashboard e Analytics Avançado

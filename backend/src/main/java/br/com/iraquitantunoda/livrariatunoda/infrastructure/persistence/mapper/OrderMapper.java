@@ -18,13 +18,21 @@ public interface OrderMapper {
             .toList();
 
         var subtotal = Money.of(entity.getSubtotalAmount(), entity.getSubtotalCurrency());
+        var shippingCost = Money.of(entity.getShippingCostAmount(), entity.getShippingCostCurrency());
         var total = Money.of(entity.getTotalAmount(), entity.getTotalCurrency());
+
+        ShippingQuoteId shippingQuoteId = null;
+        if (entity.getShippingQuoteId() != null) {
+            shippingQuoteId = ShippingQuoteId.of(entity.getShippingQuoteId());
+        }
 
         return Order.reconstitute(
             OrderId.of(entity.getId()),
             CartId.of(entity.getCartId()),
+            shippingQuoteId,
             items,
             subtotal,
+            shippingCost,
             total,
             entity.getCreatedAt(),
             entity.getStatus(),
@@ -48,9 +56,12 @@ public interface OrderMapper {
         var entity = new OrderEntity();
         entity.setId(order.getId().getValue());
         entity.setCartId(order.getCartId().getValue());
+        entity.setShippingQuoteId(order.getShippingQuoteId() != null ? order.getShippingQuoteId().getValue() : null);
         entity.setStatus(order.getStatus());
         entity.setSubtotalAmount(order.getSubtotal().getAmount());
         entity.setSubtotalCurrency(order.getSubtotal().getCurrency());
+        entity.setShippingCostAmount(order.getShippingCost().getAmount());
+        entity.setShippingCostCurrency(order.getShippingCost().getCurrency());
         entity.setTotalAmount(order.getTotal().getAmount());
         entity.setTotalCurrency(order.getTotal().getCurrency());
         entity.setCreatedAt(order.getCreatedAt());

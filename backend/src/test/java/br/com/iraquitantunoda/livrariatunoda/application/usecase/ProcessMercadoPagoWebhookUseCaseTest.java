@@ -6,7 +6,6 @@ import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.CartItem;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Money;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.PaymentGateway;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.PaymentMethod;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.PaymentMethod;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.OrderRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.PaymentRepository;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.MercadoPagoClient;
@@ -61,6 +60,9 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         payment = Payment.create(order.getId(), amount, PaymentMethod.CREDIT_CARD, PaymentGateway.MERCADO_PAGO);
         payment.associateExternalReference(payment.getId().getValue());
         payment.markAsPending();
+
+        // Associa referencia de pagamento ao pedido (necessario para confirmar)
+        order.associatePaymentReference(payment.getId().getValue());
 
         mercadoPagoPaymentId = "123456789";
         externalReference = payment.getId().getValue();

@@ -4,13 +4,14 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.mapper.OrderDTOMapper;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundException;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.BookId;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.CartId;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.Order;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.*;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.CartItem;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.BookRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.CartRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.OrderRepository;
+import br.com.iraquitantunoda.livrariatunoda.domain.repository.ShippingQuoteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,17 +20,28 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ConvertCartToOrderUseCase {
 
     private final CartRepository cartRepository;
     private final BookRepository bookRepository;
     private final OrderRepository orderRepository;
+    private final ShippingQuoteRepository shippingQuoteRepository;
     private final OrderDTOMapper orderDTOMapper;
 
-    // Operação transacional garante que cart.markAsConverted() e order.save() ocorrem atomicamente
-    // Em caso de erro, rollback automático (nenhum estado parcial persistido)
+    /**
+     * Converte carrinho em pedido com frete opcional.
+     * Operacao transacional garante atomicidade (cart + order).
+     *
+     * @param cartId ID do carrinho a ser convertido
+     * @param shippingQuoteId ID da cotacao de frete (opcional)
+     * @return OrderResponse com dados do pedido criado
+     */
     @Transactional
-    public OrderResponse execute(String cartId) {
+    public OrderResponse execute(String cartId, String shippingQuoteId) {
+        log.info("Iniciando checkout do carrinho {}. Frete: {}", cartId,
+                 shippingQuoteId != null ? shippingQuoteId : "sem frete");
+
         // 1. Buscar carrinho ou falhar
         var cart = cartRepository.findById(CartId.of(cartId))
             .orElseThrow(() -> new ResourceNotFoundException("Carrinho não encontrado"));
@@ -41,7 +53,7 @@ public class ConvertCartToOrderUseCase {
 
         // 3. Validar livros ativos
         var bookIds = cart.getItems().stream()
-            .map(item -> item.getBookId())
+            .map(CartItem::getBookId)
             .collect(Collectors.toSet());
 
         var activeBookIds = fetchActiveBookIds(bookIds);
@@ -49,8 +61,20 @@ public class ConvertCartToOrderUseCase {
         // 4. Validar carrinho para checkout (status, items, total, livros)
         cart.validateForCheckout(activeBookIds);
 
-        // 5. Criar pedido a partir do carrinho (snapshot)
-        var order = Order.createFromCart(cart);
+        // 5. Criar pedido com ou sem frete
+        Order order;
+        if (shippingQuoteId != null && !shippingQuoteId.isBlank()) {
+            var shippingQuote = shippingQuoteRepository.findById(ShippingQuoteId.of(shippingQuoteId))
+                .orElseThrow(() -> new ResourceNotFoundException("Cotação de frete não encontrada"));
+
+            log.debug("Criando pedido com frete. Cotação: {}, Valor: {}",
+                      shippingQuoteId, shippingQuote.getSelectedOption().getPrice());
+
+            order = Order.createFromCartWithShipping(cart, shippingQuote);
+        } else {
+            log.debug("Criando pedido sem frete (frete grátis)");
+            order = Order.createFromCart(cart);
+        }
 
         // 6. Marcar carrinho como convertido (impede uso futuro)
         cart.markAsConverted();
@@ -58,6 +82,11 @@ public class ConvertCartToOrderUseCase {
         // 7. Persistir pedido e carrinho atomicamente
         var savedOrder = orderRepository.save(order);
         cartRepository.save(cart);
+
+        log.info("Pedido {} criado com sucesso. Total: {} {}",
+                 savedOrder.getId().getValue(),
+                 savedOrder.getTotal().getAmount(),
+                 savedOrder.getTotal().getCurrency());
 
         // 8. Retornar resposta
         return orderDTOMapper.toResponse(savedOrder);

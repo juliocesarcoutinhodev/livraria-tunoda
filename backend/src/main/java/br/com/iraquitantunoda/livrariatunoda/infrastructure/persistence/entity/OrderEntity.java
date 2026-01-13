@@ -27,6 +27,9 @@ public class OrderEntity {
     @Column(name = "cart_id", nullable = false, length = 36)
     private String cartId;
 
+    @Column(name = "shipping_quote_id", length = 36)
+    private String shippingQuoteId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private OrderStatus status;
@@ -36,6 +39,12 @@ public class OrderEntity {
 
     @Column(name = "subtotal_currency", nullable = false, length = 3)
     private String subtotalCurrency;
+
+    @Column(name = "shipping_cost_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal shippingCostAmount;
+
+    @Column(name = "shipping_cost_currency", nullable = false, length = 3)
+    private String shippingCostCurrency;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;

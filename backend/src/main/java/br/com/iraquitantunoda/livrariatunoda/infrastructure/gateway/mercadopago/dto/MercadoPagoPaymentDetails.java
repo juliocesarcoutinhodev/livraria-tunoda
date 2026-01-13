@@ -24,7 +24,11 @@ public record MercadoPagoPaymentDetails(
     }
 
     public boolean isRejected() {
-        return "rejected".equals(status) || "cancelled".equals(status);
+        return "rejected".equals(status);
+    }
+
+    public boolean isCancelled() {
+        return "cancelled".equals(status);
     }
 
     public boolean isPending() {
@@ -33,10 +37,6 @@ public record MercadoPagoPaymentDetails(
 
     public boolean isExpired() {
         return "expired".equals(status);
-    }
-
-    public boolean isCancelled() {
-        return "cancelled".equals(status);
     }
 }
 

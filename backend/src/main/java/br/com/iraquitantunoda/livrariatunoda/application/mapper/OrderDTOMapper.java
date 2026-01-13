@@ -14,12 +14,19 @@ public interface OrderDTOMapper {
             .map(this::toItemDTO)
             .toList();
 
+        String shippingQuoteId = null;
+        if (order.getShippingQuoteId() != null) {
+            shippingQuoteId = order.getShippingQuoteId().getValue();
+        }
+
         return new OrderResponse(
             order.getId().getValue(),
             order.getCartId().getValue(),
+            shippingQuoteId,
             order.getStatus().name(),
             items,
             order.getSubtotal().getAmount(),
+            order.getShippingCost().getAmount(),
             order.getSubtotal().getCurrency(),
             order.getTotal().getAmount(),
             order.getCreatedAt()
