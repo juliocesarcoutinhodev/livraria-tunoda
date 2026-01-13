@@ -1136,6 +1136,39 @@ Resposta esperada:
 }
 ```
 
+### 6. Acesse com usuário administrativo inicial
+
+O sistema cria automaticamente um usuário admin durante a inicialização (migration V13):
+
+```
+Email: admin@livraria.com
+Senha: admin123
+```
+
+**Fazer login:**
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@livraria.com",
+    "password": "admin123"
+  }'
+```
+
+**Resposta:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+> ⚠️ **IMPORTANTE - PRODUÇÃO:**  
+> Altere a senha padrão IMEDIATAMENTE após o primeiro acesso em ambiente de produção.  
+> Veja documentação completa em: [`docs/ADMIN_CREDENTIALS.md`](docs/ADMIN_CREDENTIALS.md)
+
 ## 🔧 Variáveis de Ambiente
 
 ### Desenvolvimento (`.env`)
@@ -1179,7 +1212,8 @@ src/main/resources/db/migration/
 ├── V9__create-table-payments.sql
 ├── V10__add-shipping-to-orders.sql
 ├── V11__create-table-users.sql
-└── V12__create-table-refresh-tokens.sql
+├── V12__create-table-refresh-tokens.sql
+└── V13__insert-admin-user.sql
 ```
 
 **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
@@ -3077,12 +3111,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 47/47 ✅  
+**Stories Implementadas:** 48/48 ✅  
 **Endpoints Disponíveis:** 31  
 **Tabelas no Banco:** 15 (incluindo tb_users e tb_refresh_tokens)  
-**Migrations:** 12 (V1 a V12)  
+**Migrations:** 13 (V1 a V13)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Endpoints Administrativos Protegidos ✅
+**Novidade:** Usuário Admin Inicial ✅
 
 ---
 
@@ -3270,6 +3304,19 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Separação clara entre rotas públicas e protegidas
 - ✅ anyRequest().denyAll() (segurança por padrão)
 - ✅ Preparado para expansão de papéis (roles)
+
+- ✅ Story #48: Usuário administrativo inicial
+- ✅ Migration V13 cria usuário admin padrão
+- ✅ Credenciais de desenvolvimento: admin@livraria.com / admin123
+- ✅ Hash BCrypt gerado com 12 rounds
+- ✅ UUID fixo para usuário inicial
+- ✅ Documentação completa (ADMIN_CREDENTIALS.md)
+- ✅ Instruções de segurança para produção
+- ✅ Guia de alteração de senha
+- ✅ Processo documentado no README
+- ✅ Boas práticas dev vs prod
+- ✅ Troubleshooting completo
+- ✅ Avisos de segurança claros
 
 **Arquitetura Implementada:**
 - ✅ User (Aggregate Root)
