@@ -694,6 +694,69 @@ MercadoPagoClient → API Mercado Pago
 
 ---
 
+## 👤 Domínio de Usuários (Admin)
+
+### Aggregate Root: User
+
+Representa um usuário administrativo do sistema, responsável por autenticação e autorização de operações sensíveis.
+
+**Atributos:**
+- `id: UserId` - Identificador único e imutável
+- `name: String` - Nome do usuário administrativo
+- `email: Email` - Email único (Value Object com validação)
+- `passwordHash: String` - Senha armazenada apenas como hash (BCrypt)
+- `role: UserRole` - Papel do usuário no sistema
+- `createdAt: LocalDateTime` - Data de criação
+- `status: UserStatus` - Status do usuário (único campo mutável)
+
+**UserStatus:**
+- `ACTIVE` - Usuário ativo, pode acessar o sistema
+- `BLOCKED` - Usuário bloqueado, acesso negado
+
+**UserRole:**
+- `ADMIN` - Usuário administrativo com acesso total
+
+**Email (Value Object):**
+- Validação de formato via regex
+- Normalização automática (lowercase, trim)
+- Máximo 255 caracteres
+- Imutável após criação
+
+**Regras de Negócio:**
+- Email é único no sistema
+- Senha armazenada apenas como hash (nunca texto plano)
+- Senha nunca é exposta fora do domínio (sem getter público)
+- Status inicial sempre ACTIVE
+- Campos imutáveis exceto status
+- Usuario bloqueado não pode acessar o sistema
+- Apenas ADMIN pode gerenciar outros usuários
+
+**Métodos:**
+- `User.create(name, email, passwordHash)` - Cria novo usuário admin
+- `User.reconstitute(...)` - Reconstitui usuário existente
+- `block()` - Bloqueia usuário (ACTIVE → BLOCKED)
+- `unblock()` - Desbloqueia usuário (BLOCKED → ACTIVE)
+- `isActive()` - Verifica se usuário está ativo
+- `isBlocked()` - Verifica se usuário está bloqueado
+- `isAdmin()` - Verifica se usuário é administrador
+- `matchesPassword(hashedPassword)` - Compara hash de senha (autenticação)
+
+**Segurança:**
+- ✅ Senha armazenada apenas como hash
+- ✅ Getter de passwordHash é package-private
+- ✅ ToString exclui passwordHash
+- ✅ Email com validação rigorosa
+- ✅ Sem exposição de dados sensíveis
+
+**Características:**
+- ✅ Aggregate Root do domínio
+- ✅ Zero anotações de persistência
+- ✅ Imutabilidade exceto status
+- ✅ Validações no construtor
+- ✅ Clean Architecture e SOLID
+
+---
+
 ## 🚀 Pré-requisitos
 - **Maven 3.8+**
 - **Docker & Docker Compose**
@@ -2694,12 +2757,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 41/41 ✅  
+**Stories Implementadas:** 42/42 ✅  
 **Endpoints Disponíveis:** 28  
 **Tabelas no Banco:** 13  
 **Migrations:** 10 (V1 a V10)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Checkout com frete integrado ✅
+**Novidade:** Domínio de Usuário Admin ✅
 
 ---
 
@@ -2804,8 +2867,32 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - POST `/api/carts/checkout` - Checkout unificado (COM ou SEM frete)
 - POST `/api/carts/{cartId}/checkout` - Checkout legacy (deprecated)
 
+### Sprint 9: Autenticação Admin - Domínio ✅
+- ✅ Story #42: Modelagem de usuário administrativo
+- ✅ Aggregate Root User criado
+- ✅ UserId como identidade tipada
+- ✅ Email como Value Object com validação
+- ✅ UserRole enum (ADMIN)
+- ✅ UserStatus enum (ACTIVE, BLOCKED)
+- ✅ Senha armazenada apenas como hash
+- ✅ UserRepository interface no domínio
+- ✅ Validações completas no construtor
+- ✅ Métodos de comportamento (block/unblock)
+- ✅ Zero anotações de persistência
+- ✅ Clean Architecture mantida
+
+**Arquitetura Implementada:**
+- ✅ User (Aggregate Root)
+- ✅ UserId (Identidade tipada)
+- ✅ Email (Value Object com regex)
+- ✅ UserRole (Enum extensível)
+- ✅ UserStatus (Enum de estado)
+- ✅ UserRepository (Interface no domínio)
+- ✅ Senha nunca exposta (sem getter público)
+- ✅ ToString exclui passwordHash
+
 **Próximas Sprints 🔜**
-- Sprint 9: Autenticação e Autorização (JWT)
-- Sprint 10: Notificações e E-mail
-- Sprint 11: Dashboard e Analytics Avançado
-- Sprint 11: Dashboard e Analytics Avançado
+- Sprint 10: Autenticação - Persistência e Use Cases
+- Sprint 11: Autenticação - JWT e Security
+- Sprint 12: Notificações e E-mail
+- Sprint 13: Dashboard e Analytics Avançado
