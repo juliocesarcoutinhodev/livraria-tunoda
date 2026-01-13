@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "livraria-tunoda-api",
     "name": "Livraria Tunoda API",
-    "description": "Collection completa da API REST da Livraria Tunoda com 29 endpoints implementados (incluindo autenticação JWT)",
+    "description": "Collection completa da API REST da Livraria Tunoda com 30 endpoints implementados (incluindo refresh token)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "livraria-tunoda"
   },
@@ -926,6 +926,151 @@
               ]
             },
             "description": "Autentica usuário administrativo. Valida credenciais (email e senha) e retorna access token JWT (1h) e refresh token (30 dias). Access token deve ser usado no header Authorization: Bearer {token}. SCRIPT AUTOMÁTICO: Os tokens são salvos automaticamente nas variáveis após login bem-sucedido."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de autenticação JWT para usuários administrativos"
+    },
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Salva automaticamente os tokens nas variaveis apos login bem-sucedido",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    ",
+                  "    // Salva access token",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.accessToken);",
+                  "    console.log(\"Access Token salvo: \" + jsonData.accessToken.substring(0, 20) + \"...\");",
+                  "    ",
+                  "    // Salva refresh token",
+                  "    pm.collectionVariables.set(\"refresh_token\", jsonData.refreshToken);",
+                  "    console.log(\"Refresh Token salvo: \" + jsonData.refreshToken);",
+                  "    ",
+                  "    // Exibe informacoes",
+                  "    console.log(\"Token Type: \" + jsonData.tokenType);",
+                  "    console.log(\"Expira em: \" + jsonData.expiresIn + \" segundos\");",
+                  "    ",
+                  "    pm.test(\"Login bem-sucedido\", function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Access token recebido\", function () {",
+                  "        pm.expect(jsonData.accessToken).to.not.be.empty;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Refresh token recebido\", function () {",
+                  "        pm.expect(jsonData.refreshToken).to.not.be.empty;",
+                  "    });",
+                  "} else {",
+                  "    console.log(\"Login falhou com status: \" + pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@livraria.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica usuário administrativo. Valida credenciais (email e senha) e retorna access token JWT (1h) e refresh token (30 dias). Access token deve ser usado no header Authorization: Bearer {token}. SCRIPT AUTOMÁTICO: Os tokens são salvos automaticamente nas variáveis após login bem-sucedido."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Salva automaticamente os novos tokens apos renovacao bem-sucedida",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    ",
+                  "    // Salva novo access token",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.accessToken);",
+                  "    console.log(\"Novo Access Token salvo: \" + jsonData.accessToken.substring(0, 20) + \"...\");",
+                  "    ",
+                  "    // Salva novo refresh token",
+                  "    pm.collectionVariables.set(\"refresh_token\", jsonData.refreshToken);",
+                  "    console.log(\"Novo Refresh Token salvo: \" + jsonData.refreshToken);",
+                  "    ",
+                  "    // Exibe informacoes",
+                  "    console.log(\"Token Type: \" + jsonData.tokenType);",
+                  "    console.log(\"Expira em: \" + jsonData.expiresIn + \" segundos\");",
+                  "    console.log(\"Token rotation aplicado: refresh token antigo foi invalidado\");",
+                  "    ",
+                  "    pm.test(\"Renovacao bem-sucedida\", function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Novo access token recebido\", function () {",
+                  "        pm.expect(jsonData.accessToken).to.not.be.empty;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Novo refresh token recebido\", function () {",
+                  "        pm.expect(jsonData.refreshToken).to.not.be.empty;",
+                  "    });",
+                  "} else {",
+                  "    console.log(\"Renovacao falhou com status: \" + pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Renova tokens de autenticação usando o refresh token. Implementa TOKEN ROTATION: o refresh token antigo é invalidado e um novo é gerado. Validações: refresh token deve existir, não estar expirado, não estar revogado, e o usuário deve estar ativo. SCRIPT AUTOMÁTICO: Os novos tokens são salvos automaticamente nas variáveis."
           },
           "response": []
         }

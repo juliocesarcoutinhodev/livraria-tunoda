@@ -894,6 +894,29 @@ Response: 200 OK
 }
 ```
 
+**Endpoint de Renovação:**
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+}
+
+Response: 200 OK
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "660f9511-f30c-52e5-b827-557766551111",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+
+IMPORTANTE: Token Rotation aplicado
+- Refresh token antigo é INVALIDADO
+- Novo refresh token é gerado
+- Tentativas com token antigo serão rejeitadas
+```
+
 **Configuração JWT:**
 ```yaml
 app:
@@ -927,6 +950,10 @@ INDEX idx_refresh_tokens_expires_at
 - ✅ Access token com claims criptografados
 - ✅ Senha nunca exposta (BCrypt)
 - ✅ Logs de auditoria (tentativas de login)
+- ✅ Token rotation obrigatório na renovação
+- ✅ Refresh token expirado é rejeitado
+- ✅ Refresh token revogado é rejeitado
+- ✅ Usuário bloqueado não pode renovar tokens
 
 **Características:**
 - ✅ JWT stateless (sem sessão no servidor)
@@ -2943,12 +2970,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 44/44 ✅  
-**Endpoints Disponíveis:** 29 (incluindo /api/auth/login)  
+**Stories Implementadas:** 45/45 ✅  
+**Endpoints Disponíveis:** 30 (incluindo /api/auth/refresh)  
 **Tabelas no Banco:** 15 (incluindo tb_users e tb_refresh_tokens)  
 **Migrations:** 12 (V1 a V12)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Autenticação JWT Admin ✅
+**Novidade:** Refresh Token com Token Rotation ✅
 
 ---
 
@@ -3099,6 +3126,18 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Revogação de tokens antigos
 - ✅ Logs de auditoria completos
 
+- ✅ Story #45: Renovação segura de tokens (Refresh Token)
+- ✅ Endpoint POST /api/auth/refresh implementado
+- ✅ RefreshTokenUseCase com token rotation
+- ✅ Validação de refresh token (existência, expiração, revogação)
+- ✅ Invalidação automática do token antigo
+- ✅ Geração de novo access token JWT
+- ✅ Geração de novo refresh token
+- ✅ Verificação de status do usuário
+- ✅ Logs de auditoria de renovação
+- ✅ Mensagens de erro específicas
+- ✅ Token rotation obrigatório (segurança)
+
 **Arquitetura Implementada:**
 - ✅ User (Aggregate Root)
 - ✅ UserId (Identidade tipada)
@@ -3116,8 +3155,9 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Senha nunca exposta (sem getter público)
 - ✅ ToString exclui passwordHash
 
-**Endpoint Implementado:**
+**Endpoints Implementados:**
 - POST `/api/auth/login` - Autentica usuário admin e retorna tokens
+- POST `/api/auth/refresh` - Renova tokens usando refresh token
 
 **Próximas Sprints 🔜**
 - Sprint 10: JWT Filter e Autorização
