@@ -552,6 +552,148 @@ Armazena payload bruto da API (auditoria).
 
 ---
 
+## 💳 Domínio de Pagamentos
+
+### Aggregate Root: Payment
+
+Representa um pagamento no sistema.
+
+**Atributos:**
+- `id: PaymentId` - Identificador único do pagamento
+- `orderId: OrderId` - Associação obrigatória com pedido
+- `amount: Money` - Valor do pagamento (congelado no pedido)
+- `method: PaymentMethod` - Método de pagamento escolhido
+- `gateway: PaymentGateway` - Gateway que processará o pagamento
+- `status: PaymentStatus` - Status atual do pagamento
+- `externalReference: String` - Referência externa do gateway (nullable)
+- `rejectionReason: String` - Motivo da rejeição (nullable)
+- `createdAt: LocalDateTime` - Data de criação
+- `updatedAt: LocalDateTime` - Data de última atualização
+
+**PaymentStatus:**
+- `CREATED` - Pagamento criado, não processado ainda
+- `PENDING` - Aguardando confirmação do gateway/cliente
+- `APPROVED` - Pagamento aprovado pelo gateway
+- `REJECTED` - Pagamento rejeitado pelo gateway
+- `CANCELLED` - Pagamento cancelado pelo cliente
+- `EXPIRED` - Pagamento expirado (não pago a tempo)
+
+**PaymentMethod:**
+- `PIX` - Pagamento via PIX
+- `CREDIT_CARD` - Cartão de crédito
+- `DEBIT_CARD` - Cartão de débito
+- `BOLETO` - Boleto bancário
+- `BANK_TRANSFER` - Transferência bancária
+
+**PaymentGateway:**
+- `MERCADO_PAGO` - Mercado Pago (implementado)
+- `PAGSEGURO` - PagSeguro (planejado)
+- `PAYPAL` - PayPal (planejado)
+- `STRIPE` - Stripe (planejado)
+- `OTHER` - Outro gateway
+
+**Regras de Negócio:**
+- Um pagamento pertence a um único pedido
+- Valor do pagamento deve ser igual ao total do pedido
+- Status inicial sempre CREATED
+- ExternalReference preenchido após processamento
+- RejectionReason preenchido apenas quando REJECTED
+- Pagamento não pode ser alterado após APPROVED
+- Apenas um pagamento ativo por pedido
+
+**Métodos:**
+- `Payment.create(Order, method, gateway)` - Cria pagamento
+- `Payment.reconstitute(...)` - Reconstitui pagamento existente
+- `associateExternalReference(String)` - Associa referência do gateway
+- `markAsPending()` - CREATED → PENDING
+- `approve()` - PENDING → APPROVED
+- `reject(String reason)` - PENDING → REJECTED
+- `cancel()` - PENDING → CANCELLED
+- `expire()` - PENDING → EXPIRED
+- `isPending()`, `isApproved()`, `isRejected()`, etc. - Verificações de status
+
+### Abstração de Gateway
+
+**Interface: PaymentGatewayService** (domain/service)
+```java
+public interface PaymentGatewayService {
+    PaymentPreference createPaymentPreference(Order order, Payment payment);
+    PaymentGateway getGateway();
+    
+    record PaymentPreference(
+        String id,
+        String paymentUrl,
+        String externalReference
+    ) {}
+}
+```
+
+**Características:**
+- ✅ Interface no domínio (sem dependência de framework)
+- ✅ Implementações na camada de infraestrutura
+- ✅ Seleção dinâmica via Factory
+- ✅ Strategy Pattern para extensibilidade
+
+**Implementações:**
+
+**MercadoPagoPaymentService** (infrastructure)
+- Implementa `PaymentGatewayService`
+- Converte domínio → formato Mercado Pago
+- Retorna `PaymentPreference` normalizada
+- Zero dependência de MP no domínio
+
+**PaymentGatewayServiceFactory** (application)
+- Seleção automática por `PaymentGateway` enum
+- Registro via Spring (List<PaymentGatewayService>)
+- Map interno: `PaymentGateway → Service`
+- Exception clara se gateway não configurado
+
+**Arquitetura:**
+```
+ProcessPaymentUseCase
+    ↓
+PaymentGatewayServiceFactory
+    ↓
+PaymentGatewayService (interface)
+    ↓
+MercadoPagoPaymentService (impl)
+    ↓
+MercadoPagoClient → API Mercado Pago
+```
+
+**Benefícios:**
+- ✅ Desacoplamento total do domínio
+- ✅ Substituição de gateway sem refatoração
+- ✅ Testabilidade (mocks da interface)
+- ✅ Open/Closed Principle
+
+### Sincronização Order ↔ Payment
+
+**Regras:**
+- `APPROVED` → Order.confirm()
+- `REJECTED` → Order permanece PENDING
+- `EXPIRED` → Order.expire()
+- `CANCELLED` → Order permanece PENDING
+
+**Fluxo:**
+```
+1. Cliente paga no gateway
+2. Gateway envia webhook
+3. Sistema busca Payment por externalReference
+4. Atualiza Payment.status
+5. Busca Order relacionado
+6. Sincroniza Order.status
+7. Persiste ambos (transação atômica)
+```
+
+**Características:**
+- ✅ Pedido NUNCA muda status via frontend
+- ✅ Apenas eventos de pagamento alteram pedido
+- ✅ Transações atômicas
+- ✅ Logs completos de sincronização
+
+---
+
 ## 🚀 Pré-requisitos
 - **Maven 3.8+**
 - **Docker & Docker Compose**
@@ -2475,8 +2617,24 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Story #36: Processamento de pagamento (Mercado Pago)
 - ✅ Story #37: Webhook de notificação
 - ✅ Story #38: Consultar pagamento
+- ✅ Story #39: Sincronizar status pedido com pagamento
+- ✅ Story #40: Abstração de gateways de pagamento
 
-### Próximas Sprints 🔜
+**Arquitetura Implementada:**
+- ✅ Interface `PaymentGatewayService` no domínio
+- ✅ Implementação `MercadoPagoPaymentService` na infraestrutura
+- ✅ Factory `PaymentGatewayServiceFactory` para seleção dinâmica
+- ✅ Sincronização automática Order ↔ Payment via webhook
+- ✅ Zero dependência de gateway específico no domínio
+- ✅ Suporte a múltiplos gateways (Strategy Pattern)
+
+**Endpoints Disponíveis:**
+- POST `/api/orders/{orderId}/payments` - Criar pagamento
+- POST `/api/payments/{paymentId}/process` - Processar pagamento
+- GET `/api/payments/{paymentId}` - Consultar status
+- POST `/api/webhooks/mercadopago` - Receber notificações
+
+**Próximas Sprints 🔜**
 - Sprint 8: Checkout Completo (carrinho + frete + validações)
 - Sprint 9: Autenticação e Autorização (JWT)
 - Sprint 10: Notificações e E-mail
@@ -2599,6 +2757,151 @@ PaymentDTOMapper → PaymentResponse
 - ✅ Frontend pode exibir informações em tempo real
 - ✅ Suporte a polling para atualização de status
 - ✅ Base para notificações push futuras
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 💳 Story #39: Sincronizar Status Pedido com Pagamento
+
+**Objetivo**: Sistema sincroniza automaticamente o status do pedido baseado nos eventos de pagamento.
+
+#### Regras de Sincronização
+- ✅ **APPROVED** → `Order.confirm()` - Pedido confirmado automaticamente
+- ✅ **REJECTED** → Pedido permanece PENDING - Cliente pode tentar novamente
+- ✅ **EXPIRED** → `Order.expire()` - Pedido expirado automaticamente
+- ✅ **CANCELLED** → Pedido permanece PENDING - Cliente pode tentar novamente
+
+#### Características
+- ✅ Pedido **NUNCA** muda status via frontend
+- ✅ Apenas eventos de pagamento alteram pedido
+- ✅ Sincronização via webhook do gateway
+- ✅ Transações atômicas (Payment + Order juntos)
+
+#### Implementação
+```java
+ProcessMercadoPagoWebhookUseCase {
+    // Após atualizar Payment, sincroniza Order
+    if (status == APPROVED) {
+        order.confirm();
+    } else if (status == EXPIRED) {
+        order.expire();
+    }
+    // REJECTED e CANCELLED não alteram pedido
+}
+```
+
+#### Fluxo Completo
+```
+1. Cliente paga no Mercado Pago
+2. MP envia webhook → /api/webhooks/mercadopago
+3. Sistema busca Payment por externalReference
+4. Atualiza Payment.status
+5. Busca Order relacionado
+6. Sincroniza Order.status baseado em Payment
+7. Persiste ambos (transação atômica)
+```
+
+#### Validações
+- ✅ Order não pode ser confirmado sem pagamento APPROVED
+- ✅ Order não pode ser expirado manualmente (apenas via webhook)
+- ✅ Logs completos de sincronização
+- ✅ Retry automático em caso de falha (200 sempre no webhook)
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🏗️ Story #40: Abstração de Gateways de Pagamento
+
+**Objetivo**: Abstrair gateways de pagamento para permitir troca futura sem impacto no domínio.
+
+#### Interface de Abstração
+
+**PaymentGatewayService** (domain/service)
+```java
+public interface PaymentGatewayService {
+    PaymentPreference createPaymentPreference(Order order, Payment payment);
+    PaymentGateway getGateway();
+    
+    record PaymentPreference(
+        String id,
+        String paymentUrl,
+        String externalReference
+    ) {}
+}
+```
+
+#### Implementações
+
+**MercadoPagoPaymentService** (infrastructure)
+- ✅ Implementa `PaymentGatewayService`
+- ✅ Converte domínio → formato Mercado Pago
+- ✅ Retorna `PaymentPreference` normalizada
+- ✅ Zero dependência de MP no domínio
+
+**PaymentGatewayServiceFactory** (application)
+- ✅ Seleção automática por `PaymentGateway` enum
+- ✅ Registro via Spring (List<PaymentGatewayService>)
+- ✅ Map interno: `PaymentGateway → Service`
+- ✅ Exception clara se gateway não configurado
+
+#### Arquitetura
+
+```
+ProcessPaymentUseCase
+    ↓
+PaymentGatewayServiceFactory
+    ↓
+PaymentGatewayService (interface)
+    ↓
+MercadoPagoPaymentService (impl)
+    ↓
+MercadoPagoClient → API Mercado Pago
+```
+
+#### Benefícios
+- ✅ **Desacoplamento total**: Domínio não conhece MP
+- ✅ **Substituição fácil**: Adicionar PagSeguro/Stripe sem refatoração
+- ✅ **Testabilidade**: Mock da interface nos testes
+- ✅ **Strategy Pattern**: Seleção dinâmica em runtime
+- ✅ **Open/Closed Principle**: Aberto para extensão, fechado para modificação
+
+#### Como Adicionar Novo Gateway
+
+1. Criar implementação:
+```java
+@Service
+public class PagSeguroPaymentService implements PaymentGatewayService {
+    @Override
+    public PaymentGateway getGateway() {
+        return PaymentGateway.PAGSEGURO;
+    }
+    
+    @Override
+    public PaymentPreference createPaymentPreference(Order order, Payment payment) {
+        // Integração com PagSeguro
+    }
+}
+```
+
+2. Spring detecta automaticamente via `@Service`
+3. Factory registra no Map
+4. Use Case já funciona sem alteração!
+
+#### Gateways Suportados
+
+**Enum PaymentGateway:**
+- ✅ `MERCADO_PAGO` - Implementado
+- 🔜 `PAGSEGURO` - Planejado
+- 🔜 `PAYPAL` - Planejado
+- 🔜 `STRIPE` - Planejado
+- 🔜 `OTHER` - Customizado
+
+#### Logs de Inicialização
+```
+PaymentGatewayServiceFactory inicializado com 1 gateway(s): [MERCADO_PAGO]
+```
 
 **Status:** ✅ **COMPLETA**
 
