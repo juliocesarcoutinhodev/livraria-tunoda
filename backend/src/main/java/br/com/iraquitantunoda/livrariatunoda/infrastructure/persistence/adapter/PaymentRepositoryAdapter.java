@@ -27,6 +27,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
 
         mapper.updateEntity(entity, payment);
         var saved = jpaRepository.save(entity);
+        jpaRepository.flush();
         return mapper.toDomain(saved);
     }
 
