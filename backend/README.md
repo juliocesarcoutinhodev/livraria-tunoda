@@ -2469,9 +2469,15 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - 🔜 Story #32: Seleção de opção de frete
 - 🔜 Story #33: Associação de frete ao pedido
 
+### Sprint 7: Pagamento - Integração Mercado Pago ✅
+- ✅ Story #34: Modelagem de pagamento
+- ✅ Story #35: Criação de pagamento
+- ✅ Story #36: Processamento de pagamento (Mercado Pago)
+- ✅ Story #37: Webhook de notificação
+- ✅ Story #38: Consultar pagamento
+
 ### Próximas Sprints 🔜
-- Sprint 7: Checkout Completo (carrinho + frete + validações)
-- Sprint 8: Integração com Gateway de Pagamento (Mercado Pago)
+- Sprint 8: Checkout Completo (carrinho + frete + validações)
 - Sprint 9: Autenticação e Autorização (JWT)
 - Sprint 10: Notificações e E-mail
 - Sprint 11: Dashboard e Analytics Avançado
@@ -2518,6 +2524,85 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Bloqueio de alteração após seleção
 - ✅ Expiração automática de cotações (24h)
 - ✅ Validação para uso em pedidos
+
+### Sprint 7: Pagamento - Integração Mercado Pago ✅
+- ✅ Story #34: Modelagem de pagamento
+- ✅ Story #35: Criação de pagamento
+- ✅ Story #36: Processamento de pagamento (Mercado Pago)
+- ✅ Story #37: Webhook de notificação
+- ✅ Story #38: Consultar pagamento
+
+---
+
+### 💳 Story #38: Consultar Pagamento
+
+**Objetivo**: Permitir que o cliente consulte o status e detalhes do seu pagamento.
+
+#### Endpoint
+```
+GET /api/payments/{paymentId}
+```
+
+#### Retorno
+```json
+{
+  "paymentId": "uuid",
+  "orderId": "uuid",
+  "amount": 49.90,
+  "currency": "BRL",
+  "method": "CREDIT_CARD",
+  "status": "APPROVED",
+  "gateway": "MERCADO_PAGO",
+  "externalReference": "MP-123456789",
+  "rejectionReason": null,
+  "createdAt": "2026-01-13T17:00:00",
+  "updatedAt": "2026-01-13T17:05:00"
+}
+```
+
+#### Implementação
+- ✅ **GetPaymentUseCase**: Busca pagamento por ID
+- ✅ **PaymentController**: Endpoint GET adicionado
+- ✅ **PaymentDTOMapper**: Reutilizado para response
+- ✅ **Transação read-only**: Otimização de leitura
+
+#### Casos de Uso
+- ✅ Consulta de pagamento existente
+- ✅ Retorno de todos os status (CREATED, PENDING, APPROVED, REJECTED)
+- ✅ Erro 404 quando pagamento não encontrado
+- ✅ Logs informativos do processo
+
+#### Regras de Negócio
+- ✅ PaymentId obrigatório e válido
+- ✅ Qualquer status pode ser consultado
+- ✅ ExternalReference pode ser null (CREATED)
+- ✅ RejectionReason preenchido apenas quando REJECTED
+- ✅ Nenhuma entidade de domínio exposta
+
+#### Testes
+- ✅ GetPaymentUseCaseTest com 5 cenários:
+  - Consulta por ID com sucesso
+  - Pagamento não encontrado (404)
+  - Pagamento aprovado
+  - Pagamento rejeitado
+  - Pagamento pendente
+
+#### Arquitetura
+```
+Controller → UseCase → Repository → Database
+     ↓
+PaymentDTOMapper → PaymentResponse
+```
+
+#### Benefícios
+- ✅ Cliente pode acompanhar status do pagamento
+- ✅ Frontend pode exibir informações em tempo real
+- ✅ Suporte a polling para atualização de status
+- ✅ Base para notificações push futuras
+
+**Status:** ✅ **COMPLETA**
+
+---
 
 ### Próximas Sprints 🔜
 - Sprint 7: Checkout Completo (validações + confirmação)

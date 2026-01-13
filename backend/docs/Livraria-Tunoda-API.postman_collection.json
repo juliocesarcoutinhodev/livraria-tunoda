@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com 24 endpoints implementados",
+		"description": "Collection completa da API REST da Livraria Tunoda com 25 endpoints implementados",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -466,6 +466,20 @@
 							"path": ["api", "payments", "{{payment_id}}", "process"]
 						},
 						"description": "Processa um pagamento criando preferência no Mercado Pago. Atualiza o Payment com externalReference e status PENDING. Retorna URL de pagamento para o cliente realizar o pagamento. Validações: payment deve existir, não pode ter sido processado anteriormente."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Status do Pagamento",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/payments/{{payment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "payments", "{{payment_id}}"]
+						},
+						"description": "Consulta o status atual de um pagamento. Retorna informações detalhadas incluindo status, método, valor, orderId e datas. Permite ao cliente acompanhar o andamento da compra."
 					},
 					"response": []
 				}
