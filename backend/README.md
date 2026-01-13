@@ -755,6 +755,78 @@ Representa um usuário administrativo do sistema, responsável por autenticaçã
 - ✅ Validações no construtor
 - ✅ Clean Architecture e SOLID
 
+### Persistência de Usuários
+
+**Tabela no Banco:** `tb_users`
+
+**Estrutura:**
+```sql
+id VARCHAR(36) PRIMARY KEY
+name VARCHAR(200) NOT NULL
+email VARCHAR(255) NOT NULL UNIQUE
+password_hash VARCHAR(255) NOT NULL
+role VARCHAR(20) NOT NULL
+status VARCHAR(20) NOT NULL
+created_at TIMESTAMP NOT NULL
+updated_at TIMESTAMP NOT NULL
+
+CONSTRAINT uk_users_email UNIQUE (email)
+INDEX idx_users_email (email)
+INDEX idx_users_status (status)
+INDEX idx_users_role (role)
+```
+
+**Camadas de Persistência:**
+
+**UserEntity (infrastructure/persistence/entity)**
+- Entidade JPA com anotações de persistência
+- Campos mapeados para colunas do banco
+- `@PrePersist` e `@PreUpdate` para timestamps
+- Conversão de enums (UserRole, UserStatus)
+
+**UserJpaRepository (infrastructure/persistence/repository)**
+- Interface Spring Data JPA
+- Métodos customizados: `findByEmail()`, `existsByEmail()`
+- Queries derivadas do nome do método
+
+**UserMapper (infrastructure/persistence/mapper)**
+- MapStruct para conversão Domain ↔ Entity
+- Conversão de Value Objects (UserId, Email)
+- Extração segura de passwordHash via reflexão
+- Zero vazamento de domínio para infraestrutura
+
+**UserRepositoryAdapter (infrastructure/persistence/adapter)**
+- Implementa `UserRepository` (interface do domínio)
+- Delega para `UserJpaRepository`
+- Converte Entity → Domain via `UserMapper`
+- Desacopla domínio da infraestrutura
+
+**Arquitetura de Persistência:**
+```
+Domain Layer:
+    UserRepository (interface)
+         ↑
+         | implementa
+         |
+Infrastructure Layer:
+    UserRepositoryAdapter
+         ↓ delega
+    UserJpaRepository (Spring Data)
+         ↓ usa
+    UserMapper (MapStruct)
+         ↓ converte
+    UserEntity (JPA)
+```
+
+**Características:**
+- ✅ Email com constraint UNIQUE no banco
+- ✅ Senha armazenada como hash BCrypt (255 chars)
+- ✅ Timestamps automáticos (created_at, updated_at)
+- ✅ Índices para performance (email, status, role)
+- ✅ Migration versionada (V11)
+- ✅ Desacoplamento total (Adapter Pattern)
+- ✅ Zero dependência de Spring no domínio
+
 ---
 
 ## 🚀 Pré-requisitos
@@ -859,7 +931,8 @@ src/main/resources/db/migration/
 ├── V7__create-table-shipping-payloads.sql
 ├── V8__add-to-postal-code-to-shipping-quotes.sql
 ├── V9__create-table-payments.sql
-└── V10__add-shipping-to-orders.sql
+├── V10__add-shipping-to-orders.sql
+└── V11__create-table-users.sql
 ```
 
 **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
@@ -2757,12 +2830,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 42/42 ✅  
+**Stories Implementadas:** 43/43 ✅  
 **Endpoints Disponíveis:** 28  
-**Tabelas no Banco:** 13  
-**Migrations:** 10 (V1 a V10)  
+**Tabelas no Banco:** 14 (incluindo tb_users)  
+**Migrations:** 11 (V1 a V11)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Domínio de Usuário Admin ✅
+**Novidade:** Persistência de Usuário Admin ✅
 
 ---
 
@@ -2867,7 +2940,7 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - POST `/api/carts/checkout` - Checkout unificado (COM ou SEM frete)
 - POST `/api/carts/{cartId}/checkout` - Checkout legacy (deprecated)
 
-### Sprint 9: Autenticação Admin - Domínio ✅
+### Sprint 9: Autenticação Admin - Domínio e Persistência ✅
 - ✅ Story #42: Modelagem de usuário administrativo
 - ✅ Aggregate Root User criado
 - ✅ UserId como identidade tipada
@@ -2877,6 +2950,20 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Senha armazenada apenas como hash
 - ✅ UserRepository interface no domínio
 - ✅ Validações completas no construtor
+- ✅ Métodos de comportamento (block/unblock)
+- ✅ Zero anotações de persistência
+- ✅ Clean Architecture mantida
+
+- ✅ Story #43: Persistência de usuários administrativos
+- ✅ Migration V11 (tabela tb_users)
+- ✅ UserEntity (JPA) com timestamps automáticos
+- ✅ UserJpaRepository (Spring Data)
+- ✅ UserMapper (MapStruct)
+- ✅ UserRepositoryAdapter (Adapter Pattern)
+- ✅ Email com constraint UNIQUE
+- ✅ Senha armazenada como hash BCrypt
+- ✅ Índices para performance (email, status, role)
+- ✅ Desacoplamento total (zero Spring no domínio)
 - ✅ Métodos de comportamento (block/unblock)
 - ✅ Zero anotações de persistência
 - ✅ Clean Architecture mantida
