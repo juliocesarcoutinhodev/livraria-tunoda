@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "livraria-tunoda-api",
 		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com 23 endpoints implementados",
+		"description": "Collection completa da API REST da Livraria Tunoda com 24 endpoints implementados",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "livraria-tunoda"
 	},
@@ -454,6 +454,20 @@
 						"description": "Cria um pagamento para um pedido. Pedido deve existir e estar com status PENDING. Valor do pagamento será igual ao total do pedido. Métodos aceitos: PIX, CREDIT_CARD, DEBIT_CARD, BOLETO, BANK_TRANSFER. Pagamento inicia com status CREATED."
 					},
 					"response": []
+				},
+				{
+					"name": "Processar Pagamento (Mercado Pago)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/payments/{{payment_id}}/process",
+							"host": ["{{base_url}}"],
+							"path": ["api", "payments", "{{payment_id}}", "process"]
+						},
+						"description": "Processa um pagamento criando preferência no Mercado Pago. Atualiza o Payment com externalReference e status PENDING. Retorna URL de pagamento para o cliente realizar o pagamento. Validações: payment deve existir, não pode ter sido processado anteriormente."
+					},
+					"response": []
 				}
 			],
 			"description": "Endpoints para gerenciamento de pedidos"
@@ -608,6 +622,11 @@
 		{
 			"key": "quote_id",
 			"value": "cole-aqui-o-id-da-cotacao-criada",
+			"type": "string"
+		},
+		{
+			"key": "payment_id",
+			"value": "cole-aqui-o-id-do-pagamento-criado",
 			"type": "string"
 		}
 	]

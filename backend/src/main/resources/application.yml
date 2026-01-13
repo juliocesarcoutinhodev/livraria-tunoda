@@ -14,6 +14,7 @@ spring:
 logging:
   level:
     br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: DEBUG
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago: DEBUG
 
 management:
   endpoints:
@@ -34,4 +35,14 @@ melhor-envio:
   default-width: 15
   default-height: 2
   default-length: 20
+
+mercado-pago:
+  base-url: https://api.mercadopago.com
+  access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
+  timeout-seconds: 15
+  max-retries: 2
+  success-url: ${MERCADO_PAGO_SUCCESS_URL:http://localhost:3000/payment/success}
+  failure-url: ${MERCADO_PAGO_FAILURE_URL:http://localhost:3000/payment/failure}
+  pending-url: ${MERCADO_PAGO_PENDING_URL:http://localhost:3000/payment/pending}
+  notification-url: ${MERCADO_PAGO_NOTIFICATION_URL:http://localhost:8080/api/webhooks/mercadopago}
 
