@@ -1,6 +1,7 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago;
 
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.config.MercadoPagoProperties;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.dto.MercadoPagoPaymentDetails;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.dto.MercadoPagoPreferenceRequest;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.dto.MercadoPagoPreferenceResponse;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago.exception.MercadoPagoException;
@@ -24,6 +25,7 @@ public class MercadoPagoClient {
     private final MercadoPagoProperties properties;
 
     private static final String CREATE_PREFERENCE_ENDPOINT = "/checkout/preferences";
+    private static final String GET_PAYMENT_ENDPOINT = "/v1/payments/{id}";
 
     public MercadoPagoClient(
         @Qualifier("mercadoPagoRestTemplate") RestTemplate restTemplate,
@@ -65,6 +67,40 @@ public class MercadoPagoClient {
         } catch (RestClientException e) {
             log.error("Erro ao criar preferência no Mercado Pago: {}", e.getMessage());
             throw new MercadoPagoException("Falha ao criar preferência de pagamento", e);
+        }
+    }
+
+    /**
+     * Busca detalhes de um pagamento no Mercado Pago pelo ID.
+     * Usado para consultar status atualizado após notificação de webhook.
+     */
+    @Retryable(
+        retryFor = RestClientException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public MercadoPagoPaymentDetails getPaymentDetails(String paymentId) {
+        log.info("Buscando detalhes do pagamento no Mercado Pago. Payment ID: {}", paymentId);
+
+        try {
+            var response = restTemplate.getForObject(
+                GET_PAYMENT_ENDPOINT,
+                MercadoPagoPaymentDetails.class,
+                paymentId
+            );
+
+            if (response == null) {
+                throw new MercadoPagoException("Mercado Pago retornou resposta vazia ao consultar pagamento");
+            }
+
+            log.info("Detalhes do pagamento obtidos. Status: {}", response.status());
+            log.debug("Response completo: {}", response);
+
+            return response;
+
+        } catch (RestClientException e) {
+            log.error("Erro ao buscar detalhes do pagamento no Mercado Pago: {}", e.getMessage());
+            throw new MercadoPagoException("Falha ao consultar pagamento no Mercado Pago", e);
         }
     }
 }

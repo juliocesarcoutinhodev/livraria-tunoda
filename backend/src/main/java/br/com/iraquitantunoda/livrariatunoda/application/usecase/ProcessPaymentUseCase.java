@@ -47,8 +47,9 @@ public class ProcessPaymentUseCase {
         // Cria preferência no Mercado Pago
         var preference = mercadoPagoService.createPaymentPreference(order, payment);
 
-        // Associa referência externa ao pagamento
-        payment.associateExternalReference(preference.id());
+        // Associa referência externa ao pagamento (UUID nosso, enviado ao MP)
+        // O MP vai retornar esse mesmo UUID quando notificar sobre mudança de status
+        payment.associateExternalReference(payment.getId().getValue());
 
         // Marca como pendente (aguardando pagamento do cliente)
         payment.markAsPending();

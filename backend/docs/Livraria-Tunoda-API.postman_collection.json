@@ -473,6 +473,35 @@
 			"description": "Endpoints para gerenciamento de pedidos"
 		},
 		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Simular Webhook Mercado Pago",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 123456,\n  \"live_mode\": false,\n  \"type\": \"payment\",\n  \"action\": \"payment.updated\",\n  \"date_created\": \"2026-01-13T10:00:00Z\",\n  \"data\": {\n    \"id\": \"{{mercado_pago_payment_id}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/webhooks/mercadopago",
+							"host": ["{{base_url}}"],
+							"path": ["api", "webhooks", "mercadopago"]
+						},
+						"description": "Simula notificação de webhook do Mercado Pago. Use para testar localmente sem precisar de ngrok. Substitua {{mercado_pago_payment_id}} pelo ID real do pagamento no Mercado Pago (encontrado nos logs após processar payment)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para receber notificações externas"
+		},
+		{
 			"name": "Frete - Melhor Envio",
 			"item": [
 				{
@@ -627,6 +656,11 @@
 		{
 			"key": "payment_id",
 			"value": "cole-aqui-o-id-do-pagamento-criado",
+			"type": "string"
+		},
+		{
+			"key": "mercado_pago_payment_id",
+			"value": "cole-aqui-o-id-do-pagamento-do-mercado-pago",
 			"type": "string"
 		}
 	]
