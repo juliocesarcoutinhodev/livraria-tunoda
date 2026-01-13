@@ -1,9 +1,12 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CreateShippingQuoteRequest;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.SelectShippingOptionRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ShippingQuoteResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CalculateShippingUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateShippingQuoteUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetShippingQuoteUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.SelectShippingOptionUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,8 @@ public class ShippingController {
 
     private final CreateShippingQuoteUseCase createShippingQuoteUseCase;
     private final CalculateShippingUseCase calculateShippingUseCase;
+    private final GetShippingQuoteUseCase getShippingQuoteUseCase;
+    private final SelectShippingOptionUseCase selectShippingOptionUseCase;
 
     @PostMapping("/quotes")
     public ResponseEntity<ShippingQuoteResponse> createQuote(@Valid @RequestBody CreateShippingQuoteRequest request) {
@@ -27,6 +32,21 @@ public class ShippingController {
     @PostMapping("/quotes/{quoteId}/calculate")
     public ResponseEntity<ShippingQuoteResponse> calculateShipping(@PathVariable String quoteId) {
         var response = calculateShippingUseCase.execute(quoteId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/quotes/{quoteId}")
+    public ResponseEntity<ShippingQuoteResponse> getQuote(@PathVariable String quoteId) {
+        var response = getShippingQuoteUseCase.execute(quoteId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/quotes/{quoteId}/select")
+    public ResponseEntity<ShippingQuoteResponse> selectOption(
+        @PathVariable String quoteId,
+        @Valid @RequestBody SelectShippingOptionRequest request
+    ) {
+        var response = selectShippingOptionUseCase.execute(quoteId, request.serviceCode());
         return ResponseEntity.ok(response);
     }
 }

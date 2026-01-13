@@ -1954,6 +1954,144 @@ backend/
 
 ---
 
+### 🚚 Story #30: Consultar Cotação de Frete
+
+**Objetivo**: Permitir que o cliente visualize as opções de frete calculadas antes de selecionar uma.
+
+#### Critérios de Aceite
+- ✅ Endpoint de consulta disponível
+- ✅ Retorna apenas cotações com status CALCULATED
+- ✅ Lista completa de opções com preço e prazo
+- ✅ Validação de cotação expirada
+- ✅ DTO desacoplado do domínio
+
+#### Use Case GetShippingQuoteUseCase
+- ✅ Busca cotação por ID
+- ✅ Valida se status é CALCULATED
+- ✅ Valida se não está expirada
+- ✅ Operação read-only (`@Transactional(readOnly = true)`)
+
+#### Endpoint
+```http
+GET /api/shipping/quotes/{quoteId}
+```
+
+#### Response
+```json
+{
+  "id": "uuid",
+  "cartId": "uuid",
+  "toPostalCode": "05508-900",
+  "status": "CALCULATED",
+  "createdAt": "2026-01-13T00:21:10",
+  "expiresAt": "2026-01-14T00:21:10",
+  "items": [...],
+  "options": [
+    {
+      "carrier": "Correios",
+      "serviceCode": "PAC",
+      "serviceName": "PAC",
+      "price": 21.82,
+      "currency": "BRL",
+      "deliveryDays": 6,
+      "externalReference": "1"
+    }
+  ],
+  "selectedServiceCode": null
+}
+```
+
+#### Regras de Negócio
+- ✅ Apenas cotações calculadas podem ser consultadas
+- ✅ Cotação expirada retorna erro
+- ✅ Cotação não encontrada retorna 404
+
+#### Testes
+- ✅ 4 testes unitários no GetShippingQuoteUseCaseTest
+- ✅ Cenários de sucesso e erro cobertos
+
+**Status:** ✅ **COMPLETA**
+
+---
+
+### 🚚 Story #31: Selecionar Opção de Frete
+
+**Objetivo**: Permitir que o cliente escolha uma das opções de frete disponíveis para prosseguir com o pedido.
+
+#### Critérios de Aceite
+- ✅ Endpoint para seleção criado
+- ✅ Valida se opção existe
+- ✅ Status alterado para SELECTED
+- ✅ Bloqueia alterações futuras
+- ✅ Persistência imediata
+
+#### Use Case SelectShippingOptionUseCase
+- ✅ Busca cotação por ID
+- ✅ Delega validação para o domínio
+- ✅ Persiste alteração com `@Transactional`
+- ✅ Retorna cotação atualizada
+
+#### Endpoint
+```http
+PUT /api/shipping/quotes/{quoteId}/select
+Content-Type: application/json
+
+{
+  "serviceCode": "PAC"
+}
+```
+
+#### Response
+```json
+{
+  "id": "uuid",
+  "cartId": "uuid",
+  "toPostalCode": "05508-900",
+  "status": "SELECTED",
+  "createdAt": "2026-01-13T00:21:10",
+  "expiresAt": "2026-01-14T00:21:10",
+  "items": [...],
+  "options": [...],
+  "selectedServiceCode": "PAC"
+}
+```
+
+#### Regras de Negócio (implementadas no domínio)
+- ✅ Cotação deve estar calculada (CALCULATED)
+- ✅ Cotação não pode estar expirada
+- ✅ Opção deve existir nas opções disponíveis
+- ✅ Cotação já selecionada não pode ser alterada
+- ✅ Status muda para SELECTED automaticamente
+- ✅ selectedServiceCode é armazenado
+
+#### Como Descobrir ServiceCodes Disponíveis
+```bash
+# 1. Calcular frete
+POST /api/shipping/quotes/{quoteId}/calculate
+
+# 2. Consultar opções disponíveis
+GET /api/shipping/quotes/{quoteId}
+
+# Resposta mostra os serviceCodes:
+# "options": [
+#   {"serviceCode": "PAC", ...},
+#   {"serviceCode": "SEDEX", ...}
+# ]
+
+# 3. Selecionar um dos códigos acima
+PUT /api/shipping/quotes/{quoteId}/select
+Body: {"serviceCode": "PAC"}
+```
+
+#### Testes
+- ✅ 6 testes unitários no SelectShippingOptionUseCaseTest
+- ✅ Cenários de sucesso e erro cobertos
+- ✅ Validações de negócio testadas
+
+**Status:** ✅ **COMPLETA**
+
+---
+
 ## 📊 Endpoints da API
 
 ### Públicos (Catálogo)
@@ -1983,6 +2121,15 @@ DELETE /api/carts/{id}/items/{bookId}       → Remover item
 
 ```
 GET    /api/orders/{id}                     → Consultar pedido
+```
+
+### Frete (Melhor Envio)
+
+```
+POST   /api/shipping/quotes                      → Criar cotação de frete
+POST   /api/shipping/quotes/{id}/calculate       → Calcular frete via Melhor Envio
+GET    /api/shipping/quotes/{id}                 → Consultar cotação
+PUT    /api/shipping/quotes/{id}/select          → Selecionar opção de frete
 ```
 
 ### Administrativos
@@ -2185,7 +2332,7 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Endpoints de pedido disponibilizados
 - ✅ Base pronta para integração com gateway
 
-### Sprint 6: Frete - Integração Melhor Envio (Stories #23-30) ✅
+### Sprint 6: Frete - Integração Melhor Envio (Stories #23-31) ✅
 - ✅ Domínio de frete completo (ShippingQuote)
 - ✅ ShippingItem com dados congelados
 - ✅ ShippingOption normalizada
@@ -2195,10 +2342,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Integração com API do Melhor Envio
 - ✅ Cálculo de frete com peso em quilogramas
 - ✅ Suporte a múltiplas transportadoras
-- ✅ Consulta de cotações
+- ✅ Consulta de cotações calculadas
+- ✅ Seleção de opção de frete
+- ✅ Bloqueio de alteração após seleção
 
 ### Próximas Sprints 🔜
-- Sprint 7: Seleção de Frete no Checkout
+- Sprint 7: Checkout Completo (validações + confirmação)
 - Sprint 8: Integração com Gateway de Pagamento (Mercado Pago)
 - Sprint 9: Autenticação e Autorização (JWT)
 - Sprint 10: Notificações e E-mail

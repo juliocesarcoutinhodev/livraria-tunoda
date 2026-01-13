@@ -488,6 +488,29 @@
 						"description": "Consulta os detalhes de uma cotação de frete, incluindo todas as opções calculadas."
 					},
 					"response": []
+				},
+				{
+					"name": "Selecionar Opção de Frete",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"serviceCode\": \"PAC\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/select",
+							"host": ["{{base_url}}"],
+							"path": ["api", "shipping", "quotes", "{{quote_id}}", "select"]
+						},
+						"description": "Seleciona uma opção de frete para a cotação. A cotação deve estar calculada (status CALCULATED) e a opção deve existir. Após seleção, o status muda para SELECTED e não pode ser alterado."
+					},
+					"response": []
 				}
 			],
 			"description": "Endpoints para cálculo de frete integrado com Melhor Envio"
