@@ -2615,10 +2615,8 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Tratamento de erros e retry automático
 - ✅ Logs detalhados para debug
 - ✅ Migration V8 (coluna to_postal_code)
-
-#### Pendente:
-- 🔜 Story #32: Seleção de opção de frete
-- 🔜 Story #33: Associação de frete ao pedido
+- ✅ Story #32: Seleção de opção de frete
+- ✅ Story #33: Validar cotação para pedido (uso futuro)
 
 ### Sprint 7: Pagamento - Integração Mercado Pago ✅
 - ✅ Story #34: Modelagem de pagamento
