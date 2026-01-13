@@ -164,6 +164,22 @@ public class User {
     }
 
     /**
+     * Valida se a senha fornecida corresponde ao hash armazenado.
+     * Usa o PasswordEncoderService para comparacao segura.
+     * Metodo publico usado durante autenticacao.
+     *
+     * @param rawPassword Senha em texto plano
+     * @param passwordEncoder Servico de encoding de senhas
+     * @return true se a senha corresponde
+     */
+    public boolean validatePassword(String rawPassword, br.com.iraquitantunoda.livrariatunoda.domain.service.PasswordEncoderService passwordEncoder) {
+        if (rawPassword == null || passwordEncoder == null) {
+            return false;
+        }
+        return passwordEncoder.matches(rawPassword, this.passwordHash);
+    }
+
+    /**
      * Verifica se o hash fornecido corresponde ao hash armazenado.
      * Usado durante o processo de autenticacao.
      *

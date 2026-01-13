@@ -827,6 +827,118 @@ Infrastructure Layer:
 - ✅ Desacoplamento total (Adapter Pattern)
 - ✅ Zero dependência de Spring no domínio
 
+### Autenticação JWT
+
+**Aggregate Root:** `RefreshToken`
+
+Representa um token de refresh para renovar access tokens sem re-login.
+
+**Atributos:**
+- `id: RefreshTokenId` - Identificador único
+- `userId: UserId` - Usuário dono do token
+- `token: String` - Token UUID aleatório e seguro
+- `createdAt: LocalDateTime` - Data de criação
+- `expiresAt: LocalDateTime` - Data de expiração
+- `revoked: boolean` - Se foi revogado manualmente
+
+**Métodos:**
+- `RefreshToken.create(userId, expirationDays)` - Cria novo token
+- `revoke()` - Revoga o token
+- `isExpired()` - Verifica expiração
+- `isValid()` - Verifica se válido (não revogado e não expirado)
+
+**Domain Services:**
+
+**JwtService** (interface no domínio)
+- `generateAccessToken(User)` - Gera JWT access token
+- `extractUserId(token)` - Extrai userId do JWT
+- `extractRole(token)` - Extrai role do JWT
+- `validateToken(token)` - Valida JWT
+- `isTokenExpired(token)` - Verifica expiração
+
+**PasswordEncoderService** (interface no domínio)
+- `encode(rawPassword)` - Gera hash BCrypt
+- `matches(rawPassword, hash)` - Valida senha
+
+**Implementações** (infrastructure):
+- `JwtServiceImpl` - Usa io.jsonwebtoken (jjwt 0.12.3)
+- `PasswordEncoderServiceImpl` - Usa Spring Security BCrypt
+
+**Use Case: LoginUseCase**
+
+Fluxo de autenticação:
+1. Busca usuário por email
+2. Valida senha com BCrypt
+3. Verifica se usuário está ativo
+4. Revoga tokens antigos (segurança)
+5. Gera access token JWT (1 hora)
+6. Gera refresh token persistido (30 dias)
+7. Retorna tokens no formato padronizado
+
+**Endpoint de Autenticação:**
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@livraria.com",
+  "password": "senha123"
+}
+
+Response: 200 OK
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+**Configuração JWT:**
+```yaml
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}              # Mínimo 256 bits
+      expiration: 3600                   # 1 hora
+    refresh-token:
+      expiration-days: 30                # 30 dias
+```
+
+**Tabela:** `tb_refresh_tokens`
+```sql
+id VARCHAR(36) PRIMARY KEY
+user_id VARCHAR(36) NOT NULL (FK)
+token VARCHAR(36) NOT NULL UNIQUE
+created_at TIMESTAMP NOT NULL
+expires_at TIMESTAMP NOT NULL
+revoked BOOLEAN NOT NULL DEFAULT FALSE
+
+INDEX idx_refresh_tokens_user_id
+INDEX idx_refresh_tokens_token
+INDEX idx_refresh_tokens_expires_at
+```
+
+**Validações de Segurança:**
+- ✅ Credenciais inválidas retornam mensagem genérica
+- ✅ Usuário bloqueado não pode fazer login
+- ✅ Tokens antigos são revogados no novo login
+- ✅ Refresh token com UUID seguro
+- ✅ Access token com claims criptografados
+- ✅ Senha nunca exposta (BCrypt)
+- ✅ Logs de auditoria (tentativas de login)
+
+**Características:**
+- ✅ JWT stateless (sem sessão no servidor)
+- ✅ Refresh token persistido (renovação)
+- ✅ BCrypt para hash de senhas
+- ✅ HMAC-SHA256 para assinatura JWT
+- ✅ Claims: userId, role, email
+- ✅ Tempo de vida configurável
+- ✅ Revogação manual de tokens
+- ✅ Limpeza de tokens expirados
+- ✅ Zero dependência de Spring no domínio
+
 ---
 
 ## 🚀 Pré-requisitos
@@ -932,7 +1044,8 @@ src/main/resources/db/migration/
 ├── V8__add-to-postal-code-to-shipping-quotes.sql
 ├── V9__create-table-payments.sql
 ├── V10__add-shipping-to-orders.sql
-└── V11__create-table-users.sql
+├── V11__create-table-users.sql
+└── V12__create-table-refresh-tokens.sql
 ```
 
 **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
@@ -2830,12 +2943,12 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 
 **Versão:** 0.0.1-SNAPSHOT  
 **Última atualização:** 13 Janeiro 2026  
-**Stories Implementadas:** 43/43 ✅  
-**Endpoints Disponíveis:** 28  
-**Tabelas no Banco:** 14 (incluindo tb_users)  
-**Migrations:** 11 (V1 a V11)  
+**Stories Implementadas:** 44/44 ✅  
+**Endpoints Disponíveis:** 29 (incluindo /api/auth/login)  
+**Tabelas no Banco:** 15 (incluindo tb_users e tb_refresh_tokens)  
+**Migrations:** 12 (V1 a V12)  
 **Integrações:** Melhor Envio ✅ | Mercado Pago ✅  
-**Novidade:** Persistência de Usuário Admin ✅
+**Novidade:** Autenticação JWT Admin ✅
 
 ---
 
@@ -2968,6 +3081,24 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ Zero anotações de persistência
 - ✅ Clean Architecture mantida
 
+- ✅ Story #44: Autenticação JWT para usuários administrativos
+- ✅ Endpoint POST /api/auth/login implementado
+- ✅ RefreshToken (Aggregate Root) criado
+- ✅ JwtService (Domain Service) interface
+- ✅ PasswordEncoderService (Domain Service) interface
+- ✅ LoginUseCase com validação completa
+- ✅ JwtServiceImpl usando io.jsonwebtoken (jjwt 0.12.3)
+- ✅ PasswordEncoderServiceImpl usando BCrypt
+- ✅ Spring Security configurado (stateless)
+- ✅ Access Token JWT (1 hora)
+- ✅ Refresh Token persistido (30 dias)
+- ✅ Migration V12 (tabela tb_refresh_tokens)
+- ✅ AuthenticationResponse padronizado
+- ✅ Validação de credenciais segura
+- ✅ Bloqueio de usuários bloqueados
+- ✅ Revogação de tokens antigos
+- ✅ Logs de auditoria completos
+
 **Arquitetura Implementada:**
 - ✅ User (Aggregate Root)
 - ✅ UserId (Identidade tipada)
@@ -2975,11 +3106,22 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - ✅ UserRole (Enum extensível)
 - ✅ UserStatus (Enum de estado)
 - ✅ UserRepository (Interface no domínio)
+- ✅ RefreshToken (Aggregate Root)
+- ✅ RefreshTokenRepository (Interface no domínio)
+- ✅ JwtService (Domain Service)
+- ✅ PasswordEncoderService (Domain Service)
+- ✅ LoginUseCase (Application Layer)
+- ✅ AuthController (REST API)
+- ✅ SecurityConfiguration (Spring Security)
 - ✅ Senha nunca exposta (sem getter público)
 - ✅ ToString exclui passwordHash
 
+**Endpoint Implementado:**
+- POST `/api/auth/login` - Autentica usuário admin e retorna tokens
+
 **Próximas Sprints 🔜**
-- Sprint 10: Autenticação - Persistência e Use Cases
-- Sprint 11: Autenticação - JWT e Security
-- Sprint 12: Notificações e E-mail
-- Sprint 13: Dashboard e Analytics Avançado
+- Sprint 10: JWT Filter e Autorização
+- Sprint 11: Refresh Token e Logout
+- Sprint 12: Gestão de Usuários (CRUD)
+- Sprint 13: Notificações e E-mail
+- Sprint 14: Dashboard e Analytics Avançado

@@ -1,733 +1,1041 @@
 {
-	"info": {
-		"_postman_id": "livraria-tunoda-api",
-		"name": "Livraria Tunoda API",
-		"description": "Collection completa da API REST da Livraria Tunoda com 28 endpoints implementados (incluindo checkout com frete)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "livraria-tunoda"
-	},
-	"item": [
-		{
-			"name": "Public - Catálogo",
-			"item": [
-				{
-					"name": "Listar Livros (Paginado)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books?page=0&size=10",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books"],
-							"query": [
-								{
-									"key": "page",
-									"value": "0",
-									"description": "Número da página (começa em 0)"
-								},
-								{
-									"key": "size",
-									"value": "10",
-									"description": "Quantidade de itens por página"
-								}
-							]
-						},
-						"description": "Lista livros ativos do catálogo com paginação. Ordenado por data de criação (mais recentes primeiro)."
-					},
-					"response": []
-				},
-				{
-					"name": "Detalhes do Livro",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books/{{book_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books", "{{book_id}}"]
-						},
-						"description": "Retorna detalhes completos de um livro específico (apenas livros ativos). Inclui informações dos autores com biografia completa."
-					},
-					"response": []
-				},
-				{
-					"name": "Top Livros Mais Visualizados",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books/most-viewed?limit=10",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books", "most-viewed"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "10",
-									"description": "Quantidade máxima de livros a retornar (padrão: 10)"
-								}
-							]
-						},
-						"description": "Retorna ranking dos livros mais visualizados (apenas livros ativos). Inclui total de views de cada livro."
-					},
-					"response": []
-				},
-				{
-					"name": "Top Livros Mais Clicados",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books/most-clicked?limit=10",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books", "most-clicked"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "10",
-									"description": "Quantidade máxima de livros a retornar (padrão: 10)"
-								}
-							]
-						},
-						"description": "Retorna ranking dos livros mais clicados (apenas livros ativos). Inclui total de clicks de cada livro."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints públicos para consulta do catálogo de livros"
-		},
-		{
-			"name": "Public - Métricas",
-			"item": [
-				{
-					"name": "Registrar Visualização",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/view",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books", "{{book_id}}", "metrics", "view"]
-						},
-						"description": "Registra evento de visualização de um livro. Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
-					},
-					"response": []
-				},
-				{
-					"name": "Registrar Clique",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/click",
-							"host": ["{{base_url}}"],
-							"path": ["api", "public", "books", "{{book_id}}", "metrics", "click"]
-						},
-						"description": "Registra evento de clique (ex: botão comprar). Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints públicos para registro de métricas de interação"
-		},
-		{
-			"name": "Admin - Autores",
-			"item": [
-				{
-					"name": "Criar Autor",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Robert C. Martin\",\n  \"biography\": \"Robert Cecil Martin, conhecido como Uncle Bob, é um engenheiro de software americano e autor. É co-autor do Manifesto Ágil e autor de diversos livros sobre desenvolvimento de software.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob.jpg\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/authors",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "authors"]
-						},
-						"description": "Cria um novo autor no sistema. Status ACTIVE por padrão. Campos obrigatórios: name, biography. Campo opcional: photoUrl."
-					},
-					"response": []
-				},
-				{
-					"name": "Atualizar Autor",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Robert C. Martin (Uncle Bob)\",\n  \"biography\": \"Robert Cecil Martin é um engenheiro de software americano, autor e palestrante. É co-autor do Manifesto Ágil e autor de diversos livros incluindo Clean Code, Clean Architecture e The Clean Coder.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob-updated.jpg\",\n  \"status\": \"ACTIVE\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/authors/{{author_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "authors", "{{author_id}}"]
-						},
-						"description": "Atualiza todos os dados de um autor existente (substituição completa). Requer todos os campos: name, biography, photoUrl, status."
-					},
-					"response": []
-				},
-				{
-					"name": "Ativar/Desativar Autor",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"status\": \"INACTIVE\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/authors/{{author_id}}/status",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "authors", "{{author_id}}", "status"]
-						},
-						"description": "Altera apenas o status do autor. Regra: não pode desativar autor que possui livros ativos. Valores aceitos: ACTIVE, INACTIVE."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints administrativos para gerenciamento de autores"
-		},
-		{
-			"name": "Admin - Livros",
-			"item": [
-				{
-					"name": "Criar Livro",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way.\",\n  \"photoUrl\": \"https://example.com/books/clean-code.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 49.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.680,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"]\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/books",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "books"]
-						},
-						"description": "Cria um novo livro no sistema. Status ACTIVE por padrão. Valida que todos os autores existem e estão ativos. ISBN é opcional mas validado se fornecido."
-					},
-					"response": []
-				},
-				{
-					"name": "Atualizar Livro",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship - 2nd Edition\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This updated edition includes new insights and practical examples.\",\n  \"photoUrl\": \"https://example.com/books/clean-code-v2.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 59.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.700,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"],\n  \"status\": \"ACTIVE\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/books/{{book_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "books", "{{book_id}}"]
-						},
-						"description": "Atualiza todos os dados de um livro existente (substituição completa). Valida que todos os autores existem e estão ativos."
-					},
-					"response": []
-				},
-				{
-					"name": "Ativar/Desativar Livro",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"status\": \"ACTIVE\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/books/{{book_id}}/status",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "books", "{{book_id}}", "status"]
-						},
-						"description": "Altera apenas o status do livro. Regra: não pode ativar livro sem pelo menos um autor ativo. Valores aceitos: ACTIVE, INACTIVE."
-					},
-					"response": []
-				},
-				{
-					"name": "Consultar Métricas do Livro",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/admin/books/{{book_id}}/metrics",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "books", "{{book_id}}", "metrics"]
-						},
-						"description": "Consulta métricas agregadas de um livro específico (visualizações e cliques). Retorna 404 se livro não existir. Livros inativos podem ter métricas consultadas."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints administrativos para gerenciamento de livros"
-		},
-		{
-			"name": "Carrinho de Compras",
-			"item": [
-				{
-					"name": "Criar Carrinho",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/carts",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts"]
-						},
-						"description": "Cria um novo carrinho de compras vazio com status ACTIVE. Não requer autenticação. Retorna o identificador único do carrinho."
-					},
-					"response": []
-				},
-				{
-					"name": "Visualizar Carrinho",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}"]
-						},
-						"description": "Consulta o estado atual do carrinho com todos os itens, subtotal e total. Carrinho pode estar em qualquer status e pode ser visualizado mesmo vazio."
-					},
-					"response": []
-				},
-				{
-					"name": "Validar Carrinho para Checkout",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}/validate",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}", "validate"]
-						},
-						"description": "Valida se o carrinho está pronto para checkout. Verifica status ativo, presença de itens, total maior que zero e se todos os livros estão ativos. Retorna resultado da validação sem alterar o carrinho."
-					},
-					"response": []
-				},
-				{
-					"name": "Adicionar Item ao Carrinho",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"bookId\": \"{{book_id}}\",\n  \"quantity\": 2\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}/items",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}", "items"]
-						},
-						"description": "Adiciona um livro ao carrinho de compras. Se o livro já existir, a quantidade será somada. Preço do livro é congelado no momento da adição."
-					},
-					"response": []
-				},
-				{
-					"name": "Atualizar Quantidade do Item",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"quantity\": 5\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}", "items", "{{book_id}}"]
-						},
-						"description": "Atualiza a quantidade de um item específico no carrinho. Quantidade deve ser maior que zero. Carrinho deve estar ativo."
-					},
-					"response": []
-				},
-				{
-					"name": "Remover Item do Carrinho",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}", "items", "{{book_id}}"]
-						},
-						"description": "Remove completamente um item do carrinho. Carrinho deve estar ativo e o item deve existir."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints públicos para gerenciamento do carrinho de compras"
-		},
-		{
-			"name": "Pedidos",
-			"item": [
-				{
-					"name": "Checkout COM Frete",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/carts/checkout",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "checkout"]
-						},
-						"description": "Converte carrinho em pedido COM frete. Valida carrinho (ativo, items, livros) e cotação de frete (selecionada, não expirada). Total = subtotal + frete. Pedido criado com status PENDING."
-					},
-					"response": []
-				},
-				{
-					"name": "Checkout SEM Frete (Grátis)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/carts/checkout",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "checkout"]
-						},
-						"description": "Converte carrinho em pedido SEM frete (frete grátis). Valida carrinho e cria pedido com shippingCost = 0.00. Total = subtotal. Pedido criado com status PENDING."
-					},
-					"response": []
-				},
-				{
-					"name": "Checkout Legacy (Deprecated)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/carts/{{cart_id}}/checkout",
-							"host": ["{{base_url}}"],
-							"path": ["api", "carts", "{{cart_id}}", "checkout"]
-						},
-						"description": "[DEPRECATED] Endpoint antigo mantido para compatibilidade. Use POST /api/carts/checkout. Cria pedido sem frete."
-					},
-					"response": []
-				},
-				{
-					"name": "Consultar Pedido",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/orders/{{order_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "orders", "{{order_id}}"]
-						},
-						"description": "Consulta um pedido específico pelo seu identificador. Retorna todos os detalhes: id, status, itens, subtotal, total e data de criação. Pedidos cancelados podem ser consultados."
-					},
-					"response": []
-				},
-				{
-					"name": "Criar Pagamento para Pedido",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"paymentMethod\": \"PIX\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/orders/{{order_id}}/payments",
-							"host": ["{{base_url}}"],
-							"path": ["api", "orders", "{{order_id}}", "payments"]
-						},
-						"description": "Cria um pagamento para um pedido. Pedido deve existir e estar com status PENDING. Valor do pagamento será igual ao total do pedido. Métodos aceitos: PIX, CREDIT_CARD, DEBIT_CARD, BOLETO, BANK_TRANSFER. Pagamento inicia com status CREATED."
-					},
-					"response": []
-				},
-				{
-					"name": "Processar Pagamento (Mercado Pago)",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/payments/{{payment_id}}/process",
-							"host": ["{{base_url}}"],
-							"path": ["api", "payments", "{{payment_id}}", "process"]
-						},
-						"description": "Processa um pagamento criando preferência no Mercado Pago. Atualiza o Payment com externalReference e status PENDING. Retorna URL de pagamento para o cliente realizar o pagamento. Validações: payment deve existir, não pode ter sido processado anteriormente."
-					},
-					"response": []
-				},
-				{
-					"name": "Consultar Status do Pagamento",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/payments/{{payment_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "payments", "{{payment_id}}"]
-						},
-						"description": "Consulta o status atual de um pagamento. Retorna informações detalhadas incluindo status, método, valor, orderId e datas. Permite ao cliente acompanhar o andamento da compra."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints para gerenciamento de pedidos"
-		},
-		{
-			"name": "Webhooks",
-			"item": [
-				{
-					"name": "Simular Webhook Mercado Pago",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"id\": 123456,\n  \"live_mode\": false,\n  \"type\": \"payment\",\n  \"action\": \"payment.updated\",\n  \"date_created\": \"2026-01-13T10:00:00Z\",\n  \"data\": {\n    \"id\": \"{{mercado_pago_payment_id}}\"\n  }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/webhooks/mercadopago",
-							"host": ["{{base_url}}"],
-							"path": ["api", "webhooks", "mercadopago"]
-						},
-						"description": "Simula notificação de webhook do Mercado Pago. Use para testar localmente sem precisar de ngrok. Substitua {{mercado_pago_payment_id}} pelo ID real do pagamento no Mercado Pago (encontrado nos logs após processar payment)."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints para receber notificações externas"
-		},
-		{
-			"name": "Frete - Melhor Envio",
-			"item": [
-				{
-					"name": "Criar Cotação de Frete",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"toPostalCode\": \"05508-900\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/shipping/quotes",
-							"host": ["{{base_url}}"],
-							"path": ["api", "shipping", "quotes"]
-						},
-						"description": "Cria uma nova cotação de frete para um carrinho. Requer cartId e CEP de destino (toPostalCode). Congela os dados dos itens (título, peso, preço) no momento da cotação."
-					},
-					"response": []
-				},
-				{
-					"name": "Calcular Frete via Melhor Envio",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/calculate",
-							"host": ["{{base_url}}"],
-							"path": ["api", "shipping", "quotes", "{{quote_id}}", "calculate"]
-						},
-						"description": "Calcula opções de frete para uma cotação via API do Melhor Envio. Retorna transportadoras disponíveis com preços e prazos."
-					},
-					"response": []
-				},
-				{
-					"name": "Consultar Cotação",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "shipping", "quotes", "{{quote_id}}"]
-						},
-						"description": "Consulta os detalhes de uma cotação de frete, incluindo todas as opções calculadas."
-					},
-					"response": []
-				},
-				{
-					"name": "Selecionar Opção de Frete",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"serviceCode\": \"PAC\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/select",
-							"host": ["{{base_url}}"],
-							"path": ["api", "shipping", "quotes", "{{quote_id}}", "select"]
-						},
-						"description": "Seleciona uma opção de frete para a cotação. A cotação deve estar calculada (status CALCULATED) e a opção deve existir. Após seleção, o status muda para SELECTED e não pode ser alterado."
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints para cálculo de frete integrado com Melhor Envio"
-		},
-		{
-			"name": "Health Check",
-			"item": [
-				{
-					"name": "Health",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/v1/actuator/health",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "actuator", "health"]
-						},
-						"description": "Verifica o status da aplicação e suas dependências (banco de dados, etc.)"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints de monitoramento da aplicação"
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080",
-			"type": "string"
-		},
-		{
-			"key": "author_id",
-			"value": "cole-aqui-o-id-do-autor-criado",
-			"type": "string"
-		},
-		{
-			"key": "book_id",
-			"value": "cole-aqui-o-id-do-livro-criado",
-			"type": "string"
-		},
-		{
-			"key": "cart_id",
-			"value": "cole-aqui-o-id-do-carrinho-criado",
-			"type": "string"
-		},
-		{
-			"key": "order_id",
-			"value": "cole-aqui-o-id-do-pedido-criado",
-			"type": "string"
-		},
-		{
-			"key": "quote_id",
-			"value": "cole-aqui-o-id-da-cotacao-criada",
-			"type": "string"
-		},
-		{
-			"key": "shipping_quote_id",
-			"value": "cole-aqui-o-id-da-cotacao-de-frete",
-			"type": "string"
-		},
-		{
-			"key": "payment_id",
-			"value": "cole-aqui-o-id-do-pagamento-criado",
-			"type": "string"
-		},
-		{
-			"key": "mercado_pago_payment_id",
-			"value": "cole-aqui-o-id-do-pagamento-do-mercado-pago",
-			"type": "string"
-		}
-	]
+  "info": {
+    "_postman_id": "livraria-tunoda-api",
+    "name": "Livraria Tunoda API",
+    "description": "Collection completa da API REST da Livraria Tunoda com 29 endpoints implementados (incluindo autenticação JWT)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "livraria-tunoda"
+  },
+  "item": [
+    {
+      "name": "Public - Catálogo",
+      "item": [
+        {
+          "name": "Listar Livros (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books?page=0&size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número da página (começa em 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Quantidade de itens por página"
+                }
+              ]
+            },
+            "description": "Lista livros ativos do catálogo com paginação. Ordenado por data de criação (mais recentes primeiro)."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhes do Livro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Retorna detalhes completos de um livro específico (apenas livros ativos). Inclui informações dos autores com biografia completa."
+          },
+          "response": []
+        },
+        {
+          "name": "Top Livros Mais Visualizados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books/most-viewed?limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books",
+                "most-viewed"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Quantidade máxima de livros a retornar (padrão: 10)"
+                }
+              ]
+            },
+            "description": "Retorna ranking dos livros mais visualizados (apenas livros ativos). Inclui total de views de cada livro."
+          },
+          "response": []
+        },
+        {
+          "name": "Top Livros Mais Clicados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books/most-clicked?limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books",
+                "most-clicked"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Quantidade máxima de livros a retornar (padrão: 10)"
+                }
+              ]
+            },
+            "description": "Retorna ranking dos livros mais clicados (apenas livros ativos). Inclui total de clicks de cada livro."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints públicos para consulta do catálogo de livros"
+    },
+    {
+      "name": "Public - Métricas",
+      "item": [
+        {
+          "name": "Registrar Visualização",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/view",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books",
+                "{{book_id}}",
+                "metrics",
+                "view"
+              ]
+            },
+            "description": "Registra evento de visualização de um livro. Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar Clique",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/books/{{book_id}}/metrics/click",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books",
+                "{{book_id}}",
+                "metrics",
+                "click"
+              ]
+            },
+            "description": "Registra evento de clique (ex: botão comprar). Sempre retorna 204 No Content (mesmo em caso de erro). Registra apenas para livros ativos."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints públicos para registro de métricas de interação"
+    },
+    {
+      "name": "Admin - Autores",
+      "item": [
+        {
+          "name": "Criar Autor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Robert C. Martin\",\n  \"biography\": \"Robert Cecil Martin, conhecido como Uncle Bob, é um engenheiro de software americano e autor. É co-autor do Manifesto Ágil e autor de diversos livros sobre desenvolvimento de software.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/authors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "authors"
+              ]
+            },
+            "description": "Cria um novo autor no sistema. Status ACTIVE por padrão. Campos obrigatórios: name, biography. Campo opcional: photoUrl."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Autor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Robert C. Martin (Uncle Bob)\",\n  \"biography\": \"Robert Cecil Martin é um engenheiro de software americano, autor e palestrante. É co-autor do Manifesto Ágil e autor de diversos livros incluindo Clean Code, Clean Architecture e The Clean Coder.\",\n  \"photoUrl\": \"https://example.com/photos/uncle-bob-updated.jpg\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/authors/{{author_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "authors",
+                "{{author_id}}"
+              ]
+            },
+            "description": "Atualiza todos os dados de um autor existente (substituição completa). Requer todos os campos: name, biography, photoUrl, status."
+          },
+          "response": []
+        },
+        {
+          "name": "Ativar/Desativar Autor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/authors/{{author_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "authors",
+                "{{author_id}}",
+                "status"
+              ]
+            },
+            "description": "Altera apenas o status do autor. Regra: não pode desativar autor que possui livros ativos. Valores aceitos: ACTIVE, INACTIVE."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints administrativos para gerenciamento de autores"
+    },
+    {
+      "name": "Admin - Livros",
+      "item": [
+        {
+          "name": "Criar Livro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way.\",\n  \"photoUrl\": \"https://example.com/books/clean-code.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 49.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.680,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books"
+              ]
+            },
+            "description": "Cria um novo livro no sistema. Status ACTIVE por padrão. Valida que todos os autores existem e estão ativos. ISBN é opcional mas validado se fornecido."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Livro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship - 2nd Edition\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This updated edition includes new insights and practical examples.\",\n  \"photoUrl\": \"https://example.com/books/clean-code-v2.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 59.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.700,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"],\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Atualiza todos os dados de um livro existente (substituição completa). Valida que todos os autores existem e estão ativos."
+          },
+          "response": []
+        },
+        {
+          "name": "Ativar/Desativar Livro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}",
+                "status"
+              ]
+            },
+            "description": "Altera apenas o status do livro. Regra: não pode ativar livro sem pelo menos um autor ativo. Valores aceitos: ACTIVE, INACTIVE."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Métricas do Livro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}/metrics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}",
+                "metrics"
+              ]
+            },
+            "description": "Consulta métricas agregadas de um livro específico (visualizações e cliques). Retorna 404 se livro não existir. Livros inativos podem ter métricas consultadas."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints administrativos para gerenciamento de livros"
+    },
+    {
+      "name": "Carrinho de Compras",
+      "item": [
+        {
+          "name": "Criar Carrinho",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts"
+              ]
+            },
+            "description": "Cria um novo carrinho de compras vazio com status ACTIVE. Não requer autenticação. Retorna o identificador único do carrinho."
+          },
+          "response": []
+        },
+        {
+          "name": "Visualizar Carrinho",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}"
+              ]
+            },
+            "description": "Consulta o estado atual do carrinho com todos os itens, subtotal e total. Carrinho pode estar em qualquer status e pode ser visualizado mesmo vazio."
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Carrinho para Checkout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "validate"
+              ]
+            },
+            "description": "Valida se o carrinho está pronto para checkout. Verifica status ativo, presença de itens, total maior que zero e se todos os livros estão ativos. Retorna resultado da validação sem alterar o carrinho."
+          },
+          "response": []
+        },
+        {
+          "name": "Adicionar Item ao Carrinho",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"{{book_id}}\",\n  \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "items"
+              ]
+            },
+            "description": "Adiciona um livro ao carrinho de compras. Se o livro já existir, a quantidade será somada. Preço do livro é congelado no momento da adição."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Quantidade do Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "items",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Atualiza a quantidade de um item específico no carrinho. Quantidade deve ser maior que zero. Carrinho deve estar ativo."
+          },
+          "response": []
+        },
+        {
+          "name": "Remover Item do Carrinho",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/items/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "items",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Remove completamente um item do carrinho. Carrinho deve estar ativo e o item deve existir."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints públicos para gerenciamento do carrinho de compras"
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Checkout COM Frete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/carts/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "checkout"
+              ]
+            },
+            "description": "Converte carrinho em pedido COM frete. Valida carrinho (ativo, items, livros) e cotação de frete (selecionada, não expirada). Total = subtotal + frete. Pedido criado com status PENDING."
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout SEM Frete (Grátis)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/carts/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "checkout"
+              ]
+            },
+            "description": "Converte carrinho em pedido SEM frete (frete grátis). Valida carrinho e cria pedido com shippingCost = 0.00. Total = subtotal. Pedido criado com status PENDING."
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout Legacy (Deprecated)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "checkout"
+              ]
+            },
+            "description": "[DEPRECATED] Endpoint antigo mantido para compatibilidade. Use POST /api/carts/checkout. Cria pedido sem frete."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Pedido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
+            },
+            "description": "Consulta um pedido específico pelo seu identificador. Retorna todos os detalhes: id, status, itens, subtotal, total e data de criação. Pedidos cancelados podem ser consultados."
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Pagamento para Pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"PIX\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "payments"
+              ]
+            },
+            "description": "Cria um pagamento para um pedido. Pedido deve existir e estar com status PENDING. Valor do pagamento será igual ao total do pedido. Métodos aceitos: PIX, CREDIT_CARD, DEBIT_CARD, BOLETO, BANK_TRANSFER. Pagamento inicia com status CREATED."
+          },
+          "response": []
+        },
+        {
+          "name": "Processar Pagamento (Mercado Pago)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/{{payment_id}}/process",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "{{payment_id}}",
+                "process"
+              ]
+            },
+            "description": "Processa um pagamento criando preferência no Mercado Pago. Atualiza o Payment com externalReference e status PENDING. Retorna URL de pagamento para o cliente realizar o pagamento. Validações: payment deve existir, não pode ter sido processado anteriormente."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Status do Pagamento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/{{payment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "{{payment_id}}"
+              ]
+            },
+            "description": "Consulta o status atual de um pagamento. Retorna informações detalhadas incluindo status, método, valor, orderId e datas. Permite ao cliente acompanhar o andamento da compra."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para gerenciamento de pedidos"
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Simular Webhook Mercado Pago",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 123456,\n  \"live_mode\": false,\n  \"type\": \"payment\",\n  \"action\": \"payment.updated\",\n  \"date_created\": \"2026-01-13T10:00:00Z\",\n  \"data\": {\n    \"id\": \"{{mercado_pago_payment_id}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/mercadopago",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "mercadopago"
+              ]
+            },
+            "description": "Simula notificação de webhook do Mercado Pago. Use para testar localmente sem precisar de ngrok. Substitua {{mercado_pago_payment_id}} pelo ID real do pagamento no Mercado Pago (encontrado nos logs após processar payment)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para receber notificações externas"
+    },
+    {
+      "name": "Frete - Melhor Envio",
+      "item": [
+        {
+          "name": "Criar Cotação de Frete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"toPostalCode\": \"05508-900\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shipping/quotes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "shipping",
+                "quotes"
+              ]
+            },
+            "description": "Cria uma nova cotação de frete para um carrinho. Requer cartId e CEP de destino (toPostalCode). Congela os dados dos itens (título, peso, preço) no momento da cotação."
+          },
+          "response": []
+        },
+        {
+          "name": "Calcular Frete via Melhor Envio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "shipping",
+                "quotes",
+                "{{quote_id}}",
+                "calculate"
+              ]
+            },
+            "description": "Calcula opções de frete para uma cotação via API do Melhor Envio. Retorna transportadoras disponíveis com preços e prazos."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Cotação",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "shipping",
+                "quotes",
+                "{{quote_id}}"
+              ]
+            },
+            "description": "Consulta os detalhes de uma cotação de frete, incluindo todas as opções calculadas."
+          },
+          "response": []
+        },
+        {
+          "name": "Selecionar Opção de Frete",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceCode\": \"PAC\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shipping/quotes/{{quote_id}}/select",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "shipping",
+                "quotes",
+                "{{quote_id}}",
+                "select"
+              ]
+            },
+            "description": "Seleciona uma opção de frete para a cotação. A cotação deve estar calculada (status CALCULATED) e a opção deve existir. Após seleção, o status muda para SELECTED e não pode ser alterado."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para cálculo de frete integrado com Melhor Envio"
+    },
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Salva automaticamente os tokens nas variaveis apos login bem-sucedido",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    ",
+                  "    // Salva access token",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.accessToken);",
+                  "    console.log(\"Access Token salvo: \" + jsonData.accessToken.substring(0, 20) + \"...\");",
+                  "    ",
+                  "    // Salva refresh token",
+                  "    pm.collectionVariables.set(\"refresh_token\", jsonData.refreshToken);",
+                  "    console.log(\"Refresh Token salvo: \" + jsonData.refreshToken);",
+                  "    ",
+                  "    // Exibe informacoes",
+                  "    console.log(\"Token Type: \" + jsonData.tokenType);",
+                  "    console.log(\"Expira em: \" + jsonData.expiresIn + \" segundos\");",
+                  "    ",
+                  "    pm.test(\"Login bem-sucedido\", function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Access token recebido\", function () {",
+                  "        pm.expect(jsonData.accessToken).to.not.be.empty;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Refresh token recebido\", function () {",
+                  "        pm.expect(jsonData.refreshToken).to.not.be.empty;",
+                  "    });",
+                  "} else {",
+                  "    console.log(\"Login falhou com status: \" + pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@livraria.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica usuário administrativo. Valida credenciais (email e senha) e retorna access token JWT (1h) e refresh token (30 dias). Access token deve ser usado no header Authorization: Bearer {token}. SCRIPT AUTOMÁTICO: Os tokens são salvos automaticamente nas variáveis após login bem-sucedido."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de autenticação JWT para usuários administrativos"
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/actuator/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "actuator",
+                "health"
+              ]
+            },
+            "description": "Verifica o status da aplicação e suas dependências (banco de dados, etc.)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de monitoramento da aplicação"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "author_id",
+      "value": "cole-aqui-o-id-do-autor-criado",
+      "type": "string"
+    },
+    {
+      "key": "book_id",
+      "value": "cole-aqui-o-id-do-livro-criado",
+      "type": "string"
+    },
+    {
+      "key": "cart_id",
+      "value": "cole-aqui-o-id-do-carrinho-criado",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "cole-aqui-o-id-do-pedido-criado",
+      "type": "string"
+    },
+    {
+      "key": "quote_id",
+      "value": "cole-aqui-o-id-da-cotacao-criada",
+      "type": "string"
+    },
+    {
+      "key": "shipping_quote_id",
+      "value": "cole-aqui-o-id-da-cotacao-de-frete",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "cole-aqui-o-id-do-pagamento-criado",
+      "type": "string"
+    },
+    {
+      "key": "mercado_pago_payment_id",
+      "value": "cole-aqui-o-id-do-pagamento-do-mercado-pago",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "cole-aqui-o-access-token-jwt",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "cole-aqui-o-refresh-token",
+      "type": "string"
+    }
+  ]
 }
 

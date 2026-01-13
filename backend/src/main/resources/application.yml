@@ -46,3 +46,10 @@ mercado-pago:
   pending-url: ${MERCADO_PAGO_PENDING_URL:http://localhost:3000/payment/pending}
   notification-url: ${MERCADO_PAGO_NOTIFICATION_URL:http://localhost:8080/api/webhooks/mercadopago}
 
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:livraria-tunoda-secret-key-change-in-production-minimum-256-bits-required-for-hs256-algorithm}
+      expiration: ${JWT_EXPIRATION:3600}  # 1 hora em segundos
+    refresh-token:
+      expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:30}  # 30 dias
