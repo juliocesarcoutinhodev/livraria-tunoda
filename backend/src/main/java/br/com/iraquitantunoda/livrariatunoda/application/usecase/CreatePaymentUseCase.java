@@ -38,6 +38,15 @@ public class CreatePaymentUseCase {
             throw new BusinessException("Apenas pedidos pendentes podem receber pagamento. Status atual: " + order.getStatus());
         }
 
+        // Valida que não existe payment ativo para este pedido
+        var existingPayments = paymentRepository.findByOrderId(order.getId());
+        var hasActivePayment = existingPayments.stream()
+            .anyMatch(p -> p.getStatus().name().equals("CREATED") || p.getStatus().name().equals("PENDING"));
+
+        if (hasActivePayment) {
+            throw new BusinessException("Já existe um pagamento ativo para este pedido. Cancele ou aguarde o processamento do pagamento existente.");
+        }
+
         // Cria pagamento com valor = total do pedido
         // Por enquanto, hardcoded MERCADO_PAGO como gateway padrão
         var payment = Payment.create(order, request.paymentMethod(), PaymentGateway.MERCADO_PAGO);
