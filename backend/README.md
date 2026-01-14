@@ -3341,8 +3341,8 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - GET `/api/user/me` - Retorna dados do usuário autenticado (protegido)
 
 **Próximas Sprints 🔜**
-- Sprint 10: JWT Filter e Autorização
-- Sprint 11: Refresh Token e Logout
-- Sprint 12: Gestão de Usuários (CRUD)
-- Sprint 13: Notificações e E-mail
-- Sprint 14: Dashboard e Analytics Avançado
+- Sprint 10: Gestão de Usuários Admin (CRUD de usuários)
+- Sprint 11: Revogação Manual de Tokens (Logout)
+- Sprint 12: Auditoria e Logs Avançados
+- Sprint 13: Notificações por E-mail
+- Sprint 14: Dashboard Administrativo
