@@ -6,61 +6,38 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.ShippingQuoteRespon
 import br.com.iraquitantunoda.livrariatunoda.domain.model.ShippingQuote;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingItem;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingOption;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.List;
+@Mapper(componentModel = "spring")
+public interface ShippingQuoteDTOMapper {
 
-@Component
-public class ShippingQuoteDTOMapper {
+    @Mapping(target = "id", source = "id.value")
+    @Mapping(target = "cartId", source = "cartId.value")
+    @Mapping(target = "toPostalCode", source = "toPostalCode")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "expiresAt", source = "expiresAt")
+    @Mapping(target = "items", source = "items")
+    @Mapping(target = "options", source = "options")
+    @Mapping(target = "selectedServiceCode", source = "selectedServiceCode")
+    ShippingQuoteResponse toResponse(ShippingQuote quote);
 
-    public ShippingQuoteResponse toResponse(ShippingQuote quote) {
-        return new ShippingQuoteResponse(
-                quote.getId().getValue(),
-                quote.getCartId().getValue(),
-                quote.getToPostalCode(),
-                quote.getStatus(),
-                quote.getCreatedAt(),
-                quote.getExpiresAt(),
-                toItemResponses(quote.getItems()),
-                toOptionResponses(quote.getOptions()),
-                quote.getSelectedServiceCode()
-        );
-    }
+    @Mapping(target = "bookId", source = "bookId.value")
+    @Mapping(target = "bookTitle", source = "bookTitle")
+    @Mapping(target = "quantity", source = "quantity")
+    @Mapping(target = "weightUnit", expression = "java(item.getWeight().getUnit().name())")
+    @Mapping(target = "unitPrice", source = "unitPrice.amount")
+    @Mapping(target = "currency", source = "unitPrice.currency")
+    ShippingItemResponse toItemResponse(ShippingItem item);
 
-    private List<ShippingItemResponse> toItemResponses(List<ShippingItem> items) {
-        return items.stream()
-                .map(this::toItemResponse)
-                .toList();
-    }
-
-    private ShippingItemResponse toItemResponse(ShippingItem item) {
-        return new ShippingItemResponse(
-            item.getBookId().getValue(),
-            item.getBookTitle(),
-            item.getQuantity(),
-            item.getWeight().getValue(),
-            item.getWeight().getUnit().name(),
-            item.getUnitPrice().getAmount(),
-            item.getUnitPrice().getCurrency()
-        );
-    }
-
-    private List<ShippingOptionResponse> toOptionResponses(List<ShippingOption> options) {
-        return options.stream()
-                .map(this::toOptionResponse)
-                .toList();
-    }
-
-    private ShippingOptionResponse toOptionResponse(ShippingOption option) {
-        return new ShippingOptionResponse(
-            option.getCompany(),
-            option.getServiceCode(),
-            option.getServiceName(),
-            option.getPrice().getAmount(),
-            option.getPrice().getCurrency(),
-            option.getDeliveryDays(),
-            option.getExternalReference()
-        );
-    }
+    @Mapping(target = "carrier", source = "company")
+    @Mapping(target = "serviceCode", source = "serviceCode")
+    @Mapping(target = "serviceName", source = "serviceName")
+    @Mapping(target = "price", source = "price.amount")
+    @Mapping(target = "currency", source = "price.currency")
+    @Mapping(target = "deliveryDays", source = "deliveryDays")
+    @Mapping(target = "externalReference", source = "externalReference")
+    ShippingOptionResponse toOptionResponse(ShippingOption option);
 }
 

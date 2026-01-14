@@ -5,41 +5,28 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.CartResponse;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Cart;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.CartItem;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CartDTOMapper {
 
-    default CartResponse toResponse(Cart cart) {
-        var items = cart.getItems().stream()
-            .map(this::toItemDTO)
-            .toList();
+    @Mapping(target = "cartId", source = "id.value")
+    @Mapping(target = "status", expression = "java(cart.getStatus().name())")
+    @Mapping(target = "items", source = "items")
+    @Mapping(target = "subtotal", expression = "java(cart.calculateSubtotal().getAmount())")
+    @Mapping(target = "currency", expression = "java(cart.calculateSubtotal().getCurrency())")
+    @Mapping(target = "total", expression = "java(cart.calculateTotal().getAmount())")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
+    CartResponse toResponse(Cart cart);
 
-        var subtotal = cart.calculateSubtotal();
-        var total = cart.calculateTotal();
-
-        return new CartResponse(
-            cart.getId().getValue(),
-            cart.getStatus().name(),
-            items,
-            subtotal.getAmount(),
-            subtotal.getCurrency(),
-            total.getAmount(),
-            cart.getCreatedAt(),
-            cart.getUpdatedAt()
-        );
-    }
-
-    default CartItemDTO toItemDTO(CartItem item) {
-        var subtotal = item.getSubtotal();
-        return new CartItemDTO(
-            item.getId().getValue(),
-            item.getBookId().getValue(),
-            item.getBookTitle(),
-            item.getQuantity(),
-            item.getUnitPrice().getAmount(),
-            item.getUnitPrice().getCurrency(),
-            subtotal.getAmount()
-        );
-    }
+    @Mapping(target = "itemId", source = "id.value")
+    @Mapping(target = "bookId", source = "bookId.value")
+    @Mapping(target = "bookTitle", source = "bookTitle")
+    @Mapping(target = "quantity", source = "quantity")
+    @Mapping(target = "unitPrice", source = "unitPrice.amount")
+    @Mapping(target = "currency", source = "unitPrice.currency")
+    @Mapping(target = "subtotal", expression = "java(item.getSubtotal().getAmount())")
+    CartItemDTO toItemDTO(CartItem item);
 }
 
