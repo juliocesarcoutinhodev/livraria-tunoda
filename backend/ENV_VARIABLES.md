@@ -3,10 +3,10 @@
 ## Obrigatórias
 
 ### Database
-MYSQL_USER=livraria_user
-MYSQL_PASSWORD=your_secure_password_here
-MYSQL_DATABASE=livraria_db
-JDBC_DATABASE_URL=jdbc:mysql://localhost:3306/livraria_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+POSTGRES_USER=livraria_user
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_DB=livraria_db
+JDBC_DATABASE_URL=jdbc:postgresql://localhost:5432/livraria_db
 
 ### Segurança JWT
 JWT_SECRET=your-secure-jwt-secret-key-minimum-256-bits-required-for-hs256-algorithm-change-this-value-in-production

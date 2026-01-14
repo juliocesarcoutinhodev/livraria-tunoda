@@ -5,8 +5,8 @@ CREATE TABLE tb_authors (
     biography TEXT NOT NULL,
     photo_url VARCHAR(500),
     status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Tabela de Livros
@@ -21,8 +21,8 @@ CREATE TABLE tb_books (
     weight_value DECIMAL(10, 3) NOT NULL,
     weight_unit VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
 
     CONSTRAINT uk_books_isbn UNIQUE (isbn)
 );

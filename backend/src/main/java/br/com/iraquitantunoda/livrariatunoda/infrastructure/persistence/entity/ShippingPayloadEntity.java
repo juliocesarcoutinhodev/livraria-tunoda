@@ -28,7 +28,7 @@ public class ShippingPayloadEntity {
     @Column(nullable = false, length = 50)
     private ShippingProvider provider;
 
-    @Column(name = "raw_payload", nullable = false, columnDefinition = "JSON")
+    @Column(name = "raw_payload", nullable = false, columnDefinition = "JSONB")
     private String rawPayload;
 
     @Column(name = "created_at", nullable = false)
