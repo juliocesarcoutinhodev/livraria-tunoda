@@ -7,7 +7,7 @@ Os testes utilizam o banco de dados **H2** em memória, que é configurado autom
 ### Configuração
 
 - **Banco**: H2 Database (em memória)
-- **Modo**: MySQL (compatibilidade)
+- **Modo**: PostgreSQL (compatibilidade)
 - **Hibernate DDL**: `create-drop` (cria e remove tabelas automaticamente)
 - **Flyway**: Desabilitado (usa JPA para criar as tabelas)
 
@@ -16,7 +16,7 @@ Os testes utilizam o banco de dados **H2** em memória, que é configurado autom
 - Rápido e leve
 - Não requer instalação ou configuração externa
 - Isola os testes do ambiente de desenvolvimento
-- Compatível com a sintaxe MySQL (modo de compatibilidade)
+- Compatível com a sintaxe PostgreSQL (modo de compatibilidade)
 
 ### Executando os Testes
 

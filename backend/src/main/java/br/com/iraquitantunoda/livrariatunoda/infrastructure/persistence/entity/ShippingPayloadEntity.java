@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +30,8 @@ public class ShippingPayloadEntity {
     @Column(nullable = false, length = 50)
     private ShippingProvider provider;
 
-    @Column(name = "raw_payload", nullable = false, columnDefinition = "JSON")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "raw_payload", nullable = false, columnDefinition = "JSONB")
     private String rawPayload;
 
     @Column(name = "created_at", nullable = false)
