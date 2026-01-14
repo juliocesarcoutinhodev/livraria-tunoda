@@ -74,7 +74,20 @@ br.com.iraquitantunoda.livrariatunoda/
 │
 └── infrastructure/           # Adaptadores e frameworks
     ├── config/              # Configurações do Spring
-    │   └── StartupLogger.java
+    │   ├── SecurityProperties.java        # @ConfigurationProperties (JWT, tokens)
+    │   ├── SecurityConfiguration.java     # Spring Security config
+    │   └── StartupLogger.java            # Logger de inicialização
+    ├── gateway/             # Integrações Externas
+    │   ├── melhorenvio/    # Integração Melhor Envio
+    │   │   └── config/
+    │   │       └── MelhorEnvioProperties.java  # @ConfigurationProperties
+    │   └── mercadopago/    # Integração Mercado Pago
+    │       └── config/
+    │           └── MercadoPagoProperties.java  # @ConfigurationProperties
+    ├── security/            # Implementações de segurança
+    │   ├── JwtServiceImpl.java
+    │   ├── JwtAuthenticationFilter.java
+    │   └── PasswordEncoderServiceImpl.java
     ├── exception/           # Tratamento global de erros
     │   ├── GlobalExceptionHandler.java
     │   ├── ErrorResponse.java
@@ -99,6 +112,7 @@ br.com.iraquitantunoda.livrariatunoda/
         └── controller/
             ├── AdminAuthorController.java
             ├── AdminBookController.java
+            ├── AuthController.java
             └── PublicBookController.java
 ```
 
@@ -1080,6 +1094,131 @@ anyRequest()           → Negado por padrao (seguranca)
 - **Docker & Docker Compose**
 - **Git**
 
+## ⚙️ Configuração e Profiles
+
+O projeto utiliza **Spring Profiles** para gerenciar configurações em diferentes ambientes, seguindo boas práticas de segurança:
+
+### Profiles Disponíveis
+
+#### `local` (default)
+- Desenvolvimento local
+- Logs detalhados (DEBUG)
+- SQL queries visíveis
+- Health endpoint com detalhes completos
+- Melhor para desenvolvimento
+
+#### `dev`
+- Desenvolvimento com banco Docker
+- Logs moderados
+- SQL queries visíveis
+- Health endpoint com detalhes
+
+#### `staging`
+- Ambiente de homologação
+- Logs moderados (INFO)
+- Health endpoint com detalhes apenas para autorizados
+- Configurações próximas à produção
+
+#### `production`
+- Ambiente de produção
+- Logs mínimos (WARN/ERROR)
+- Sem SQL queries nos logs
+- Health endpoint sem detalhes (apenas UP/DOWN)
+- Máxima segurança
+
+### Variáveis de Ambiente
+
+O sistema usa `@ConfigurationProperties` para gestão centralizada e **validação automática** de configurações. A aplicação **falha na inicialização** se propriedades obrigatórias estiverem ausentes.
+
+#### Obrigatórias
+
+```bash
+# Database
+MYSQL_USER=livraria_user
+MYSQL_PASSWORD=your_secure_password
+MYSQL_DATABASE=livraria_db
+JDBC_DATABASE_URL=jdbc:mysql://localhost:3306/livraria_db
+
+# JWT e Autenticação
+JWT_SECRET=your-secure-256-bit-secret-key-change-this
+
+# Melhor Envio
+MELHOR_ENVIO_TOKEN=your_melhor_envio_token
+
+# Mercado Pago
+MERCADO_PAGO_ACCESS_TOKEN=your_mercado_pago_token
+```
+
+#### Opcionais (com defaults)
+
+```bash
+# Spring
+SPRING_PROFILES_ACTIVE=local
+SERVER_PORT=8080
+
+# JWT
+JWT_EXPIRATION=3600                    # segundos
+REFRESH_TOKEN_EXPIRATION_DAYS=30       # dias
+
+# Melhor Envio
+MELHOR_ENVIO_BASE_URL=https://sandbox.melhorenvio.com.br
+MELHOR_ENVIO_FROM_CEP=03295-000
+MELHOR_ENVIO_TIMEOUT_SECONDS=10
+MELHOR_ENVIO_MAX_RETRIES=2
+
+# Mercado Pago
+MERCADO_PAGO_BASE_URL=https://api.mercadopago.com
+MERCADO_PAGO_TIMEOUT_SECONDS=15
+MERCADO_PAGO_MAX_RETRIES=2
+MERCADO_PAGO_SUCCESS_URL=http://localhost:3000/payment/success
+MERCADO_PAGO_FAILURE_URL=http://localhost:3000/payment/failure
+MERCADO_PAGO_PENDING_URL=http://localhost:3000/payment/pending
+MERCADO_PAGO_NOTIFICATION_URL=http://localhost:8080/api/webhooks/mercadopago
+MERCADO_PAGO_STATEMENT_DESCRIPTOR=Livraria Tunoda
+
+# Logging
+LOG_LEVEL_MELHOR_ENVIO=INFO
+LOG_LEVEL_MERCADO_PAGO=INFO
+```
+
+Veja detalhes completos em [ENV_VARIABLES.md](./ENV_VARIABLES.md).
+
+### Validação Automática
+
+**SecurityProperties** (`@ConfigurationProperties`):
+- JWT secret é obrigatório e não pode estar vazio
+- JWT expiration mínimo: 60 segundos
+- Refresh token expiration mínimo: 1 dia
+
+**MelhorEnvioProperties**:
+- Token obrigatório
+- Base URL obrigatória
+- CEP de origem obrigatório
+- Timeout mínimo: 1 segundo
+
+**MercadoPagoProperties**:
+- Access token obrigatório
+- Base URL obrigatória
+- Timeout mínimo: 1 segundo
+
+### Arquivos de Configuração
+
+```
+resources/
+├── application.yml          # Base (valores default e variáveis de ambiente)
+├── application-local.yml    # Profile local
+├── application-dev.yml      # Profile dev
+├── application-staging.yml  # Profile staging
+└── application-prod.yml     # Profile production
+```
+
+**Princípios:**
+- ✅ Nenhum valor sensível hardcoded
+- ✅ Todos os segredos via variáveis de ambiente
+- ✅ Validação automática na inicialização
+- ✅ Falha rápida se configuração inválida
+- ✅ Uso de `@ConfigurationProperties` ao invés de `@Value` espalhado
+
 ## ⚙️ Configuração Local
 
 ### 1. Clone o repositório
@@ -1089,13 +1228,20 @@ git clone <url-do-repositorio>
 cd livraria-tunoda/backend
 ```
 
-### 2. Configure as variáveis de ambiente
+### 2. Configure as variáveis de ambiente obrigatórias
 
-Copie o arquivo de exemplo e ajuste conforme necessário:
+Defina as variáveis de ambiente necessárias:
 
 ```bash
-cp .env.example .env
+# Mínimo necessário para rodar local
+export JWT_SECRET="your-secure-jwt-secret-key-minimum-256-bits-required-for-hs256-algorithm"
+export MELHOR_ENVIO_TOKEN="your_melhor_envio_token"
+export MERCADO_PAGO_ACCESS_TOKEN="your_mercado_pago_access_token"
 ```
+
+**Importante:** O sistema **validará** essas variáveis na inicialização. Se alguma estiver ausente ou inválida, a aplicação falhará com mensagem clara.
+
+Para lista completa de variáveis, consulte [ENV_VARIABLES.md](./ENV_VARIABLES.md).
 
 ### 3. Suba o banco de dados
 
@@ -1107,11 +1253,35 @@ Aguarde o MySQL ficar saudável (health check configurado).
 
 ### 4. Execute a aplicação
 
+**Com profile local (default):**
 ```bash
 ./mvnw spring-boot:run
 ```
 
+**Com profile específico:**
+```bash
+# Dev
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
+
+# Staging
+SPRING_PROFILES_ACTIVE=staging ./mvnw spring-boot:run
+
+# Production
+SPRING_PROFILES_ACTIVE=production ./mvnw spring-boot:run
+```
+
 Ou pelo IDE de sua preferência.
+
+**Logs esperados na inicialização:**
+```
+========================================
+Application started successfully!
+Active profile(s): local
+Port: 8080
+JWT Expiration: 3600s
+Refresh Token Expiration: 30 days
+========================================
+```
 
 ### 5. Verifique se está funcionando
 

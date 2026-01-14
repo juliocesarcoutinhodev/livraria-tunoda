@@ -33,8 +33,6 @@ public class MelhorEnvioClient {
         this.properties = properties;
     }
 
-    private static final String CALCULATE_ENDPOINT = "/api/v2/me/shipment/calculate";
-
     /**
      * Calcula frete via API do Melhor Envio.
      * Retry automático em caso de falha com backoff exponencial.
@@ -50,7 +48,7 @@ public class MelhorEnvioClient {
 
         try {
             var response = restTemplate.postForObject(
-                CALCULATE_ENDPOINT,
+                properties.getCalculateEndpoint(),
                 request,
                 MelhorEnvioCalculateResponse[].class
             );

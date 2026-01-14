@@ -9,9 +9,9 @@ import br.com.iraquitantunoda.livrariatunoda.domain.repository.RefreshTokenRepos
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.UserRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.JwtService;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.PasswordEncoderService;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.config.SecurityProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +36,7 @@ public class LoginUseCase {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoderService passwordEncoder;
-
-    @Value("${app.security.jwt.expiration:3600}")
-    private long jwtExpiration;
-
-    @Value("${app.security.refresh-token.expiration-days:30}")
-    private int refreshTokenExpirationDays;
+    private final SecurityProperties securityProperties;
 
     /**
      * Executa login do usuario administrativo.
@@ -81,7 +76,10 @@ public class LoginUseCase {
         var accessToken = jwtService.generateAccessToken(user);
 
         // Gera refresh token persistido
-        var refreshToken = RefreshToken.create(user.getId(), refreshTokenExpirationDays);
+        var refreshToken = RefreshToken.create(
+            user.getId(),
+            securityProperties.getRefreshToken().getExpirationDays()
+        );
         refreshTokenRepository.save(refreshToken);
 
         log.info("Login bem-sucedido para usuario: {} (ID: {})",
@@ -90,7 +88,7 @@ public class LoginUseCase {
         return AuthenticationResponse.of(
             accessToken,
             refreshToken.getToken(),
-            jwtExpiration
+            securityProperties.getJwt().getExpiration()
         );
     }
 }

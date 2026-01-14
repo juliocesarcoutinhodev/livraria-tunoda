@@ -7,14 +7,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+server:
+  port: ${SERVER_PORT:8080}
 
 logging:
   level:
-    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: DEBUG
-    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago: DEBUG
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: ${LOG_LEVEL_MELHOR_ENVIO:INFO}
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago: ${LOG_LEVEL_MERCADO_PAGO:INFO}
 
 management:
   endpoints:
@@ -24,32 +26,37 @@ management:
         include: health
   endpoint:
     health:
-      show-details: never  # segurança - não expor detalhes por padrão
+      show-details: never
 
 melhor-envio:
-  base-url: https://sandbox.melhorenvio.com.br
+  base-url: ${MELHOR_ENVIO_BASE_URL:https://sandbox.melhorenvio.com.br}
   token: ${MELHOR_ENVIO_TOKEN}
   from-postal-code: ${MELHOR_ENVIO_FROM_CEP:03295-000}
-  timeout-seconds: 10
-  max-retries: 2
-  default-width: 15
-  default-height: 2
-  default-length: 20
+  timeout-seconds: ${MELHOR_ENVIO_TIMEOUT_SECONDS:10}
+  max-retries: ${MELHOR_ENVIO_MAX_RETRIES:2}
+  default-width: ${MELHOR_ENVIO_DEFAULT_WIDTH:15}
+  default-height: ${MELHOR_ENVIO_DEFAULT_HEIGHT:2}
+  default-length: ${MELHOR_ENVIO_DEFAULT_LENGTH:20}
+  calculate-endpoint: ${MELHOR_ENVIO_CALCULATE_ENDPOINT:/api/v2/me/shipment/calculate}
 
 mercado-pago:
-  base-url: https://api.mercadopago.com
+  base-url: ${MERCADO_PAGO_BASE_URL:https://api.mercadopago.com}
   access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
-  timeout-seconds: 15
-  max-retries: 2
+  timeout-seconds: ${MERCADO_PAGO_TIMEOUT_SECONDS:15}
+  max-retries: ${MERCADO_PAGO_MAX_RETRIES:2}
   success-url: ${MERCADO_PAGO_SUCCESS_URL:http://localhost:3000/payment/success}
   failure-url: ${MERCADO_PAGO_FAILURE_URL:http://localhost:3000/payment/failure}
   pending-url: ${MERCADO_PAGO_PENDING_URL:http://localhost:3000/payment/pending}
   notification-url: ${MERCADO_PAGO_NOTIFICATION_URL:http://localhost:8080/api/webhooks/mercadopago}
+  statement-descriptor: ${MERCADO_PAGO_STATEMENT_DESCRIPTOR:Livraria Tunoda}
+  create-preference-endpoint: ${MERCADO_PAGO_CREATE_PREFERENCE_ENDPOINT:/checkout/preferences}
+  get-payment-endpoint: ${MERCADO_PAGO_GET_PAYMENT_ENDPOINT:/v1/payments/{id}}
 
 app:
   security:
     jwt:
-      secret: ${JWT_SECRET:livraria-tunoda-secret-key-change-in-production-minimum-256-bits-required-for-hs256-algorithm}
-      expiration: ${JWT_EXPIRATION:3600}  # 1 hora em segundos
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION:3600}
     refresh-token:
-      expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:30}  # 30 dias
+      expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:30}
+

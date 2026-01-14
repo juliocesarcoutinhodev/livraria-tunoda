@@ -7,9 +7,9 @@ import br.com.iraquitantunoda.livrariatunoda.domain.model.RefreshToken;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.RefreshTokenRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.UserRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.JwtService;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.config.SecurityProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +35,7 @@ public class RefreshTokenUseCase {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
-
-    @Value("${app.security.jwt.expiration:3600}")
-    private long jwtExpiration;
-
-    @Value("${app.security.refresh-token.expiration-days:30}")
-    private int refreshTokenExpirationDays;
+    private final SecurityProperties securityProperties;
 
     /**
      * Renova os tokens de autenticacao usando o refresh token.
@@ -99,7 +94,10 @@ public class RefreshTokenUseCase {
         var accessToken = jwtService.generateAccessToken(user);
 
         // Gera novo refresh token persistido
-        var newRefreshToken = RefreshToken.create(user.getId(), refreshTokenExpirationDays);
+        var newRefreshToken = RefreshToken.create(
+            user.getId(),
+            securityProperties.getRefreshToken().getExpirationDays()
+        );
         refreshTokenRepository.save(newRefreshToken);
 
         log.info("Tokens renovados com sucesso para usuario: {} (ID: {})",
@@ -108,7 +106,7 @@ public class RefreshTokenUseCase {
         return AuthenticationResponse.of(
             accessToken,
             newRefreshToken.getToken(),
-            jwtExpiration
+            securityProperties.getJwt().getExpiration()
         );
     }
 }

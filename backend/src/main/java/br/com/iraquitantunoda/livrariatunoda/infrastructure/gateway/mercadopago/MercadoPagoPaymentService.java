@@ -88,7 +88,7 @@ public class MercadoPagoPaymentService implements PaymentGatewayService {
             null,
             payment.getId().getValue(), // externalReference = paymentId
             properties.getNotificationUrl(),
-            "Livraria Tunoda",
+            properties.getStatementDescriptor(),
             paymentMethods
         );
     }

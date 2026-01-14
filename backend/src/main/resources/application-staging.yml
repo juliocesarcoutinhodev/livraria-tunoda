@@ -24,17 +24,17 @@ server:
 
 logging:
   level:
-    root: WARN
+    root: INFO
     br.com.iraquitantunoda.livrariatunoda: INFO
-    org.springframework.web: WARN
-    org.hibernate.SQL: ERROR
-    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: ${LOG_LEVEL_MELHOR_ENVIO:INFO}
-    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago: ${LOG_LEVEL_MERCADO_PAGO:INFO}
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio: INFO
+    br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
 
 management:
   endpoint:
     health:
-      show-details: never  # producao, apenas status UP/DOWN
+      show-details: when-authorized  # staging mostra detalhes apenas para autorizados
 

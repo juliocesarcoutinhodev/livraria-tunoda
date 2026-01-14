@@ -4,11 +4,11 @@ import br.com.iraquitantunoda.livrariatunoda.domain.model.User;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.UserId;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.UserRole;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.JwtService;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.config.SecurityProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -30,12 +30,9 @@ public class JwtServiceImpl implements JwtService {
     private final String secretKey;
     private final long jwtExpiration;
 
-    public JwtServiceImpl(
-        @Value("${app.security.jwt.secret}") String secretKey,
-        @Value("${app.security.jwt.expiration:3600}") long jwtExpiration
-    ) {
-        this.secretKey = secretKey;
-        this.jwtExpiration = jwtExpiration;
+    public JwtServiceImpl(SecurityProperties securityProperties) {
+        this.secretKey = securityProperties.getJwt().getSecret();
+        this.jwtExpiration = securityProperties.getJwt().getExpiration();
     }
 
     @Override

@@ -4,7 +4,9 @@ import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -87,6 +89,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        String message = getDuplicateError(ex);
+
+        log.warn("Erro de integridade de dados: {} - Path: {}", message, request.getRequestURI());
+
+        var error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                message,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(
             Exception ex, HttpServletRequest request) {
@@ -100,5 +118,23 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    private static @NonNull String getDuplicateError(DataIntegrityViolationException ex) {
+        String message = "Erro de integridade de dados";
+
+        // Extrair mensagem mais amigável baseada na constraint violada
+        String exceptionMessage = ex.getMessage();
+
+        if (exceptionMessage != null) {
+            if (exceptionMessage.contains("uk_books_isbn") || exceptionMessage.contains("Duplicate entry") && exceptionMessage.contains("isbn")) {
+                message = "ISBN já cadastrado no sistema";
+            } else if (exceptionMessage.contains("Duplicate entry")) {
+                message = "Registro duplicado no sistema";
+            } else if (exceptionMessage.contains("foreign key constraint")) {
+                message = "Não é possível realizar esta operação devido a dependências existentes";
+            }
+        }
+        return message;
     }
 }

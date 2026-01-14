@@ -24,9 +24,6 @@ public class MercadoPagoClient {
     private final RestTemplate restTemplate;
     private final MercadoPagoProperties properties;
 
-    private static final String CREATE_PREFERENCE_ENDPOINT = "/checkout/preferences";
-    private static final String GET_PAYMENT_ENDPOINT = "/v1/payments/{id}";
-
     public MercadoPagoClient(
         @Qualifier("mercadoPagoRestTemplate") RestTemplate restTemplate,
         MercadoPagoProperties properties
@@ -50,7 +47,7 @@ public class MercadoPagoClient {
 
         try {
             var response = restTemplate.postForObject(
-                CREATE_PREFERENCE_ENDPOINT,
+                properties.getCreatePreferenceEndpoint(),
                 request,
                 MercadoPagoPreferenceResponse.class
             );
@@ -84,7 +81,7 @@ public class MercadoPagoClient {
 
         try {
             var response = restTemplate.getForObject(
-                GET_PAYMENT_ENDPOINT,
+                properties.getGetPaymentEndpoint(),
                 MercadoPagoPaymentDetails.class,
                 paymentId
             );
