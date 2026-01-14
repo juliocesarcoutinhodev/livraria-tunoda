@@ -21,3 +21,10 @@ spring:
     console:
       enabled: false
 
+app:
+  security:
+    jwt:
+      secret: test-secret-key-for-testing-purposes-only-minimum-256-bits-required-hs256-algorithm
+      expiration: 3600
+    refresh-token:
+      expiration-days: 30
