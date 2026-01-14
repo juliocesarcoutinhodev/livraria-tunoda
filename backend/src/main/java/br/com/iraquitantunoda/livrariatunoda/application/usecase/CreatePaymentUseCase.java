@@ -54,6 +54,10 @@ public class CreatePaymentUseCase {
         // Persiste pagamento
         var savedPayment = paymentRepository.save(payment);
 
+        // Associa o ID do pagamento ao pedido (paymentReference)
+        order.associatePaymentReference(savedPayment.getId().getValue());
+        orderRepository.save(order);
+
         log.info("Pagamento criado com sucesso. PaymentId: {}", savedPayment.getId().getValue());
 
         return paymentDTOMapper.toResponse(savedPayment);
