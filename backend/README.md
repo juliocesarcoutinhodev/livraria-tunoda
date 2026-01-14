@@ -6,13 +6,20 @@ API REST para gerenciamento de livraria, construída com Spring Boot seguindo pr
 
 - **Java 25**
 - **Spring Boot 3.5.9**
-- **MySQL 9**
+- **PostgreSQL 17**
 - **Flyway** (versionamento de banco)
 - **Lombok** (redução de boilerplate)
 - **MapStruct 1.6.3** (mapeamento Domain ↔ Entity)
 - **Bean Validation** (validação de dados)
 - **Spring Actuator** (monitoramento)
 - **Docker & Docker Compose**
+
+> **📝 Nota:** O projeto foi migrado de MySQL 9 para PostgreSQL 17 em janeiro de 2026. A migração incluiu:
+> - Atualização de dependências (driver, Flyway)
+> - Correção de migrations SQL (índices separados, tipos JSONB)
+> - Atualização de entidades JPA (`@JdbcTypeCode` para JSONB)
+> 
+> Para mais detalhes sobre a migração, consulte: `MIGRACAO_POSTGRESQL.md`
 
 ## 🏗️ Arquitetura
 
@@ -1134,10 +1141,10 @@ O sistema usa `@ConfigurationProperties` para gestão centralizada e **validaç�
 
 ```bash
 # Database
-MYSQL_USER=livraria_user
-MYSQL_PASSWORD=your_secure_password
-MYSQL_DATABASE=livraria_db
-JDBC_DATABASE_URL=jdbc:mysql://localhost:3306/livraria_db
+POSTGRES_USER=livraria_user
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=livraria_db
+JDBC_DATABASE_URL=jdbc:postgresql://localhost:5432/livraria_db
 
 # JWT e Autenticação
 JWT_SECRET=your-secure-256-bit-secret-key-change-this
@@ -1249,7 +1256,7 @@ Para lista completa de variáveis, consulte [ENV_VARIABLES.md](./ENV_VARIABLES.m
 docker-compose up -d
 ```
 
-Aguarde o MySQL ficar saudável (health check configurado).
+Aguarde o PostgreSQL ficar saudável (health check configurado).
 
 ### 4. Execute a aplicação
 
@@ -1297,7 +1304,7 @@ Resposta esperada:
     "db": {
       "status": "UP",
       "details": {
-        "database": "MySQL",
+        "database": "PostgreSQL",
         "validationQuery": "isValid()"
       }
     },
@@ -1345,20 +1352,19 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 | Variável | Descrição | Valor Padrão |
 |----------|-----------|--------------|
-| `MYSQL_ROOT_PASSWORD` | Senha do root do MySQL | `root_password` |
-| `MYSQL_DATABASE` | Nome do banco de dados | `livraria_db` |
-| `MYSQL_USER` | Usuário da aplicação | `livraria_user` |
-| `MYSQL_PASSWORD` | Senha do usuário | `livraria_password` |
-| `MYSQL_PORT` | Porta do MySQL | `3306` |
+| `POSTGRES_USER` | Usuário do PostgreSQL | `livraria_user` |
+| `POSTGRES_PASSWORD` | Senha do PostgreSQL | `livraria_password` |
+| `POSTGRES_DB` | Nome do banco de dados | `livraria_db` |
+| `POSTGRES_PORT` | Porta do PostgreSQL | `5432` |
 | `SPRING_PROFILES_ACTIVE` | Perfil ativo (dev/prod) | `dev` |
 
 ### Produção
 
 | Variável | Descrição | Obrigatório |
 |----------|-----------|-------------|
-| `JDBC_DATABASE_URL` | URL completa do banco | ✅ |
-| `MYSQL_USER` | Usuário do banco | ✅ |
-| `MYSQL_PASSWORD` | Senha do banco | ✅ |
+| `JDBC_DATABASE_URL` | URL completa do banco (jdbc:postgresql://...) | ✅ |
+| `POSTGRES_USER` | Usuário do banco | ✅ |
+| `POSTGRES_PASSWORD` | Senha do banco | ✅ |
 | `SPRING_PROFILES_ACTIVE` | Deve ser `prod` | ✅ |
 
 **⚠️ IMPORTANTE:** Nunca versione o arquivo `.env` com credenciais reais!
@@ -1538,21 +1544,30 @@ INDEX idx_shipping_options_service_code (service_code)
 id VARCHAR(36) PRIMARY KEY
 shipping_quote_id VARCHAR(36) NOT NULL
 provider VARCHAR(50) NOT NULL
-raw_payload JSON NOT NULL
+raw_payload JSONB NOT NULL
 created_at TIMESTAMP NOT NULL
 FOREIGN KEY (shipping_quote_id) REFERENCES tb_shipping_quotes(id) ON DELETE CASCADE
-INDEX idx_shipping_payloads_quote_id (shipping_quote_id)
-INDEX idx_shipping_payloads_provider (provider)
-INDEX idx_shipping_payloads_created_at (created_at)
+```
+
+Índices:
+```sql
+CREATE INDEX idx_shipping_payloads_quote_id ON tb_shipping_payloads(shipping_quote_id);
+CREATE INDEX idx_shipping_payloads_provider ON tb_shipping_payloads(provider);
+CREATE INDEX idx_shipping_payloads_created_at ON tb_shipping_payloads(created_at);
 ```
 
 ### Conexão Manual
 
-Para conectar diretamente ao MySQL:
+Para conectar diretamente ao PostgreSQL:
 
 ```bash
-docker exec -it mysql-livraria-tunoda mysql -u livraria_user -p
+docker exec -it postgres-livraria-tunoda psql -U livraria_user -d livraria_db
 # Senha: livraria_password (ou conforme seu .env)
+
+# Comandos úteis dentro do psql:
+\dt                    # Listar tabelas
+\d tb_books           # Descrever estrutura da tabela
+\q                    # Sair
 ```
 
 ## 📝 Logs
@@ -1739,7 +1754,7 @@ backend/
 │           ├── application/                 # (testes de casos de uso)
 │           └── infrastructure/              # (testes de integração)
 │
-├── docker-compose.yml                       # Orquestração do MySQL
+├── docker-compose.yml                       # Orquestração do PostgreSQL
 ├── .env                                     # Variáveis de ambiente (não versionado)
 ├── .env.example                             # Template de variáveis
 ├── pom.xml                                  # Dependências Maven
