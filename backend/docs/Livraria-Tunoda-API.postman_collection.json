@@ -1093,6 +1093,160 @@
         }
       ],
       "description": "Endpoints de monitoramento da aplicação"
+    },
+    {
+      "name": "🔒 Testes CORS",
+      "item": [
+        {
+          "name": "Teste CORS - Origem Permitida (localhost:3000)",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://localhost:3000",
+                "type": "text",
+                "description": "Origem permitida no application-local.yml"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST",
+                "type": "text"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "Authorization,Content-Type",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/public/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books"
+              ]
+            },
+            "description": "Testa requisição preflight (OPTIONS) de uma origem permitida. Resultado Esperado: Status 200 OK com headers Access-Control-Allow-Origin: http://localhost:3000"
+          },
+          "response": []
+        },
+        {
+          "name": "Teste CORS - Origem NÃO Permitida (example.com)",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://example.com",
+                "type": "text",
+                "description": "Origem NÃO permitida"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST",
+                "type": "text"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "Authorization,Content-Type",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/public/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books"
+              ]
+            },
+            "description": "Testa requisição preflight de origem NÃO permitida. Resultado Esperado: 403 Forbidden OU sem headers Access-Control-Allow-Origin"
+          },
+          "response": []
+        },
+        {
+          "name": "Teste CORS - GET com Origem Permitida",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://localhost:3000",
+                "type": "text",
+                "description": "Simula requisição do frontend"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/public/books?page=0&size=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Testa GET real com Origin permitida. Deve retornar 200 OK com header Access-Control-Allow-Origin"
+          },
+          "response": []
+        },
+        {
+          "name": "Teste CORS - GET com Origem NÃO Permitida",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://malicious-site.com",
+                "type": "text",
+                "description": "Origem maliciosa não autorizada"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/public/books?page=0&size=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Testa GET com origem NÃO permitida. Servidor responde 200 OK mas SEM Access-Control-Allow-Origin. Navegador bloquearia"
+          },
+          "response": []
+        }
+      ],
+      "description": "Testes para validar configuração CORS. Origens configuradas (profile local): localhost:3000, 3001, 4200, 127.0.0.1:3000"
     }
   ],
   "event": [
@@ -1171,5 +1325,6 @@
       "value": "cole-aqui-o-refresh-token",
       "type": "string"
     }
-  ]
+  ],
+  "protocolProfileBehavior": {}
 }

@@ -39,3 +39,13 @@ management:
     health:
       show-details: always  # em local pode mostrar detalhes (db, disk, etc)
 
+app:
+  cors:
+    # Local: permissivo para desenvolvimento
+    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:4200,http://127.0.0.1:3000
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    exposed-headers: Authorization
+    allow-credentials: true
+    max-age: 3600
+

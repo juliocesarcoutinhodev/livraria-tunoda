@@ -38,3 +38,13 @@ management:
     health:
       show-details: never  # producao, apenas status UP/DOWN
 
+app:
+  cors:
+    # Production: apenas dominio de producao autorizado
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,Accept,Origin,X-Requested-With}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age: ${CORS_MAX_AGE:3600}
+

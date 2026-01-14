@@ -1789,11 +1789,176 @@ backend/
 
 ## 🔐 Segurança
 
+### Autenticação e Autorização
+
+- ✅ JWT (JSON Web Token) para autenticação stateless
+- ✅ Refresh Token com rotation para renovação segura
+- ✅ BCrypt para hash de senhas (força 12)
+- ✅ Spring Security com regras centralizadas
+- ✅ Endpoints públicos, autenticados e administrativos separados
+- ✅ Validação automática de tokens em todas as requisições protegidas
+
+### CORS (Cross-Origin Resource Sharing)
+
+#### Story #37: Controle de Acesso Cross-Origin ✅
+
+**Implementação Completa:**
+
+Configuração CORS centralizada e segura seguindo princípios de **deny by default** - apenas origens explicitamente autorizadas podem acessar a API.
+
+**Arquitetura:**
+
+```
+CorsProperties.java (ConfigurationProperties)
+    ↓ injeta valores do application.yml
+CorsConfiguration.java (WebMvcConfigurer)
+    ↓ aplica em runtime
+Spring MVC → Valida CORS em cada requisição
+```
+
+**Características:**
+- ✅ **Configuração única e centralizada** - `CorsConfiguration` implementa `WebMvcConfigurer`
+- ✅ **Sem @CrossOrigin em controllers** - Toda configuração em um único lugar
+- ✅ **Configurável por ambiente** - Valores diferentes para local, staging e production
+- ✅ **Deny by default** - Apenas origens explicitamente configuradas são permitidas
+- ✅ **Type-safe** - `@ConfigurationProperties` com validação automática
+- ✅ **Fail-fast** - Aplicação não sobe se configuração obrigatória estiver ausente
+
+**Configuração por Profile:**
+
+| Profile | Origens Permitidas | Características |
+|---------|-------------------|-----------------|
+| **local** | `localhost:3000`, `3001`, `4200`, `127.0.0.1:3000` | Permissivo - múltiplas portas para desenvolvimento |
+| **staging** | `https://staging.livraria-tunoda.com.br` | Restrito - apenas domínio de homologação |
+| **production** | `${CORS_ALLOWED_ORIGINS}` **(obrigatório)** | Super restrito - via variável de ambiente |
+
+**Variáveis de Ambiente:**
+
+```bash
+# OBRIGATÓRIA em produção
+CORS_ALLOWED_ORIGINS=https://www.livraria-tunoda.com.br
+
+# Opcionais (com defaults seguros)
+CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,PATCH,OPTIONS
+CORS_ALLOWED_HEADERS=Authorization,Content-Type,Accept,Origin,X-Requested-With
+CORS_EXPOSED_HEADERS=Authorization
+CORS_ALLOW_CREDENTIALS=true
+CORS_MAX_AGE=3600
+```
+
+**Exemplo de Configuração (application.yml):**
+
+```yaml
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,Accept}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age: ${CORS_MAX_AGE:3600}
+```
+
+**Classes Implementadas:**
+
+1. **CorsProperties.java** - `@ConfigurationProperties("app.cors")`
+   - Validação: `@NotEmpty` em propriedades obrigatórias
+   - Type-safe: Tipos corretos (List<String>, Boolean, Long)
+   - Sem valores default hardcoded
+
+2. **CorsConfiguration.java** - Configuração global
+   ```java
+   @Configuration
+   public class CorsConfiguration implements WebMvcConfigurer {
+       private final CorsProperties corsProperties;
+       
+       @Override
+       public void addCorsMappings(CorsRegistry registry) {
+           registry.addMapping("/api/**")
+                   .allowedOrigins(corsProperties.getAllowedOrigins())
+                   .allowedMethods(corsProperties.getAllowedMethods())
+                   .allowedHeaders(corsProperties.getAllowedHeaders())
+                   .exposedHeaders(corsProperties.getExposedHeaders())
+                   .allowCredentials(corsProperties.getAllowCredentials())
+                   .maxAge(corsProperties.getMaxAge());
+       }
+   }
+   ```
+
+**Logs na Inicialização:**
+
+```
+INFO - Configurando CORS para origens: [http://localhost:3000, http://localhost:3001]
+INFO - CORS configurado com sucesso - Metodos: [GET, POST, PUT, DELETE, PATCH, OPTIONS], Credentials: true
+```
+
+**Testes Disponíveis (Postman Collection):**
+
+Pasta **🔒 Testes CORS** com 4 requests:
+1. ✅ OPTIONS com origem permitida → Deve ter headers CORS
+2. ❌ OPTIONS com origem bloqueada → NÃO deve ter headers CORS
+3. ✅ GET com origem permitida → Funciona normalmente
+4. ❌ GET com origem bloqueada → Navegador bloquearia
+
+**Como Testar:**
+```bash
+# 1. Origem permitida (localhost:3000)
+curl -X OPTIONS http://localhost:8080/api/public/books \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: POST" \
+  -v
+# Deve retornar: Access-Control-Allow-Origin: http://localhost:3000
+
+# 2. Origem NÃO permitida (example.com)
+curl -X OPTIONS http://localhost:8080/api/public/books \
+  -H "Origin: http://example.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -v
+# NÃO deve retornar Access-Control-Allow-Origin
+```
+
+**Headers CORS Retornados (origem permitida):**
+```http
+Access-Control-Allow-Origin: http://localhost:3000
+Access-Control-Allow-Methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+Access-Control-Allow-Headers: Authorization,Content-Type,Accept,Origin,X-Requested-With
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 3600
+```
+
+**Segurança:**
+- ✅ Política restritiva por padrão (deny by default)
+- ✅ Origens explicitamente configuradas
+- ✅ Métodos HTTP controlados
+- ✅ Headers permitidos limitados
+- ✅ Credentials apenas quando necessário
+- ✅ Cache de preflight configurável (maxAge)
+
+**Produção - Checklist:**
+```bash
+# 1. Definir origem de produção
+export CORS_ALLOWED_ORIGINS=https://www.livraria-tunoda.com.br
+
+# 2. Validar configuração nos logs
+# Deve aparecer: "Configurando CORS para origens: [https://www.livraria-tunoda.com.br]"
+
+# 3. Testar de origem não autorizada
+curl -X OPTIONS https://api.livraria-tunoda.com.br/api/public/books \
+  -H "Origin: http://malicious-site.com" \
+  -v
+# NÃO deve retornar Access-Control-Allow-Origin
+```
+
+### Proteção Geral
+
 - ✅ Senhas via variáveis de ambiente
+- ✅ JWT Secret gerado com OpenSSL (512 bits)
 - ✅ Nenhum segredo versionado no código
 - ✅ Logs sem dados sensíveis
 - ✅ Health check sem detalhes em produção
 - ✅ SQL injection prevenido (JPA/Hibernate)
+- ✅ CORS configurado de forma restritiva por padrão
+- ✅ DataIntegrityViolation tratado (409 Conflict para ISBN duplicado)
 
 ## ✨ Stories Implementadas
 
