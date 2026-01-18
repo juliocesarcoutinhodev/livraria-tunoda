@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Propriedades -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+    <property name="LOG_PATTERN_WITH_MDC"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"/>
+
+    <!-- Appender para console com pattern simples -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN_WITH_MDC}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Appender para console com JSON (produção) -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
+            <includeContext>false</includeContext>
+            <includeCallerData>false</includeCallerData>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+            <customFields>{"application":"livraria-tunoda"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Profile: local e dev - Logs legíveis com stacktrace completo -->
+    <springProfile name="local,dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="br.com.iraquitantunoda.livrariatunoda" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio" level="DEBUG"/>
+        <logger name="br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago" level="DEBUG"/>
+    </springProfile>
+
+    <!-- Profile: staging - Logs legíveis com menos detalhes -->
+    <springProfile name="staging">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="br.com.iraquitantunoda.livrariatunoda" level="INFO"/>
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+    </springProfile>
+
+    <!-- Profile: prod - Logs em JSON sem stacktrace sensível -->
+    <springProfile name="prod,production">
+        <root level="WARN">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+
+        <logger name="br.com.iraquitantunoda.livrariatunoda" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="ERROR"/>
+        <logger name="br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.melhorenvio" level="INFO"/>
+        <logger name="br.com.iraquitantunoda.livrariatunoda.infrastructure.gateway.mercadopago" level="INFO"/>
+    </springProfile>
+</configuration>
+

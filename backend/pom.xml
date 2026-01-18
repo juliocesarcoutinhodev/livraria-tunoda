@@ -93,6 +93,13 @@
             <artifactId>spring-aspects</artifactId>
         </dependency>
 
+        <!-- Logstash encoder para logs em JSON (producao) -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.0</version>
+        </dependency>
+
         <!-- Spring Security para autenticacao e autorizacao -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

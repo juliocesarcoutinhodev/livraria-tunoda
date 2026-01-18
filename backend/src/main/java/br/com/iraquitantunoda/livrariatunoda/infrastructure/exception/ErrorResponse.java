@@ -11,14 +11,16 @@ public record ErrorResponse(
         String error,
         String message,
         String path,
+        String correlationId,
         List<ValidationError> errors
 ) {
 
-    public ErrorResponse(int status, String error, String message, String path) {
-        this(LocalDateTime.now(), status, error, message, path, null);
+    public ErrorResponse(int status, String error, String message, String path, String correlationId) {
+        this(LocalDateTime.now(), status, error, message, path, correlationId, null);
     }
 
-    public ErrorResponse(int status, String error, String message, String path, List<ValidationError> errors) {
-        this(LocalDateTime.now(), status, error, message, path, errors);
+    public ErrorResponse(int status, String error, String message, String path, String correlationId, List<ValidationError> errors) {
+        this(LocalDateTime.now(), status, error, message, path, correlationId, errors);
     }
 }
+

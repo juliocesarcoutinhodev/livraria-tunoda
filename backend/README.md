@@ -1572,25 +1572,73 @@ docker exec -it postgres-livraria-tunoda psql -U livraria_user -d livraria_db
 
 ## 📝 Logs
 
+### Logs Estruturados e Padronizados
+
+Sistema de logs com suporte a observabilidade, auditoria e diagnóstico.
+
+**Características:**
+- ✅ Logs em JSON no profile `production`
+- ✅ Logs legíveis nos profiles `local` e `dev`
+- ✅ MDC com `requestId` para rastreamento
+- ✅ Logs de operações críticas (pagamento, frete)
+- ✅ Sanitização automática de dados sensíveis
+- ✅ Stacktrace apenas em ambientes não produtivos
+
+### Formato por Ambiente
+
+**Local / Dev (Legível):**
+```
+2026-01-17 10:30:45 [http-nio-8080-exec-1] [a1b2c3d4] INFO CreatePaymentUseCase - Iniciando operação crítica
+```
+
+**Produção (JSON):**
+```json
+{
+  "timestamp": "2026-01-17T10:30:45.123Z",
+  "level": "INFO",
+  "logger": "CreatePaymentUseCase",
+  "message": "Iniciando operação crítica",
+  "requestId": "a1b2c3d4",
+  "application": "livraria-tunoda"
+}
+```
+
 ### Níveis de Log por Ambiente
 
 **Desenvolvimento:**
 - Aplicação: `DEBUG`
 - SQL: `DEBUG` (com binding de parâmetros)
 - Web: `DEBUG`
+- Integrações: `DEBUG`
 
 **Produção:**
 - Aplicação: `INFO`
 - SQL: `ERROR`
 - Web: `WARN`
+- Integrações: `INFO`
 
-### Formato
+### RequestId
 
+Cada requisição recebe um `requestId` único para rastreamento:
+
+```bash
+# Cliente pode enviar header customizado
+curl -H "X-Request-ID: custom-123" http://localhost:8080/api/...
+
+# Ou deixar gerar automaticamente (UUID)
+curl http://localhost:8080/api/...
 ```
-yyyy-MM-dd HH:mm:ss [thread] LEVEL logger - mensagem
-```
 
-**Segurança:** Logs são sanitizados e não expõem dados sensíveis.
+### Operações Críticas Logadas
+
+Automaticamente via `CriticalOperationsLoggingAspect`:
+- Criação e processamento de pagamentos
+- Cálculo e seleção de frete
+- Entrada, sucesso e erro com duração
+
+**Documentação Completa:** [docs/LOGGING.md](./docs/LOGGING.md)
+
+**Segurança:** Logs sanitizados - sem tokens, senhas, CPF ou dados sensíveis.
 
 ## 🛡️ Tratamento de Erros
 

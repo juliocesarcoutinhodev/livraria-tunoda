@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -33,7 +34,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         AuthenticationException authException
     ) throws IOException, ServletException {
 
-        log.warn("Tentativa de acesso nao autenticado ao endpoint: {} - Motivo: {}",
+        String correlationId = MDC.get("requestId");
+        if (correlationId == null) {
+            correlationId = "no-correlation-id";
+        }
+
+        log.warn("[{}] Tentativa de acesso nao autenticado ao endpoint: {} - Motivo: {}",
+                 correlationId,
                  request.getRequestURI(),
                  authException.getMessage());
 
@@ -46,6 +53,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         body.put("error", "Unauthorized");
         body.put("message", "Autenticacao necessaria. Por favor, faca login");
         body.put("path", request.getRequestURI());
+        body.put("correlationId", correlationId);
 
         objectMapper.writeValue(response.getOutputStream(), body);
     }

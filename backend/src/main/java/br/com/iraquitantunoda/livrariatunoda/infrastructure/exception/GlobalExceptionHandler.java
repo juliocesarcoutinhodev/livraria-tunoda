@@ -5,7 +5,10 @@ import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundEx
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,23 +16,43 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Handler global para tratamento centralizado de excecoes.
+ * Garante respostas padronizadas, mensagens amigaveis e correlation ID para rastreamento.
+ */
 @RestControllerAdvice
 @Slf4j
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final Environment environment;
+
+    private boolean isProduction() {
+        return Arrays.stream(environment.getActiveProfiles())
+            .anyMatch(profile -> profile.equals("prod") || profile.equals("production"));
+    }
+
+    private String getCorrelationId() {
+        String correlationId = MDC.get("requestId");
+        return correlationId != null ? correlationId : "no-correlation-id";
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
 
-        log.warn("Recurso não encontrado: {} - Path: {}", ex.getMessage(), request.getRequestURI());
+        String correlationId = getCorrelationId();
+        log.warn("[{}] Recurso não encontrado: {} - Path: {}", correlationId, ex.getMessage(), request.getRequestURI());
 
         var error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 "Not Found",
                 ex.getMessage(),
-                request.getRequestURI()
+                request.getRequestURI(),
+                correlationId
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -38,13 +61,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusiness(
             BusinessException ex, HttpServletRequest request) {
 
-        log.warn("Erro de negócio: {} - Path: {}", ex.getMessage(), request.getRequestURI());
+        String correlationId = getCorrelationId();
+        log.warn("[{}] Erro de negócio: {} - Path: {}", correlationId, ex.getMessage(), request.getRequestURI());
 
         var error = new ErrorResponse(
                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
                 "Unprocessable Entity",
                 ex.getMessage(),
-                request.getRequestURI()
+                request.getRequestURI(),
+                correlationId
         );
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
@@ -53,17 +78,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
+        String correlationId = getCorrelationId();
         List<ValidationError> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(field -> new ValidationError(field.getField(), field.getDefaultMessage()))
                 .toList();
 
-        log.warn("Erro de validação - Path: {} - Erros: {}", request.getRequestURI(), errors);
+        log.warn("[{}] Erro de validação - Path: {} - Erros: {}", correlationId, request.getRequestURI(), errors);
 
         var error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 "Erro de validação",
                 request.getRequestURI(),
+                correlationId,
                 errors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -73,17 +100,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest request) {
 
+        String correlationId = getCorrelationId();
         List<ValidationError> errors = ex.getConstraintViolations().stream()
                 .map(v -> new ValidationError(v.getPropertyPath().toString(), v.getMessage()))
                 .toList();
 
-        log.warn("Erro de constraint violation - Path: {} - Erros: {}", request.getRequestURI(), errors);
+        log.warn("[{}] Erro de constraint violation - Path: {} - Erros: {}", correlationId, request.getRequestURI(), errors);
 
         var error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 "Erro de validação",
                 request.getRequestURI(),
+                correlationId,
                 errors
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -92,15 +121,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
             DataIntegrityViolationException ex, HttpServletRequest request) {
+
+        String correlationId = getCorrelationId();
         String message = getDuplicateError(ex);
 
-        log.warn("Erro de integridade de dados: {} - Path: {}", message, request.getRequestURI());
+        log.warn("[{}] Erro de integridade de dados: {} - Path: {}", correlationId, message, request.getRequestURI());
 
         var error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 "Conflict",
                 message,
-                request.getRequestURI()
+                request.getRequestURI(),
+                correlationId
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -109,13 +141,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGeneral(
             Exception ex, HttpServletRequest request) {
 
-        log.error("Erro interno do servidor: {} - Path: {}", ex.getMessage(), request.getRequestURI(), ex);
+        String correlationId = getCorrelationId();
+
+        // Em producao, nao loga stacktrace completo
+        if (isProduction()) {
+            log.error("[{}] Erro interno do servidor: {} - Path: {} - Exception: {}",
+                correlationId, ex.getMessage(), request.getRequestURI(), ex.getClass().getSimpleName());
+        } else {
+            log.error("[{}] Erro interno do servidor: {} - Path: {}",
+                correlationId, ex.getMessage(), request.getRequestURI(), ex);
+        }
+
+        // Em producao, mensagem generica e amigavel
+        String message = isProduction()
+            ? "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+            : "Erro interno do servidor: " + ex.getMessage();
 
         var error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                "Erro interno do servidor",
-                request.getRequestURI()
+                message,
+                request.getRequestURI(),
+                correlationId
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
