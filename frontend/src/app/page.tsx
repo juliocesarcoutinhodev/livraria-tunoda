@@ -1,7 +1,7 @@
-import Navigation from "@/components/layout/Navigation";
-import Hero from "@/components/features/Hero";
-import Books from "@/components/features/Books";
-import About from "@/components/features/About";
+import Navigation from "@/components/Navigation";
+import Hero from "@/components/Hero";
+import Books from "@/components/Books";
+import About from "@/components/About";
 
 export default function Home() {
   return (

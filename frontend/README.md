@@ -100,14 +100,7 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Otimização de carregamento (lazy loading)
 - Responsividade em todos os breakpoints
 
-## 🚀 Setup e Instalação
-
-### Pré-requisitos
-
-- Node.js 18+ instalado
-- npm ou yarn
-
-### Instalação
+## 🚀 Como executar
 
 ```bash
 # Clonar o repositório
@@ -117,47 +110,15 @@ cd loja-tunoda
 # Instalar dependências
 npm install
 
-# Copiar arquivo de variáveis de ambiente
-cp .env.local.example .env.local
-
 # Executar em desenvolvimento
 npm run dev
 
 # Acessar no navegador
 http://localhost:3000
-```
 
-### Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-npm run dev          # Inicia servidor de desenvolvimento
-
-# Build e Produção
-npm run build        # Cria build de produção
-npm start           # Inicia servidor de produção
-
-# Qualidade de Código
-npm run lint        # Executa ESLint
-npm run format      # Formata código com Prettier
-npm run format:check # Verifica formatação sem alterar arquivos
-```
-
-### Estrutura do Projeto
-
-```
-src/
-├── app/              # App Router (páginas Next.js)
-├── components/       # Componentes reutilizáveis
-│   ├── ui/          # Componentes UI genéricos
-│   ├── layout/      # Layouts (header, footer, sidebar)
-│   └── features/    # Componentes específicos de domínio
-├── services/         # Integração com APIs
-├── hooks/            # Custom React Hooks
-├── lib/              # Utilitários e configurações
-├── types/            # TypeScript interfaces/types
-├── store/            # Estado global (Zustand)
-└── constants/        # Constantes da aplicação
+# Build para produção
+npm run build
+npm start
 ```
 
 ## 📱 Características Técnicas
@@ -203,27 +164,25 @@ src/
 4. **Checkout** → Preenche dados de entrega
 5. **Pagamento** → [Preparado para integração]
 
-## 📂 Estrutura do Projeto (Enterprise)
+## 📂 Estrutura do Projeto
 
 ```
 src/
-├── app/                   # App Router (páginas Next.js)
-│   ├── layout.tsx        # Layout raiz
-│   ├── page.tsx          # Página principal
-│   ├── cart/page.tsx     # Página do carrinho
-│   ├── checkout/page.tsx # Página de checkout
-│   └── globals.css       # Estilos globais
+├── app/
+│   ├── layout.tsx          # Layout raiz + CartProvider
+│   ├── page.tsx           # Página principal completa
+│   ├── cart/page.tsx      # Página do carrinho
+│   ├── checkout/page.tsx  # Página de checkout
+│   └── globals.css        # Estilos globais
 ├── components/
-│   ├── ui/               # Componentes UI genéricos
-│   ├── layout/           # Layouts (Navigation, etc)
-│   └── features/         # Componentes de domínio (Hero, Books, About)
-├── services/             # Integração com APIs
-├── hooks/                # Custom React Hooks
-├── lib/                  # Utilitários e configurações
-├── types/                # TypeScript interfaces/types
-├── store/                # Estado global (Zustand)
-│   └── cart-store.ts     # Store do carrinho
-└── constants/            # Constantes da aplicação
+│   ├── Hero.tsx           # Seção hero com scroll suave
+│   ├── Navigation.tsx     # Menu com carrinho
+│   ├── Books.tsx          # Catálogo de livros
+│   └── About.tsx          # História do pastor
+├── contexts/
+│   └── CartContext.tsx    # Gerenciamento de estado
+└── public/
+    └── img/               # Fotos reais do pastor e livros
 ```
 
 ## 🎯 Diferenciais do Projeto

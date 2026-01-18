@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
-import Navigation from "@/components/layout/Navigation";
+import Navigation from "@/components/Navigation";
 import Link from "next/link";
 
 export default function CheckoutPage() {
