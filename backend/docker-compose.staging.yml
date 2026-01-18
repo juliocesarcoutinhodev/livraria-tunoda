@@ -29,8 +29,7 @@ services:
       - app-network
 
   app:
-    # ALTERE AQUI: Substitua pelo seu usuário do Docker Hub
-    image: ${APP_IMAGE:-seu-usuario/livraria-tunoda:staging}
+    image: ${APP_IMAGE:-juliocesarcoutinho/livraria-tunoda:staging}
     container_name: app-staging
     depends_on:
       postgres:

@@ -54,8 +54,7 @@ USER spring:spring
 EXPOSE ${SERVER_PORT:-8080}
 
 # Variaveis de ambiente padrao
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0" \
-    SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
