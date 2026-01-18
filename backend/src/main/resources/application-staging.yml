@@ -2,10 +2,10 @@ spring:
   application:
     name: Livraria Tunoda
   datasource:
-    url: ${JDBC_DATABASE_URL}
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DB:livraria_db}
+    username: ${POSTGRES_USER:livraria_user}
+    password: ${POSTGRES_PASSWORD:livraria_password}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
@@ -13,7 +13,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     baseline-on-migrate: true
     locations: classpath:db/migration
