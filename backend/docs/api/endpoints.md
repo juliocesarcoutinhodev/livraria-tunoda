@@ -60,6 +60,18 @@ Response: 204 No Content
 
 ## Admin - Autores
 
+### Listar Autores
+```
+GET /api/admin/authors?page=0&size=10&status=ACTIVE
+Auth: ROLE_ADMIN
+Response: {
+  content: [{ id, name, biography, photoUrl, status, createdAt }],
+  page: 0,
+  size: 10,
+  totalElements: 25
+}
+```
+
 ### Criar Autor
 ```
 POST /api/admin/authors
@@ -85,6 +97,24 @@ Response: 200 OK
 ```
 
 ## Admin - Livros
+
+### Listar Livros
+```
+GET /api/admin/books?page=0&size=10&status=ACTIVE&authorId=uuid&lowStock=true
+Auth: ROLE_ADMIN
+Query Params:
+  - page (default: 0)
+  - size (default: 10)
+  - status (optional: ACTIVE | INACTIVE)
+  - authorId (optional: filtrar por autor)
+  - lowStock (optional: boolean - retorna livros com estoque < 10)
+Response: {
+  content: [{ id, title, description, price, stock, authors, status, ... }],
+  page: 0,
+  size: 10,
+  totalElements: 42
+}
+```
 
 ### Criar Livro
 ```
@@ -118,6 +148,22 @@ Response: 200 OK
 GET /api/admin/books/{id}/metrics
 Auth: ROLE_ADMIN
 Response: { views, clicks, lastViewedAt }
+```
+
+### Ajustar Estoque
+```
+PATCH /api/admin/books/{id}/stock
+Auth: ROLE_ADMIN
+Body: {
+  operation: "ADD" | "REMOVE" | "SET",
+  quantity: 10,
+  reason: "Motivo do ajuste (opcional)"
+}
+Response: 200 OK + livro atualizado
+Exemplos:
+  - ADD: Adiciona quantidade ao estoque atual
+  - REMOVE: Remove quantidade do estoque atual
+  - SET: Define o estoque com valor absoluto
 ```
 
 ## Carrinho

@@ -5,6 +5,8 @@ import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.B
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,4 +19,15 @@ public interface BookJpaRepository extends JpaRepository<BookEntity, String> {
     Page<BookEntity> findByStatus(Status status, Pageable pageable);
 
     long countByAuthorIdsContainingAndStatus(String authorId, Status status);
+
+    @Query("SELECT b FROM BookEntity b WHERE " +
+           "(:status IS NULL OR b.status = :status) AND " +
+           "(:authorId IS NULL OR :authorId MEMBER OF b.authorIds) AND " +
+           "(:lowStock IS NULL OR (:lowStock = true AND b.stock < 10))")
+    Page<BookEntity> findAllWithFilters(
+        @Param("status") Status status,
+        @Param("authorId") String authorId,
+        @Param("lowStock") Boolean lowStock,
+        Pageable pageable
+    );
 }

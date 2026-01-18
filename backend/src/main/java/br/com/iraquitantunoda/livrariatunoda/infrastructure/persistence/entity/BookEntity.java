@@ -54,6 +54,9 @@ public class BookEntity {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(nullable = false)
+    private Integer stock;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
         name = "tb_book_authors",

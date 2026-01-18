@@ -3,10 +3,13 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.AuthorResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ChangeStatusRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CreateAuthorRequest;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.PageResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateAuthorRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ChangeAuthorStatusUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateAuthorUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.ListAuthorsUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateAuthorUseCase;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,17 @@ public class AdminAuthorController {
     private final CreateAuthorUseCase createAuthorUseCase;
     private final UpdateAuthorUseCase updateAuthorUseCase;
     private final ChangeAuthorStatusUseCase changeAuthorStatusUseCase;
+    private final ListAuthorsUseCase listAuthorsUseCase;
+
+    @GetMapping
+    public ResponseEntity<PageResponse<AuthorResponse>> listAuthors(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) Status status
+    ) {
+        var response = listAuthorsUseCase.execute(page, size, status);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<AuthorResponse> createAuthor(@Valid @RequestBody CreateAuthorRequest request) {

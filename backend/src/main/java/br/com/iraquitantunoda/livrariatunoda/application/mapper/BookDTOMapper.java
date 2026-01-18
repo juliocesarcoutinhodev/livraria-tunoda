@@ -35,6 +35,7 @@ public interface BookDTOMapper {
     @Mapping(target = "currency", source = "book.price.currency")
     @Mapping(target = "weight", source = "book.weight.value")
     @Mapping(target = "weightUnit", expression = "java(book.getWeight().getUnit().name())")
+    @Mapping(target = "stock", source = "book.stock")
     @Mapping(target = "status", expression = "java(book.getStatus().name())")
     @Mapping(target = "authors", source = "authors")
     BookResponse toResponse(Book book, List<AuthorSummaryDTO> authors);

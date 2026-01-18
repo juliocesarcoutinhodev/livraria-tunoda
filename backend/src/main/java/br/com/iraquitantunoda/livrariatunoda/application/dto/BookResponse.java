@@ -13,6 +13,7 @@ public record BookResponse(
     String currency,
     BigDecimal weight,
     String weightUnit,
+    Integer stock,
     List<AuthorSummaryDTO> authors,
     String status
 ) {

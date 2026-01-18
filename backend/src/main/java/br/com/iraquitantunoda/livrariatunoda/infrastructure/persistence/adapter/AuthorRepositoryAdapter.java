@@ -7,6 +7,8 @@ import br.com.iraquitantunoda.livrariatunoda.domain.repository.AuthorRepository;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.mapper.AuthorMapper;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.repository.AuthorJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -58,5 +60,46 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     public boolean existsById(AuthorId id) {
         return jpaRepository.existsById(id.getValue());
     }
+
+    @Override
+    public PageResult<Author> findAllWithPagination(int page, int size) {
+        var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        var pageResult = jpaRepository.findAll(pageable);
+
+        var authors = pageResult.getContent().stream()
+            .map(mapper::toDomain)
+            .toList();
+
+        return new PageResultImpl<>(
+            authors,
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements()
+        );
+    }
+
+    @Override
+    public PageResult<Author> findByStatusWithPagination(Status status, int page, int size) {
+        var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        var pageResult = jpaRepository.findByStatus(status, pageable);
+
+        var authors = pageResult.getContent().stream()
+            .map(mapper::toDomain)
+            .toList();
+
+        return new PageResultImpl<>(
+            authors,
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements()
+        );
+    }
+
+    private record PageResultImpl<T>(
+        List<T> content,
+        int page,
+        int size,
+        long totalElements
+    ) implements PageResult<T> {}
 }
 

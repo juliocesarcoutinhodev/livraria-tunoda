@@ -2,6 +2,7 @@ package br.com.iraquitantunoda.livrariatunoda.domain.repository;
 
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Author;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.AuthorId;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,5 +19,16 @@ public interface AuthorRepository {
     List<Author> findAllActive();
 
     boolean existsById(AuthorId id);
+
+    PageResult<Author> findAllWithPagination(int page, int size);
+
+    PageResult<Author> findByStatusWithPagination(Status status, int page, int size);
+
+    interface PageResult<T> {
+        List<T> content();
+        int page();
+        int size();
+        long totalElements();
+    }
 }
 

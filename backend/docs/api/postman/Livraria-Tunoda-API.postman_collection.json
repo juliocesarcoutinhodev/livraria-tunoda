@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "livraria-tunoda-api",
     "name": "Livraria Tunoda API",
-    "description": "Collection completa da API REST da Livraria Tunoda com 37 endpoints implementados (incluindo health checks e monitoramento)",
+    "description": "Collection completa da API REST da Livraria Tunoda com 42 endpoints implementados (incluindo gestão de estoque, listagem admin, health checks e monitoramento)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "livraria-tunoda"
   },
@@ -178,6 +178,43 @@
       "name": "Admin - Autores",
       "item": [
         {
+          "name": "Listar Autores (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/authors?page=0&size=10&status=ACTIVE",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "authors"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número da página (começa em 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Quantidade de itens por página"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "Filtro opcional: ACTIVE, INACTIVE (omitir para listar todos)"
+                }
+              ]
+            },
+            "description": "Lista todos os autores com paginação e filtro opcional por status. Ordenado por nome (ASC). Retorna autores ativos e inativos quando filtro é omitido."
+          },
+          "response": []
+        },
+        {
           "name": "Criar Autor",
           "request": {
             "method": "POST",
@@ -274,6 +311,53 @@
       "name": "Admin - Livros",
       "item": [
         {
+          "name": "Listar Livros (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/books?page=0&size=10&status=ACTIVE&authorId={{author_id}}&lowStock=false",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número da página (começa em 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Quantidade de itens por página"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "description": "Filtro opcional: ACTIVE, INACTIVE (omitir para listar todos)"
+                },
+                {
+                  "key": "authorId",
+                  "value": "{{author_id}}",
+                  "description": "Filtro opcional: UUID do autor para filtrar livros"
+                },
+                {
+                  "key": "lowStock",
+                  "value": "false",
+                  "description": "Filtro opcional: true para listar apenas livros com estoque < 10"
+                }
+              ]
+            },
+            "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo). Ordenado por data de criação (DESC). Retorna campo stock e informações completas dos autores."
+          },
+          "response": []
+        },
+        {
           "name": "Criar Livro",
           "request": {
             "method": "POST",
@@ -285,7 +369,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way.\",\n  \"photoUrl\": \"https://example.com/books/clean-code.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 49.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.680,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"]\n}"
+              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way.\",\n  \"photoUrl\": \"https://example.com/books/clean-code.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 49.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.680,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"stock\": 100,\n  \"authorIds\": [\"{{author_id}}\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/books",
@@ -298,7 +382,7 @@
                 "books"
               ]
             },
-            "description": "Cria um novo livro no sistema. Status ACTIVE por padrão. Valida que todos os autores existem e estão ativos. ISBN é opcional mas validado se fornecido."
+            "description": "Cria um novo livro no sistema. Status ACTIVE por padrão. Valida que todos os autores existem e estão ativos. ISBN é opcional mas validado se fornecido. Stock obrigatório (não pode ser negativo)."
           },
           "response": []
         },
@@ -314,7 +398,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship - 2nd Edition\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This updated edition includes new insights and practical examples.\",\n  \"photoUrl\": \"https://example.com/books/clean-code-v2.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 59.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.700,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"authorIds\": [\"{{author_id}}\"],\n  \"status\": \"ACTIVE\"\n}"
+              "raw": "{\n  \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship - 2nd Edition\",\n  \"description\": \"Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. This updated edition includes new insights and practical examples.\",\n  \"photoUrl\": \"https://example.com/books/clean-code-v2.jpg\",\n  \"isbn\": \"978-0132350884\",\n  \"price\": 59.90,\n  \"currency\": \"BRL\",\n  \"weight\": 0.700,\n  \"weightUnit\": \"KILOGRAMS\",\n  \"stock\": 150,\n  \"authorIds\": [\"{{author_id}}\"],\n  \"status\": \"ACTIVE\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/admin/books/{{book_id}}",
@@ -328,7 +412,7 @@
                 "{{book_id}}"
               ]
             },
-            "description": "Atualiza todos os dados de um livro existente (substituição completa). Valida que todos os autores existem e estão ativos."
+            "description": "Atualiza todos os dados de um livro existente (substituição completa). Valida que todos os autores existem e estão ativos. Stock não pode ser negativo."
           },
           "response": []
         },
@@ -382,6 +466,99 @@
               ]
             },
             "description": "Consulta métricas agregadas de um livro específico (visualizações e cliques). Retorna 404 se livro não existir. Livros inativos podem ter métricas consultadas."
+          },
+          "response": []
+        },
+        {
+          "name": "Ajustar Estoque - ADD",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operation\": \"ADD\",\n  \"quantity\": 50,\n  \"reason\": \"Reposição de estoque após chegada do fornecedor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}/stock",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}",
+                "stock"
+              ]
+            },
+            "description": "Adiciona quantidade ao estoque atual do livro. Operação ADD: stock += quantity. Campo reason é opcional mas recomendado para auditoria. Gera log automático da operação."
+          },
+          "response": []
+        },
+        {
+          "name": "Ajustar Estoque - REMOVE",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operation\": \"REMOVE\",\n  \"quantity\": 10,\n  \"reason\": \"Venda externa através de outro canal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}/stock",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}",
+                "stock"
+              ]
+            },
+            "description": "Remove quantidade do estoque atual. Operação REMOVE: stock -= quantity. Valida se há estoque suficiente. Retorna erro 422 se tentar remover mais do que disponível."
+          },
+          "response": []
+        },
+        {
+          "name": "Ajustar Estoque - SET",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operation\": \"SET\",\n  \"quantity\": 100,\n  \"reason\": \"Ajuste de inventário - contagem física\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}/stock",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}",
+                "stock"
+              ]
+            },
+            "description": "Define o estoque com valor absoluto. Operação SET: stock = quantity. Útil para ajustes de inventário. Quantidade não pode ser negativa."
           },
           "response": []
         }

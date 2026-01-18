@@ -34,6 +34,10 @@ public record UpdateBookRequest(
     @NotEmpty(message = "O livro deve ter pelo menos um autor")
     Set<String> authorIds,
 
+    @NotNull(message = "O estoque é obrigatório")
+    @PositiveOrZero(message = "O estoque não pode ser negativo")
+    Integer stock,
+
     @NotBlank(message = "O status é obrigatório")
     String status
 ) {

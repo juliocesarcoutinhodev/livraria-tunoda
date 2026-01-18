@@ -157,7 +157,8 @@ class CreateShippingQuoteUseCaseTest {
             Money.brl(BigDecimal.valueOf(49.90)),
             Weight.kilograms(BigDecimal.valueOf(0.5)),
             Set.of(AuthorId.generate()),
-            Status.ACTIVE
+            Status.ACTIVE,
+            100  // stock
         );
     }
 

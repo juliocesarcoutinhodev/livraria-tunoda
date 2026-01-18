@@ -40,7 +40,8 @@ public interface BookMapper {
             Money.of(entity.getPriceAmount(), entity.getPriceCurrency()),
             Weight.of(entity.getWeightValue(), entity.getWeightUnit()),
             stringsToAuthorIds(entity.getAuthorIds()),
-            entity.getStatus()
+            entity.getStatus(),
+            entity.getStock()
         );
     }
 

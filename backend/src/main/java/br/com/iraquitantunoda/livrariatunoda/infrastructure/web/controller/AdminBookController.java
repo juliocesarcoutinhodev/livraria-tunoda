@@ -4,11 +4,16 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.BookMetricsResponse
 import br.com.iraquitantunoda.livrariatunoda.application.dto.BookResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ChangeStatusRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.CreateBookRequest;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.PageResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateBookRequest;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateStockRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ChangeBookStatusUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateBookUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetBookMetricsUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.ListBooksUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateBookStockUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateBookUseCase;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +29,20 @@ public class AdminBookController {
     private final UpdateBookUseCase updateBookUseCase;
     private final ChangeBookStatusUseCase changeBookStatusUseCase;
     private final GetBookMetricsUseCase getBookMetricsUseCase;
+    private final ListBooksUseCase listBooksUseCase;
+    private final UpdateBookStockUseCase updateBookStockUseCase;
+
+    @GetMapping
+    public ResponseEntity<PageResponse<BookResponse>> listBooks(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) Status status,
+        @RequestParam(required = false) String authorId,
+        @RequestParam(required = false) Boolean lowStock
+    ) {
+        var response = listBooksUseCase.execute(page, size, status, authorId, lowStock);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<BookResponse> createBook(@Valid @RequestBody CreateBookRequest request) {
@@ -46,6 +65,15 @@ public class AdminBookController {
         @Valid @RequestBody ChangeStatusRequest request
     ) {
         var response = changeBookStatusUseCase.execute(bookId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{bookId}/stock")
+    public ResponseEntity<BookResponse> updateStock(
+        @PathVariable String bookId,
+        @Valid @RequestBody UpdateStockRequest request
+    ) {
+        var response = updateBookStockUseCase.execute(bookId, request);
         return ResponseEntity.ok(response);
     }
 

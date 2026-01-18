@@ -31,6 +31,10 @@ public record CreateBookRequest(
     @NotBlank(message = "A unidade de peso é obrigatória")
     String weightUnit,
 
+    @NotNull(message = "O estoque inicial é obrigatório")
+    @PositiveOrZero(message = "O estoque não pode ser negativo")
+    Integer stock,
+
     @NotEmpty(message = "O livro deve ter pelo menos um autor")
     Set<String> authorIds
 ) {

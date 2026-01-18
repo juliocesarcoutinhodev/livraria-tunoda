@@ -63,7 +63,8 @@ public class UpdateBookUseCase {
             money,
             weight,
             authorIds,
-            Status.valueOf(request.status())
+            Status.valueOf(request.status()),
+            request.stock()
         );
 
         var savedBook = bookRepository.save(updatedBook);

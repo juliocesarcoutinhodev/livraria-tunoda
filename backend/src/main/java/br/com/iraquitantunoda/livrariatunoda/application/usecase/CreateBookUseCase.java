@@ -56,7 +56,8 @@ public class CreateBookUseCase {
             isbn,
             money,
             weight,
-            authorIds
+            authorIds,
+            request.stock()
         );
 
         var savedBook = bookRepository.save(book);
