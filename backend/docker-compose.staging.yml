@@ -2,10 +2,12 @@
 # Docker Compose para STAGING (SaveInCloud)
 # =====================================
 # App + Banco juntos para economizar recursos
-# Use este arquivo no SaveInCloud ao criar a aplicação
+#
+# IMPORTANTE: Defina a variável APP_IMAGE antes de executar:
+# export APP_IMAGE=seu-usuario/livraria-tunoda:staging
+#
+# Ou edite diretamente a linha "image:" abaixo
 # =====================================
-
-version: '3.8'
 
 services:
   postgres:
@@ -13,7 +15,7 @@ services:
     container_name: postgres-staging
     environment:
       POSTGRES_USER: livraria_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Defina no SaveInCloud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-livraria_password}
       POSTGRES_DB: livraria_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -27,7 +29,8 @@ services:
       - app-network
 
   app:
-    image: ${DOCKER_USERNAME}/livraria-tunoda:staging  # Ex: juliosilva/livraria-tunoda:staging
+    # ALTERE AQUI: Substitua pelo seu usuário do Docker Hub
+    image: ${APP_IMAGE:-seu-usuario/livraria-tunoda:staging}
     container_name: app-staging
     depends_on:
       postgres:
