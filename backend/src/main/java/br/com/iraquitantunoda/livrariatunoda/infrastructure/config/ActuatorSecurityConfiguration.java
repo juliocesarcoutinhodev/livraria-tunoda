@@ -1,5 +1,7 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.config;
 
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
@@ -9,7 +11,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Configuracao de seguranca especifica para endpoints do Actuator.
@@ -23,7 +27,10 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class ActuatorSecurityConfiguration {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
 
     /**
      * Configuracao para ambientes de desenvolvimento (local, dev).
@@ -61,7 +68,11 @@ public class ActuatorSecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
                 .anyRequest().authenticated()
-            );
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -82,7 +93,11 @@ public class ActuatorSecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
                 .anyRequest().hasRole("ADMIN")
-            );
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
