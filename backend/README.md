@@ -1767,10 +1767,121 @@ java -jar target/livraria-tunoda-0.0.1-SNAPSHOT.jar
 
 ## 🐳 Docker
 
+### Desenvolvimento Local
+
+**Para desenvolvimento local, rode APENAS o banco de dados no Docker:**
+
+```bash
+# Subir PostgreSQL
+docker-compose up -d
+
+# Parar
+docker-compose down
+
+# Ver logs
+docker-compose logs -f
+```
+
+**Aplicação:** Rode na sua IDE (IntelliJ/Eclipse) para facilitar debug.
+
+**Configuração:** Use o `.env` com `POSTGRES_HOST=localhost`
+
+---
+
+### Staging (SaveInCloud) - App + Banco Juntos
+
+**Build e Push para Docker Hub:**
+
+```bash
+# 1. Login no Docker Hub
+docker login
+
+# 2. Build da imagem (substitua SEU_USUARIO)
+docker build -t SEU_USUARIO/livraria-tunoda:staging .
+
+# 3. Push para Docker Hub
+docker push SEU_USUARIO/livraria-tunoda:staging
+```
+
+**No SaveInCloud:**
+
+1. **Criar Aplicação** → Selecione **"Docker Compose"**
+2. **Cole o conteúdo** de `docker-compose.staging.yml`
+3. **Configure as variáveis de ambiente:**
+   - `DOCKER_USERNAME` (seu usuário Docker Hub)
+   - `POSTGRES_PASSWORD`
+   - `JWT_SECRET`
+   - `MELHOR_ENVIO_TOKEN`
+   - `MERCADO_PAGO_ACCESS_TOKEN`
+   - URLs do frontend
+4. **Deploy!**
+
+**Vantagens:**
+- ✅ Mais barato (tudo numa instância)
+- ✅ Configuração simples
+- ✅ Ideal para staging/homologação
+
+---
+
+### Produção (Futuro) - App e Banco Separados
+
+Para produção, recomendamos:
+- ✅ Banco PostgreSQL gerenciado (separado)
+- ✅ Aplicação em container separado
+- ✅ Backups automáticos
+- ✅ Alta disponibilidade
+
+**Documentação Completa:** 
+- [Docker](./docs/DOCKER.md)
+- [Guia de Deploy Staging](./docs/GUIA_SIMPLES.md)
+
+---
+
+## 🚀 Deploy
+
+### Deploy no SaveInCloud (Staging/Production)
+
+**Quick Start:**
+
+```bash
+# 1. Configurar credenciais
+cp .env.staging.example .env.staging
+nano .env.staging
+
+# 2. Configurar registry
+export SAVEINCLOUD_REGISTRY_URL="registry.saveincloud.com.br/seu-usuario"
+export SAVEINCLOUD_REGISTRY_USER="seu-usuario"
+export SAVEINCLOUD_REGISTRY_PASSWORD="seu-token"
+
+# 3. Deploy!
+./deploy-saveincloud.sh staging
+```
+
+**CI/CD Automático:**
+
+Push para branch `develop` → GitHub Actions → Deploy Staging automático
+
+**Características:**
+- ✅ Multi-stage build otimizado
+- ✅ PostgreSQL gerenciado
+- ✅ SSL automático (Let's Encrypt)
+- ✅ Health checks configurados
+- ✅ Auto-scaling
+- ✅ Logs centralizados
+- ✅ Métricas e monitoramento
+
+**Documentação Completa:**
+- [Guia Simples de Deploy](./docs/GUIA_SIMPLES.md) - Passo a passo completo
+- [Docker](./docs/DOCKER.md) - Detalhes sobre imagens e containers
+
+**URL Staging:** https://livraria-tunoda-staging.saveincloud.app
+
+------
+
 ### Apenas o banco de dados
 
 ```bash
-docker-compose up -d
+docker-compose up -d postgres
 ```
 
 ### Parar e remover containers

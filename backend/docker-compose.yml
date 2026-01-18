@@ -1,19 +1,32 @@
+# =====================================
+# Docker Compose para DESENVOLVIMENTO LOCAL
+# =====================================
+# Apenas PostgreSQL - Aplicação roda na IDE (IntelliJ/Eclipse)
+#
+# Uso:
+#   docker-compose up -d      # Subir banco
+#   docker-compose down       # Parar banco
+#   docker-compose logs -f    # Ver logs
+# =====================================
+
 services:
   postgres:
     image: postgres:17-alpine
     container_name: postgres-livraria-tunoda
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-livraria_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-livraria_password}
+      POSTGRES_DB: ${POSTGRES_DB:-livraria_db}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data_livraria:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-livraria_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
 volumes:
   postgres-data_livraria:

@@ -2,7 +2,7 @@ spring:
   application:
     name: Livraria Tunoda
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:livraria_db}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:livraria_db}
     username: ${POSTGRES_USER:livraria_user}
     password: ${POSTGRES_PASSWORD:livraria_password}
     driver-class-name: org.postgresql.Driver
