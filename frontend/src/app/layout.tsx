@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { CartProvider } from "@/contexts/CartContext";
 import "./globals.css";
 
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} font-inter antialiased`}
       >
-        <CartProvider>{children}</CartProvider>
+        <ReactQueryProvider>
+          <CartProvider>{children}</CartProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
