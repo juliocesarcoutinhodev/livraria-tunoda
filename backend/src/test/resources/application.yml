@@ -28,3 +28,50 @@ app:
       expiration: 3600
     refresh-token:
       expiration-days: 30
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - Accept
+    exposed-headers:
+      - Authorization
+    allow-credentials: true
+    max-age: 3600
+  integrations:
+    melhor-envio:
+      enabled: false
+    mercado-pago:
+      enabled: false
+
+melhor-envio:
+  base-url: https://sandbox.melhorenvio.com.br
+  token: test-token-melhor-envio
+  from-postal-code: 03295-000
+  timeout-seconds: 10
+  max-retries: 2
+  default-width: 15
+  default-height: 2
+  default-length: 20
+  calculate-endpoint: /api/v2/me/shipment/calculate
+
+mercado-pago:
+  base-url: https://api.mercadopago.com
+  access-token: test-token-mercado-pago
+  timeout-seconds: 15
+  max-retries: 2
+  success-url: http://localhost:3000/payment/success
+  failure-url: http://localhost:3000/payment/failure
+  pending-url: http://localhost:3000/payment/pending
+  notification-url: http://localhost:8080/api/webhooks/mercadopago
+  statement-descriptor: Livraria Tunoda Test
+  create-preference-endpoint: /checkout/preferences
+  get-payment-endpoint: /v1/payments/{id}
