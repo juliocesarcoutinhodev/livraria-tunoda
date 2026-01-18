@@ -1346,6 +1346,254 @@ curl -X POST http://localhost:8080/api/auth/login \
 > Altere a senha padrão IMEDIATAMENTE após o primeiro acesso em ambiente de produção.  
 > Veja documentação completa em: [`docs/ADMIN_CREDENTIALS.md`](docs/ADMIN_CREDENTIALS.md)
 
+## 🚀 Fluxo de Startup da Aplicação
+
+Entenda a sequência de inicialização da aplicação e o que acontece em cada etapa:
+
+### 1️⃣ Validação de Configurações
+
+**O que acontece:**
+- Spring Boot carrega `application.yml` + profile específico
+- `@ConfigurationProperties` valida variáveis obrigatórias
+- Aplicação **FALHA IMEDIATAMENTE** se configuração inválida
+
+**Configurações validadas:**
+- ✅ JWT Secret (mínimo 256 bits)
+- ✅ JWT Expiration (mínimo 60 segundos)
+- ✅ Refresh Token Expiration (mínimo 1 dia)
+- ✅ Melhor Envio Token (obrigatório)
+- ✅ Mercado Pago Access Token (obrigatório)
+- ✅ URLs de callback (formato válido)
+
+**Logs esperados:**
+```
+Validando configuracoes de seguranca...
+Validando configuracoes do Melhor Envio...
+Validando configuracoes do Mercado Pago...
+```
+
+**Se falhar:**
+```
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+Binding validation errors:
+  - Field error in object 'securityProperties' on field 'jwtSecret': rejected value []
+  
+Action:
+Configure a valid value for 'jwt.secret' in your application properties.
+```
+
+---
+
+### 2️⃣ Conexão com Banco de Dados
+
+**O que acontece:**
+- HikariCP cria pool de conexões com PostgreSQL
+- Valida conectividade (timeout padrão: 30s)
+- Testa query de validação: `SELECT 1`
+
+**Logs esperados:**
+```
+HikariPool-1 - Starting...
+HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@...
+HikariPool-1 - Start completed.
+```
+
+**Se falhar:**
+```
+Failed to obtain JDBC Connection
+Connection to localhost:5432 refused. Check that the hostname and port are correct.
+```
+
+**Troubleshooting:**
+- ✅ PostgreSQL está rodando? `docker-compose ps`
+- ✅ Porta correta? Padrão: `5432`
+- ✅ Credenciais corretas? Verifique `.env`
+- ✅ Firewall bloqueando? Teste: `telnet localhost 5432`
+
+---
+
+### 3️⃣ Migrations do Flyway
+
+**O que acontece:**
+- Flyway verifica tabela `flyway_schema_history`
+- Executa migrations pendentes em ordem (V1, V2, V3...)
+- Cria/atualiza estrutura do banco
+- Insere dados iniciais (usuário admin)
+
+**Migrations executadas:**
+```
+V1__create-table-books.sql
+V2__create-table-book-metrics.sql
+V3__create-table-carts.sql
+V4__create-table-orders.sql
+V5__add-payment-reference-to-orders.sql
+V6__create-table-shipping-quotes.sql
+V7__create-table-shipping-payloads.sql
+V8__add-to-postal-code-to-shipping-quotes.sql
+V9__create-table-payments.sql
+V10__add-shipping-to-orders.sql
+V11__create-table-users.sql
+V12__create-table-refresh-tokens.sql
+V13__insert-admin-user.sql
+```
+
+**Logs esperados:**
+```
+Flyway Community Edition 10.x.x
+Database: jdbc:postgresql://localhost:5432/livraria_db (PostgreSQL 17.x)
+Successfully validated 13 migrations (execution time 00:00.015s)
+Current version of schema "public": 13
+Schema "public" is up to date. No migration necessary.
+```
+
+**Se falhar:**
+```
+Migration V2__create-table-book-metrics.sql failed
+ERROR: type "idx_book_metrics_book_id" does not exist
+```
+
+**Troubleshooting:**
+- ✅ Banco vazio? Flyway criará tudo do zero
+- ✅ Migration falhou? Corrija o SQL e delete da `flyway_schema_history`
+- ✅ Versão incompatível? Veja `MIGRACAO_POSTGRESQL.md`
+
+---
+
+### 4️⃣ Inicialização do Spring Security
+
+**O que acontece:**
+- SecurityFilterChain configurado
+- JwtAuthenticationFilter registrado
+- Endpoints públicos/protegidos definidos
+- Actuator com segurança por profile
+
+**Logs esperados:**
+```
+Configurando seguranca do Actuator para ambiente de desenvolvimento (permitAll)
+Will secure any request with [...]
+```
+
+**Configuração aplicada:**
+- ✅ `/api/auth/**` → Público
+- ✅ `/api/public/**` → Público
+- ✅ `/api/webhooks/**` → Público
+- ✅ `/api/admin/**` → ROLE_ADMIN
+- ✅ `/api/user/**` → Autenticado
+- ✅ `/api/v1/actuator/health` → Público
+- ✅ `/api/v1/actuator/**` → Por profile (dev: público, staging: autenticado, prod: ADMIN)
+
+---
+
+### 5️⃣ Registro de Beans e Componentes
+
+**O que acontece:**
+- Spring carrega todos os `@Component`, `@Service`, `@Repository`
+- MapStruct gera implementações de mappers
+- Actuator registra health indicators customizados
+
+**Logs esperados:**
+```
+Inicializando metricas do Micrometer
+Registrado health indicator: database
+Registrado health indicator: application
+```
+
+---
+
+### 6️⃣ Inicialização do Tomcat
+
+**O que acontece:**
+- Servidor web embarcado (Tomcat) inicia
+- Porta definida (padrão: 8080)
+- Aguarda requisições HTTP
+
+**Logs esperados:**
+```
+Tomcat initialized with port 8080 (http)
+Tomcat started on port 8080 (http) with context path '/'
+```
+
+---
+
+### 7️⃣ Aplicação Pronta
+
+**Log final:**
+```
+========================================
+Application started successfully!
+Active profile(s): local
+Port: 8080
+JWT Expiration: 3600s
+Refresh Token Expiration: 30 days
+========================================
+Started StartupApplication in 5.234 seconds (process running for 5.678)
+```
+
+**Aplicação está pronta para receber requisições! 🚀**
+
+---
+
+### ⏱️ Tempo de Startup Esperado
+
+| Ambiente | Tempo Típico | Observações |
+|----------|--------------|-------------|
+| **Local (primeira vez)** | ~10-15s | Inclui download de dependências |
+| **Local (subsequente)** | ~5-7s | Dependências em cache |
+| **Docker (primeira vez)** | ~15-20s | Aguarda banco ficar healthy |
+| **Docker (subsequente)** | ~8-10s | Banco já está rodando |
+| **Produção** | ~7-12s | Banco gerenciado (mais rápido) |
+
+---
+
+### 🔍 Verificação Pós-Startup
+
+Após o startup, verifique se tudo está funcionando:
+
+#### 1. Health Check
+```bash
+curl http://localhost:8080/api/v1/actuator/health
+```
+Esperado: `{"status":"UP"}`
+
+#### 2. Banco de Dados
+```bash
+docker exec -it postgres-livraria-tunoda psql -U livraria_user -d livraria_db -c "\dt"
+```
+Esperado: Lista de 12 tabelas
+
+#### 3. Usuário Admin
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@livraria.com","password":"admin123"}'
+```
+Esperado: Tokens JWT válidos
+
+#### 4. Métricas (se profile dev/local)
+```bash
+curl http://localhost:8080/api/v1/actuator/metrics
+```
+Esperado: Lista de métricas disponíveis
+
+---
+
+### 🚨 Problemas Comuns no Startup
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| `Binding validation errors` | Variável obrigatória faltando | Configure a variável de ambiente |
+| `Connection refused` | PostgreSQL não está rodando | Execute `docker-compose up -d` |
+| `Migration failed` | SQL incompatível | Veja `MIGRACAO_POSTGRESQL.md` |
+| `Port 8080 already in use` | Outra aplicação usando a porta | Mude `SERVER_PORT` ou mate o processo |
+| `OutOfMemoryError` | JVM sem memória | Aumente heap: `JAVA_OPTS="-Xmx512m"` |
+| `ClassNotFoundException` | Dependência faltando | Execute `./mvnw clean install` |
+
+---
+
 ## 🔧 Variáveis de Ambiente
 
 ### Desenvolvimento (`.env`)
@@ -1876,25 +2124,448 @@ Push para branch `develop` → GitHub Actions → Deploy Staging automático
 
 **URL Staging:** https://livraria-tunoda-staging.saveincloud.app
 
-------
+---
 
-### Apenas o banco de dados
+## 🏭 Execução em Produção
+
+Guia operacional para executar e manter a aplicação em ambiente de produção.
+
+### 📋 Checklist Pré-Produção
+
+Antes de fazer deploy em produção, verifique:
+
+#### Segurança
+- [ ] **JWT_SECRET** alterado do padrão (mínimo 256 bits)
+- [ ] **POSTGRES_PASSWORD** forte e única
+- [ ] **Senha do admin** alterada após primeiro acesso
+- [ ] HTTPS configurado (certificado SSL válido)
+- [ ] Firewall configurado (apenas portas necessárias abertas)
+- [ ] CORS configurado apenas para domínios autorizados
+- [ ] Tokens de API (Melhor Envio, Mercado Pago) em produção
+
+#### Banco de Dados
+- [ ] Backup automático configurado (diário mínimo)
+- [ ] Teste de restauração realizado
+- [ ] Monitoramento de espaço em disco ativo
+- [ ] Conexões pooling configurado (HikariCP)
+- [ ] Índices criados (via Flyway)
+
+#### Aplicação
+- [ ] Profile `prod` ou `production` ativo
+- [ ] Logs em nível WARN ou ERROR
+- [ ] Health check respondendo
+- [ ] Métricas sendo coletadas
+- [ ] Variáveis de ambiente validadas
+
+#### Infraestrutura
+- [ ] CPU: mínimo 1 core (recomendado 2+)
+- [ ] RAM: mínimo 512MB (recomendado 1GB+)
+- [ ] Disco: mínimo 2GB livres
+- [ ] Rede: baixa latência com banco (<5ms ideal)
+
+---
+
+### 🚀 Iniciando a Aplicação
+
+#### Método 1: JAR Standalone
 
 ```bash
-docker-compose up -d postgres
+# Build
+./mvnw clean package -DskipTests
+
+# Executar
+java -jar target/livraria-tunoda-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=prod \
+  -Xms256m -Xmx512m \
+  -XX:+UseContainerSupport \
+  -XX:MaxRAMPercentage=75.0
 ```
 
-### Parar e remover containers
+#### Método 2: Docker (Recomendado)
 
 ```bash
-docker-compose down
+# Pull da imagem
+docker pull SEU_USUARIO/livraria-tunoda:latest
+
+# Executar
+docker run -d \
+  --name livraria-tunoda-app \
+  -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e JDBC_DATABASE_URL="jdbc:postgresql://seu-banco:5432/livraria_db" \
+  -e POSTGRES_USER="livraria_user" \
+  -e POSTGRES_PASSWORD="SENHA_SEGURA" \
+  -e JWT_SECRET="SUA_CHAVE_256_BITS_AQUI" \
+  -e MELHOR_ENVIO_TOKEN="seu_token_producao" \
+  -e MERCADO_PAGO_ACCESS_TOKEN="seu_token_producao" \
+  --restart unless-stopped \
+  SEU_USUARIO/livraria-tunoda:latest
 ```
 
-### Remover volumes (⚠️ apaga os dados)
+#### Método 3: Docker Compose (Staging/Production)
 
 ```bash
-docker-compose down -v
+# Staging (app + banco juntos)
+docker-compose -f docker-compose.staging.yml up -d
+
+# Ver logs
+docker-compose -f docker-compose.staging.yml logs -f app
+
+# Parar
+docker-compose -f docker-compose.staging.yml down
 ```
+
+---
+
+### 📊 Monitoramento em Produção
+
+#### 1. Health Check (Obrigatório)
+
+Configure seu load balancer ou orquestrador para verificar:
+
+```bash
+# Endpoint
+GET /api/v1/actuator/health
+
+# Esperado
+HTTP 200 OK
+{"status":"UP"}
+
+# Frequência recomendada
+- Liveness Probe: 30s
+- Readiness Probe: 10s
+- Start Period: 60s (primeiro startup)
+- Timeout: 5s
+```
+
+**Ação se DOWN:**
+- Aguarde 3 falhas consecutivas
+- Reinicie o container/aplicação
+- Notifique equipe de operações
+- Verifique logs antes de reiniciar
+
+#### 2. Logs
+
+**Localização:**
+```bash
+# Aplicação standalone
+tail -f logs/spring.log
+
+# Docker
+docker logs -f livraria-tunoda-app --tail=100
+
+# Docker Compose
+docker-compose logs -f app
+```
+
+**O que monitorar:**
+```bash
+# Erros críticos
+grep "ERROR" logs/spring.log
+
+# Warnings importantes
+grep "WARN" logs/spring.log | grep -E "(JWT|Database|Connection)"
+
+# Falhas de autenticação
+grep "Unauthorized" logs/spring.log
+
+# Falhas de integração
+grep -E "(Melhor Envio|Mercado Pago)" logs/spring.log | grep "ERROR"
+```
+
+**Rotação de logs (logback):**
+- Arquivo máximo: 10MB
+- Histórico: 30 dias
+- Total máximo: 1GB
+
+#### 3. Métricas (Actuator)
+
+**Endpoints (requerem ROLE_ADMIN em produção):**
+
+```bash
+# Uso de memória
+curl -H "Authorization: Bearer TOKEN_ADMIN" \
+  http://localhost:8080/api/v1/actuator/metrics/jvm.memory.used
+
+# Requisições HTTP
+curl -H "Authorization: Bearer TOKEN_ADMIN" \
+  http://localhost:8080/api/v1/actuator/metrics/http.server.requests
+
+# Formato Prometheus (se integrado)
+curl -H "Authorization: Bearer TOKEN_ADMIN" \
+  http://localhost:8080/api/v1/actuator/prometheus
+```
+
+**Métricas importantes:**
+- `jvm.memory.used` → Uso de memória (< 80% ideal)
+- `http.server.requests` → Latência (< 500ms P95 ideal)
+- `hikaricp.connections.active` → Conexões ativas com DB
+- `process.uptime` → Tempo desde último restart
+
+---
+
+### 🔧 Operações Comuns
+
+#### Reiniciar Aplicação
+
+```bash
+# Docker
+docker restart livraria-tunoda-app
+
+# Docker Compose
+docker-compose restart app
+
+# Standalone (systemd)
+sudo systemctl restart livraria-tunoda
+```
+
+#### Ver Logs em Tempo Real
+
+```bash
+# Docker
+docker logs -f livraria-tunoda-app --tail=50
+
+# Filtrar apenas erros
+docker logs livraria-tunoda-app 2>&1 | grep ERROR
+```
+
+#### Verificar Uso de Recursos
+
+```bash
+# CPU e Memória
+docker stats livraria-tunoda-app
+
+# Espaço em disco
+docker exec livraria-tunoda-app df -h
+```
+
+#### Acessar Console da Aplicação
+
+```bash
+# Entrar no container
+docker exec -it livraria-tunoda-app /bin/sh
+
+# Ver variáveis de ambiente (cuidado com secrets!)
+docker exec livraria-tunoda-app env | grep -v PASSWORD | grep -v SECRET
+```
+
+#### Atualizar Aplicação (Zero Downtime)
+
+```bash
+# 1. Pull nova versão
+docker pull SEU_USUARIO/livraria-tunoda:latest
+
+# 2. Parar e remover container antigo
+docker stop livraria-tunoda-app
+docker rm livraria-tunoda-app
+
+# 3. Iniciar novo container
+docker run -d --name livraria-tunoda-app ...
+
+# 4. Verificar health check
+curl http://localhost:8080/api/v1/actuator/health
+```
+
+---
+
+### 🚨 Troubleshooting em Produção
+
+#### Aplicação Não Inicia
+
+**Sintomas:**
+- Container reiniciando constantemente
+- Logs mostram `APPLICATION FAILED TO START`
+
+**Diagnóstico:**
+```bash
+# Ver logs completos
+docker logs livraria-tunoda-app --tail=200
+
+# Verificar variáveis de ambiente
+docker inspect livraria-tunoda-app | grep -A 20 "Env"
+```
+
+**Causas comuns:**
+1. Variável obrigatória faltando → Configure a variável
+2. Banco de dados inacessível → Verifique conectividade
+3. Migration falhou → Veja logs do Flyway
+4. Porta já em uso → Mude `SERVER_PORT` ou libere a porta
+
+---
+
+#### Alta Latência nas Requisições
+
+**Sintomas:**
+- Requests lentas (> 1s)
+- Timeouts frequentes
+
+**Diagnóstico:**
+```bash
+# Ver métricas de latência
+curl -H "Authorization: Bearer TOKEN" \
+  http://localhost:8080/api/v1/actuator/metrics/http.server.requests
+
+# Ver conexões com banco
+docker exec -it postgres-db psql -U livraria_user -d livraria_db \
+  -c "SELECT count(*) FROM pg_stat_activity WHERE datname='livraria_db';"
+```
+
+**Soluções:**
+1. Aumentar pool de conexões → Configure `spring.datasource.hikari.maximum-pool-size`
+2. Adicionar índices no banco → Analise queries lentas
+3. Aumentar recursos (CPU/RAM)
+4. Habilitar cache (se aplicável)
+
+---
+
+#### Out of Memory (OOM)
+
+**Sintomas:**
+- Container mata do nada
+- Logs mostram `OutOfMemoryError`
+
+**Diagnóstico:**
+```bash
+# Ver uso de memória
+docker stats livraria-tunoda-app
+
+# Ver heap dump (se configurado)
+docker exec livraria-tunoda-app ls -lh /tmp/*.hprof
+```
+
+**Soluções:**
+1. Aumentar limite de memória do container
+2. Ajustar heap JVM: `-Xmx512m` → `-Xmx768m`
+3. Analisar heap dump para vazamento de memória
+4. Verificar queries carregando muitos dados
+
+---
+
+#### Integrações Falhando
+
+**Sintomas:**
+- Melhor Envio ou Mercado Pago retornando erros
+- Logs mostram timeouts
+
+**Diagnóstico:**
+```bash
+# Ver logs de integração
+docker logs livraria-tunoda-app 2>&1 | grep -E "(Melhor Envio|Mercado Pago)"
+
+# Testar conectividade
+docker exec livraria-tunoda-app wget -O- https://api.melhorenvio.com.br
+docker exec livraria-tunoda-app wget -O- https://api.mercadopago.com
+```
+
+**Soluções:**
+1. Verificar token válido → Renovar se expirado
+2. Verificar firewall → Liberar IPs das APIs
+3. Aumentar timeout → Configure `*.timeout-seconds`
+4. Verificar rate limiting → Aguardar ou solicitar aumento
+
+---
+
+### 📈 Otimizações de Performance
+
+#### JVM Tuning
+
+```bash
+# Para 1GB RAM disponível
+-Xms512m -Xmx768m
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200
+-XX:+UseStringDeduplication
+
+# Para 2GB+ RAM
+-Xms1g -Xmx1536m
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=16m
+```
+
+#### Database Connection Pool
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+```
+
+#### Compressão HTTP
+
+```yaml
+server:
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/json,application/xml,text/html,text/plain
+```
+
+---
+
+### 📁 Estrutura de Logs Recomendada
+
+```
+/var/log/livraria-tunoda/
+├── application.log          # Log geral
+├── application.log.1        # Rotacionado
+├── error.log               # Apenas erros
+└── audit.log               # Logs de auditoria (futuro)
+```
+
+---
+
+### 🔐 Segurança em Produção
+
+#### Alterar Senha Admin
+
+```bash
+# 1. Fazer login com credenciais padrão
+curl -X POST http://seu-dominio.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@livraria.com","password":"admin123"}'
+
+# 2. Usar endpoint de alteração de senha (implementar futuramente)
+# Por enquanto, altere diretamente no banco:
+
+docker exec -it postgres-db psql -U livraria_user -d livraria_db
+
+UPDATE tb_users 
+SET password_hash = '$2a$12$NOVO_HASH_BCrypt_AQUI'
+WHERE email = 'admin@livraria.com';
+```
+
+**Gerar hash BCrypt:**
+```bash
+# Via código Java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+String hash = encoder.encode("SenhaNova@123");
+```
+
+---
+
+### 📞 Suporte e Manutenção
+
+**Documentação Adicional:**
+- [DOCKER.md](./docs/DOCKER.md) - Detalhes sobre containers
+- [HEALTH_CHECK.md](./docs/HEALTH_CHECK.md) - Health checks
+- [LOGGING.md](./docs/LOGGING.md) - Configuração de logs
+- [ADMIN_CREDENTIALS.md](./docs/ADMIN_CREDENTIALS.md) - Credenciais admin
+
+**Checklist de Manutenção Mensal:**
+- [ ] Verificar espaço em disco
+- [ ] Revisar logs de erro
+- [ ] Atualizar dependências (segurança)
+- [ ] Testar backup/restore
+- [ ] Verificar certificados SSL (expiração)
+- [ ] Revisar métricas de performance
+- [ ] Atualizar documentação
+
+---
 
 ## 📁 Estrutura de Diretórios
 
