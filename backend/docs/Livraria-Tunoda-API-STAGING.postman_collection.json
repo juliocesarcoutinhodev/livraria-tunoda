@@ -1481,9 +1481,8 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8080",
-      "type": "string",
-      "description": "URL base da API. Local: http://localhost:8080 | Staging: http://hml-tunoda.sp1.br.saveincloud.net.br:8080"
+      "value": "http://hml-tunoda.sp1.br.saveincloud.net.br:8080",
+      "type": "string"
     },
     {
       "key": "author_id",
