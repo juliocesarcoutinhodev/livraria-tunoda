@@ -213,10 +213,27 @@ src/
 │       └── About.tsx         # Sobre o autor
 ├── contexts/                 # React Context API
 │   └── CartContext.tsx       # Estado do carrinho
-├── services/                 # Integração com APIs
-├── hooks/                    # Custom React Hooks
+├── services/                 # ✨ API Services (NOVO)
+│   ├── authService.ts        # Autenticação (login, refresh, logout)
+│   ├── authorService.ts      # CRUD autores (ADMIN)
+│   ├── bookService.ts        # Livros (público + ADMIN)
+│   ├── cartService.ts        # Carrinho de compras
+│   ├── shippingService.ts    # Cálculo de frete
+│   ├── orderService.ts       # Pedidos
+│   └── paymentService.ts     # Pagamentos (Mercado Pago)
 ├── lib/                      # Utilitários e configurações
-├── types/                    # TypeScript types/interfaces
+│   ├── api-client.ts         # ✨ Axios configurado + interceptors
+│   └── auth-storage.ts       # ✨ Gerenciamento de tokens
+├── types/                    # ✨ TypeScript types/interfaces (NOVO)
+│   ├── api.ts                # Tipos comuns (paginação, erros)
+│   ├── auth.ts               # Autenticação
+│   ├── author.ts             # Autores
+│   ├── book.ts               # Livros
+│   ├── cart.ts               # Carrinho
+│   ├── shipping.ts           # Frete
+│   ├── order.ts              # Pedidos
+│   └── payment.ts            # Pagamentos
+├── hooks/                    # Custom React Hooks
 ├── store/                    # Estado global (Zustand)
 ├── constants/                # Constantes da aplicação
 └── public/
@@ -236,17 +253,122 @@ src/
 
 ### Estado e Dados
 - **React Context API** - Gerenciamento de estado do carrinho
-- **Zustand** - Estado global (preparado para uso)
+- **Zustand 5.0.2** - Estado global (preparado para uso)
+
+### API & HTTP
+- **Axios** - Cliente HTTP com interceptors
+- **JWT** - Autenticação via tokens (localStorage)
+- **API Client** - Refresh token automático
 
 ### Qualidade de Código
 - **ESLint 9** - Linter (eslint-config-next)
-- **Prettier** - Formatação de código
+- **Prettier 3.4.2** - Formatação de código
 - **TypeScript** - Type checking com strict mode
 
 ### Otimização
 - **next/image** - Otimização automática de imagens
 - **Turbopack** - Bundler ultra-rápido
 - **Fontes Google** - Otimizadas com `display: 'swap'`
+
+## 🔌 API Integration (Backend Spring Boot)
+
+### **API Client Configurado**
+
+O projeto possui uma camada completa de serviços para comunicação com o backend Spring Boot.
+
+#### **Features do API Client:**
+
+- ✅ **Axios configurado** com baseURL e timeout
+- ✅ **Interceptors de request** (adiciona JWT automaticamente)
+- ✅ **Interceptors de response** (tratamento de erros global)
+- ✅ **Refresh token automático** quando access token expira
+- ✅ **Retry logic** para erros de rede
+- ✅ **Correlation ID** para rastreamento de requisições
+- ✅ **Helpers** para extrair mensagens de erro e validações
+
+#### **Services Disponíveis:**
+
+| Service | Endpoints | Descrição |
+|---------|-----------|-----------|
+| `authService` | `/auth/login`, `/auth/refresh`, `/user/me` | Autenticação e usuário |
+| `authorService` | `/admin/authors/*` | CRUD de autores (ADMIN) |
+| `bookService` | `/public/books/*`, `/admin/books/*` | Livros (público + ADMIN) |
+| `cartService` | `/carts/*` | Carrinho de compras |
+| `shippingService` | `/shipping/quotes/*` | Cálculo de frete |
+| `orderService` | `/orders/*`, `/admin/orders/*` | Pedidos |
+| `paymentService` | `/payments/*` | Pagamentos (Mercado Pago) |
+
+#### **Exemplo de Uso:**
+
+```typescript
+import { bookService } from "@/services/bookService";
+import { authService } from "@/services/authService";
+
+// Buscar livros (público, sem autenticação)
+const books = await bookService.listPublic({ page: 0, size: 10 });
+
+// Login
+const auth = await authService.login({
+  email: "admin@example.com",
+  password: "senha123"
+});
+
+// Criar livro (ADMIN, JWT automático)
+const newBook = await bookService.create({
+  title: "Caminho da Esperança",
+  description: "Uma jornada inspiradora...",
+  price: 45.90,
+  stock: 100,
+  weight: 300,
+  authorIds: ["author-id-123"]
+});
+```
+
+#### **Configuração de Ambiente:**
+
+Crie um arquivo `.env.local` baseado em `.env.local.example`:
+
+```bash
+# URL do backend Spring Boot
+NEXT_PUBLIC_API_URL="http://localhost:8080/api"
+
+# Outras configurações...
+```
+
+#### **Tratamento de Erros:**
+
+```typescript
+import { getErrorMessage, isValidationError } from "@/lib/api-client";
+
+try {
+  await bookService.create(data);
+} catch (error) {
+  if (isValidationError(error)) {
+    // Erro 422: validação de campos
+    console.error("Erros de validação:", getValidationErrors(error));
+  } else {
+    // Outros erros
+    console.error("Erro:", getErrorMessage(error));
+  }
+}
+```
+
+#### **Autenticação:**
+
+- **Access Token**: Adicionado automaticamente no header `Authorization: Bearer <token>`
+- **Refresh Token**: Renovação automática quando access token expira (401)
+- **Storage**: Tokens salvos no `localStorage` via `auth-storage.ts`
+- **Logout**: Limpa todos os tokens e redireciona para `/login`
+
+#### **TypeScript Full Support:**
+
+Todos os services possuem tipos completos:
+
+- ✅ Requests tipados
+- ✅ Responses tipados
+- ✅ Erros tipados
+- ✅ JSDoc completo
+- ✅ Autocomplete total no VSCode/Cursor
 
 ## 🎯 Diferenciais do Projeto
 
@@ -280,9 +402,22 @@ src/
 
 ## 🔮 Próximos Passos
 
-- [ ] Integração com Mercado Pago
-- [ ] Sistema de autenticação
-- [ ] Painel administrativo
+### ✅ **Já Implementado:**
+
+- ✅ **API Integration completa** (Spring Boot)
+- ✅ **Sistema de autenticação** (JWT + refresh token)
+- ✅ **Services layer** (7 services completos)
+- ✅ **Types TypeScript** (100% tipado)
+- ✅ **API Client** (Axios + interceptors)
+
+### 🚀 **Próximas Implementações:**
+
+- [ ] **UI de autenticação** (páginas de login/registro)
+- [ ] **Integração frontend ↔ backend** (conectar CartContext com cartService)
+- [ ] **Painel administrativo** (CRUD de livros/autores)
+- [ ] **Finalização de checkout** (integração com paymentService)
+- [ ] **Cálculo de frete real** (integração com shippingService)
+- [ ] **Dashboard de métricas** (views/clicks dos livros)
 - [ ] Newsletter/email marketing
 - [ ] Blog integrado
 - [ ] Sistema de avaliações
