@@ -1638,8 +1638,63 @@ A API retorna erros padronizados seguindo o formato:
 
 Endpoint: `GET /api/v1/actuator/health`
 
-**Desenvolvimento:** Exibe detalhes completos (DB, disk space, etc)  
-**Produção:** Exibe apenas status UP/DOWN
+**Status:**
+- `UP` - Aplicação funcionando normalmente
+- `DOWN` - Aplicação com problemas
+
+**Indicadores Customizados:**
+
+1. **Database** - Valida conexão com PostgreSQL
+   - Executa query de validação
+   - Verifica se o banco está acessível
+
+2. **Application** - Valida estado geral da aplicação
+   - Verifica se o contexto Spring está carregado
+   - Conta beans registrados
+
+**Ambientes:**
+- **Local/Dev:** Exibe detalhes completos (database, application, diskSpace, etc)  
+- **Produção:** Exibe apenas status UP/DOWN (sem informações sensíveis)
+
+**Exemplo de Resposta (Local/Dev):**
+```json
+{
+  "status": "UP",
+  "components": {
+    "application": {
+      "status": "UP",
+      "details": {
+        "context": "Active",
+        "beansLoaded": 257,
+        "status": "Application ready"
+      }
+    },
+    "database": {
+      "status": "UP",
+      "details": {
+        "database": "PostgreSQL",
+        "validationQuery": "SELECT 1",
+        "status": "Connection successful"
+      }
+    },
+    "diskSpace": {
+      "status": "UP"
+    }
+  }
+}
+```
+
+**Exemplo de Resposta (Produção):**
+```json
+{
+  "status": "UP"
+}
+```
+
+**Preparado para:**
+- Container orchestration (Kubernetes, Docker Swarm)
+- Liveness probes
+- Readiness probes
 
 ## 🧪 Testes
 
