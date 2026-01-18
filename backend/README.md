@@ -3690,9 +3690,47 @@ MELHOR_ENVIO_FROM_CEP=03295-000  # CEP de origem (sua loja)
 - POST `/api/auth/refresh` - Renova tokens usando refresh token
 - GET `/api/user/me` - Retorna dados do usuário autenticado (protegido)
 
+### Sprint 10: Monitoramento e Métricas - Micrometer + Actuator ✅
+- ✅ Story #42: Exposição de métricas da aplicação
+- ✅ Micrometer Registry Prometheus configurado
+- ✅ Endpoint /actuator/metrics ativo
+- ✅ Endpoint /actuator/prometheus ativo
+- ✅ Métricas JVM (memory, threads, GC)
+- ✅ Métricas HTTP requests (latência, percentis)
+- ✅ Métricas de sistema (CPU, file descriptors)
+- ✅ Segurança por profile (dev liberado, prod protegido)
+- ✅ Tags de ambiente (local/dev/staging/prod)
+- ✅ Health check sempre público
+- ✅ Metrics/Prometheus protegidos em prod (ROLE_ADMIN)
+
+**Arquitetura Implementada:**
+- ✅ MetricsConfiguration (registro de métricas padrão)
+- ✅ ActuatorSecurityConfiguration (segurança por profile)
+- ✅ application.yml com configuração base restritiva
+- ✅ application-{profile}.yml com exposição controlada
+- ✅ SecurityFilterChain específico com @Order(1)
+- ✅ Percentis de latência HTTP habilitados
+- ✅ Tags customizadas por ambiente
+- ✅ Documentação completa (METRICAS_IMPLEMENTATION.md)
+
+**Endpoints Disponíveis:**
+- GET `/api/v1/actuator/health` - Status da aplicação (sempre público)
+- GET `/api/v1/actuator/metrics` - Lista de métricas (protegido em prod)
+- GET `/api/v1/actuator/metrics/{name}` - Métrica específica (protegido em prod)
+- GET `/api/v1/actuator/prometheus` - Formato Prometheus (protegido em prod)
+
+**Métricas Expostas:**
+- `jvm.memory.used/max` - Uso de memória heap/non-heap
+- `jvm.threads.live/peak` - Threads ativas
+- `jvm.gc.pause` - Pausas de garbage collection
+- `system.cpu.usage` - Uso de CPU
+- `http.server.requests` - Requests HTTP (count, latência, percentis)
+- `process.uptime` - Tempo de atividade
+- `process.files.open` - File descriptors abertos
+
 **Próximas Sprints 🔜**
-- Sprint 10: Gestão de Usuários Admin (CRUD de usuários)
-- Sprint 11: Revogação Manual de Tokens (Logout)
-- Sprint 12: Auditoria e Logs Avançados
-- Sprint 13: Notificações por E-mail
-- Sprint 14: Dashboard Administrativo
+- Sprint 11: Gestão de Usuários Admin (CRUD de usuários)
+- Sprint 12: Revogação Manual de Tokens (Logout)
+- Sprint 13: Auditoria e Logs Avançados
+- Sprint 14: Notificações por E-mail
+- Sprint 15: Dashboard Administrativo

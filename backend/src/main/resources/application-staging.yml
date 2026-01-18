@@ -34,9 +34,19 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
   endpoint:
     health:
-      show-details: when-authorized  # staging mostra detalhes apenas para autorizados
+      show-details: when-authorized
+  metrics:
+    tags:
+      environment: staging
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
 
 app:
   cors:

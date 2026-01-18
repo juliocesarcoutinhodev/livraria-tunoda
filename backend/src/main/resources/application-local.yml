@@ -35,9 +35,19 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
   endpoint:
     health:
-      show-details: always  # em local pode mostrar detalhes (db, disk, etc)
+      show-details: always
+  metrics:
+    tags:
+      environment: local
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
 
 app:
   cors:

@@ -21,9 +21,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Separacao clara entre rotas publicas, autenticadas e administrativas.
  *
  * Estrutura de seguranca:
- * - Rotas publicas: /api/auth/**, /api/public/**, /api/webhooks/**, /api/v1/actuator/**
+ * - Rotas publicas: /api/auth/**, /api/public/**, /api/webhooks/**
  * - Rotas autenticadas: /api/user/**
  * - Rotas administrativas: /api/admin/** (requer ROLE_ADMIN)
+ * - Actuator: /api/v1/actuator/** (controlado por ActuatorSecurityConfiguration)
  * - Outras rotas: /api/carts/**, /api/orders/**, /api/payments/**, /api/shipping/** (publicas por enquanto)
  */
 @Configuration
@@ -49,7 +50,6 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/auth/**").permitAll()              // Login, refresh token
                 .requestMatchers("/api/public/**").permitAll()            // Catalogo publico
                 .requestMatchers("/api/webhooks/**").permitAll()          // Webhooks Mercado Pago
-                .requestMatchers("/api/v1/actuator/**").permitAll()       // Health check
 
                 // Endpoints administrativos - requer ROLE_ADMIN
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")        // CRUD autores e livros
