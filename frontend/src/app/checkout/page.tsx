@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/layout/Navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function CheckoutPage() {
   const { items, total, itemCount } = useCart();
@@ -163,9 +164,11 @@ export default function CheckoutPage() {
                       key={item.id}
                       className="flex items-center space-x-4 py-4 border-b border-[#2F5D8C]/10 last:border-b-0"
                     >
-                      <img
+                      <Image
                         src={item.image}
                         alt={`Capa do livro ${item.title}`}
+                        width={64}
+                        height={80}
                         className="w-16 h-20 object-cover rounded-lg flex-shrink-0"
                       />
                       <div className="flex-grow">

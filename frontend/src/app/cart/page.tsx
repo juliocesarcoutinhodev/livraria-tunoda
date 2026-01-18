@@ -1,8 +1,9 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/layout/Navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function CartPage() {
   const { items, total, itemCount, removeItem, updateQuantity } = useCart();
@@ -101,9 +102,11 @@ export default function CartPage() {
                     <div className="flex flex-col sm:flex-row gap-6">
                       {/* Book Image */}
                       <div className="flex-shrink-0">
-                        <img
+                        <Image
                           src={item.image}
                           alt={`Capa do livro ${item.title}`}
+                          width={128}
+                          height={160}
                           className="w-24 h-32 sm:w-32 sm:h-40 object-cover rounded-xl"
                         />
                       </div>

@@ -100,25 +100,52 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Otimização de carregamento (lazy loading)
 - Responsividade em todos os breakpoints
 
-## 🚀 Como executar
+## 🚀 Setup e Instalação
+
+### Pré-requisitos
+
+- **Node.js** 20+ (recomendado)
+- **npm** ou **yarn**
+
+### Passos de Instalação
 
 ```bash
-# Clonar o repositório
+# 1. Clonar o repositório
 git clone [url-do-repositorio]
-cd loja-tunoda
+cd frontend
 
-# Instalar dependências
+# 2. Instalar dependências
 npm install
 
-# Executar em desenvolvimento
+# 3. Configurar variáveis de ambiente
+cp .env.local.example .env.local
+# Edite o arquivo .env.local com suas configurações
+
+# 4. Executar em desenvolvimento
 npm run dev
 
-# Acessar no navegador
-http://localhost:3000
+# 5. Acessar no navegador
+# Local: http://localhost:3000
+```
 
-# Build para produção
-npm run build
-npm start
+### Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev              # Inicia servidor de desenvolvimento (Turbopack)
+
+# Build
+npm run build            # Cria build otimizado para produção
+npm start                # Inicia servidor de produção
+
+# Qualidade de Código
+npm run lint             # Executa ESLint
+npm run format           # Formata código com Prettier
+npm run format:check     # Verifica formatação sem alterar
+npm run type-check       # Verifica erros TypeScript
+
+# Combinado (recomendado antes de commit)
+npm run lint && npm run type-check && npm run format:check
 ```
 
 ## 📱 Características Técnicas
@@ -164,26 +191,62 @@ npm start
 4. **Checkout** → Preenche dados de entrega
 5. **Pagamento** → [Preparado para integração]
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura do Projeto (Enterprise Pattern)
 
 ```
 src/
-├── app/
-│   ├── layout.tsx          # Layout raiz + CartProvider
-│   ├── page.tsx           # Página principal completa
-│   ├── cart/page.tsx      # Página do carrinho
-│   ├── checkout/page.tsx  # Página de checkout
-│   └── globals.css        # Estilos globais
+├── app/                      # Next.js 16 App Router
+│   ├── layout.tsx            # Layout raiz + Providers
+│   ├── page.tsx              # Página principal
+│   ├── cart/page.tsx         # Página do carrinho
+│   ├── checkout/page.tsx     # Página de checkout
+│   └── globals.css           # Estilos globais + Tailwind
 ├── components/
-│   ├── Hero.tsx           # Seção hero com scroll suave
-│   ├── Navigation.tsx     # Menu com carrinho
-│   ├── Books.tsx          # Catálogo de livros
-│   └── About.tsx          # História do pastor
-├── contexts/
-│   └── CartContext.tsx    # Gerenciamento de estado
+│   ├── ui/                   # Componentes UI genéricos
+│   │   ├── Button.tsx        # Botão reutilizável
+│   │   └── index.ts          # Barrel export
+│   ├── layout/               # Componentes de layout
+│   │   └── Navigation.tsx    # Header/Menu principal
+│   └── features/             # Componentes de domínio
+│       ├── Hero.tsx          # Seção hero
+│       ├── Books.tsx         # Catálogo de livros
+│       └── About.tsx         # Sobre o autor
+├── contexts/                 # React Context API
+│   └── CartContext.tsx       # Estado do carrinho
+├── services/                 # Integração com APIs
+├── hooks/                    # Custom React Hooks
+├── lib/                      # Utilitários e configurações
+├── types/                    # TypeScript types/interfaces
+├── store/                    # Estado global (Zustand)
+├── constants/                # Constantes da aplicação
 └── public/
-    └── img/               # Fotos reais do pastor e livros
+    └── img/                  # Imagens estáticas
 ```
+
+## 🛠️ Stack Tecnológica
+
+### Core
+- **Next.js 16.1.1** - Framework React com App Router e Turbopack
+- **React 19.2.3** - Biblioteca UI
+- **TypeScript 5** - Tipagem estática (strict mode)
+
+### Styling
+- **Tailwind CSS 4** - Framework CSS utility-first
+- **@tailwindcss/postcss** - Integração PostCSS
+
+### Estado e Dados
+- **React Context API** - Gerenciamento de estado do carrinho
+- **Zustand** - Estado global (preparado para uso)
+
+### Qualidade de Código
+- **ESLint 9** - Linter (eslint-config-next)
+- **Prettier** - Formatação de código
+- **TypeScript** - Type checking com strict mode
+
+### Otimização
+- **next/image** - Otimização automática de imagens
+- **Turbopack** - Bundler ultra-rápido
+- **Fontes Google** - Otimizadas com `display: 'swap'`
 
 ## 🎯 Diferenciais do Projeto
 
