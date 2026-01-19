@@ -97,6 +97,9 @@ export const queryKeys = {
     /** Top livros mais clicados */
     mostClicked: (limit?: number) =>
       [...queryKeys.books.all, "most-clicked", limit] as const,
+
+    /** Livros com estoque baixo (ADMIN) */
+    lowStock: () => [...queryKeys.books.all, "low-stock"] as const,
   },
 
   // ============================================================================
@@ -172,6 +175,14 @@ export const queryKeys = {
   payments: {
     /** Detalhe de um pagamento */
     detail: (id: string) => ["payments", id] as const,
+  },
+
+  // ============================================================================
+  // DASHBOARD (Métricas e Estatísticas)
+  // ============================================================================
+  dashboard: {
+    /** Estatísticas gerais do dashboard */
+    stats: () => ["dashboard", "stats"] as const,
   },
 } as const;
 

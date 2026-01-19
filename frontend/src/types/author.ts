@@ -89,6 +89,10 @@ export interface AuthorFilterParams {
   size?: number;
   /** Filtrar por status */
   status?: ResourceStatus;
-  /** Ordenação */
-  sort?: string;
+  /** Buscar por nome (case-insensitive, busca parcial) */
+  name?: string;
+  /** Campo para ordenação (ex: name, createdAt) */
+  sortBy?: string;
+  /** Direção da ordenação (asc ou desc) */
+  sortDirection?: "asc" | "desc";
 }

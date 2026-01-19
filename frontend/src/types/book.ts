@@ -144,11 +144,23 @@ export interface BookMetrics {
  */
 export interface TopBook {
   /** ID do livro */
-  bookId: string;
+  id: string;
   /** Título do livro */
   title: string;
+  /** URL da foto da capa */
+  photoUrl: string | null;
   /** Contagem (views ou clicks) */
-  count: number;
+  totalMetrics: number;
+}
+
+/**
+ * Resposta do backend para livros mais visualizados/clicados
+ */
+export interface TopBooksResponse {
+  /** Lista de livros */
+  books: TopBook[];
+  /** Data/hora da geração */
+  generatedAt: string;
 }
 
 /**

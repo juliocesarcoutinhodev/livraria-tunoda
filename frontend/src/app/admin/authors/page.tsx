@@ -9,7 +9,7 @@
  * @module app/admin/authors
  */
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuthors, useUpdateAuthorStatus } from "@/hooks";
@@ -22,43 +22,49 @@ import type { ResourceStatus } from "@/types/api";
 
 export default function AuthorsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchName, setSearchName] = useState("");
   const [statusFilter, setStatusFilter] = useState<ResourceStatus | "ALL">(
     "ALL"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
 
-  // Filtros para API
+  // Filtros para API com paginação
   const apiFilters: AuthorFilterParams = {
-    page: 0,
-    size: 100, // Busca todos para filtro client-side
-    sort: `name,${sortOrder}`,
+    page: currentPage,
+    size: 5, // 5 registros por página
+    sortBy: "name",
+    sortDirection: sortOrder,
     ...(statusFilter !== "ALL" && { status: statusFilter }),
+    ...(searchName.trim() && { name: searchName.trim() }),
   };
 
   // Query de autores
   const { data, isLoading, error } = useAuthors(apiFilters);
   const updateStatus = useUpdateAuthorStatus();
 
-  // Filtros client-side (busca por nome)
-  const filteredAuthors = useMemo(() => {
-    if (!data?.content) return [];
+  // Dados direto do backend (sem filtro client-side)
+  const authors = data?.content || [];
+  const totalPages = data ? Math.ceil(data.totalElements / 5) : 0;
 
-    let authors = [...data.content];
+  // Reset para primeira página ao mudar filtros
+  const handleSearchNameChange = (value: string) => {
+    setSearchName(value);
+    setCurrentPage(0);
+  };
 
-    // Busca por nome (client-side)
-    if (searchTerm) {
-      authors = authors.filter((author) =>
-        author.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const handleStatusFilterChange = (value: ResourceStatus | "ALL") => {
+    setStatusFilter(value);
+    setCurrentPage(0);
+  };
 
-    return authors;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, searchTerm]);
+  const handleSortChange = (direction: "asc" | "desc") => {
+    setSortOrder(direction);
+    setCurrentPage(0);
+  };
 
   const handleToggleStatus = (author: Author) => {
     const newStatus: ResourceStatus =
@@ -125,20 +131,20 @@ export default function AuthorsPage() {
         {/* Filters */}
         <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
+            {/* Search by Name */}
             <div>
               <label
-                htmlFor="search"
+                htmlFor="searchName"
                 className="block text-sm font-medium text-christian-text mb-2"
               >
                 Buscar por nome
               </label>
               <input
-                id="search"
+                id="searchName"
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Digite o nome..."
+                value={searchName}
+                onChange={(e) => handleSearchNameChange(e.target.value)}
+                placeholder="Digite o nome do autor..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
               />
             </div>
@@ -155,7 +161,9 @@ export default function AuthorsPage() {
                 id="status"
                 value={statusFilter}
                 onChange={(e) =>
-                  setStatusFilter(e.target.value as ResourceStatus | "ALL")
+                  handleStatusFilterChange(
+                    e.target.value as ResourceStatus | "ALL"
+                  )
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
               >
@@ -176,7 +184,9 @@ export default function AuthorsPage() {
               <select
                 id="sort"
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                onChange={(e) =>
+                  handleSortChange(e.target.value as "asc" | "desc")
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
               >
                 <option value="asc">A-Z</option>
@@ -232,7 +242,7 @@ export default function AuthorsPage() {
         )}
 
         {/* Empty State */}
-        {!isLoading && !error && filteredAuthors.length === 0 && (
+        {!isLoading && !error && authors.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <div className="inline-block p-4 bg-christian-blue/10 rounded-full mb-4">
               <svg
@@ -253,11 +263,11 @@ export default function AuthorsPage() {
               Nenhum autor encontrado
             </h3>
             <p className="text-christian-text/60 mb-6">
-              {searchTerm || statusFilter !== "ALL"
-                ? "Tente ajustar os filtros de busca"
+              {searchName || statusFilter !== "ALL"
+                ? "Nenhum autor encontrado com os filtros aplicados. Tente ajustar os filtros de busca."
                 : "Comece adicionando o primeiro autor ao catálogo"}
             </p>
-            {!searchTerm && statusFilter === "ALL" && (
+            {!searchName && statusFilter === "ALL" && (
               <button
                 onClick={handleCreateNew}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-christian-blue hover:bg-christian-green text-white rounded-lg font-semibold transition-colors"
@@ -282,7 +292,7 @@ export default function AuthorsPage() {
         )}
 
         {/* Desktop Table */}
-        {!isLoading && !error && filteredAuthors.length > 0 && (
+        {!isLoading && !error && authors.length > 0 && (
           <>
             <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
               <table className="w-full table-fixed">
@@ -300,7 +310,7 @@ export default function AuthorsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAuthors.map((author) => (
+                  {authors.map((author) => (
                     <tr
                       key={author.id}
                       className="hover:bg-gray-50 transition-colors"
@@ -412,7 +422,7 @@ export default function AuthorsPage() {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-              {filteredAuthors.map((author) => (
+              {authors.map((author) => (
                 <div
                   key={author.id}
                   className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
@@ -516,10 +526,34 @@ export default function AuthorsPage() {
               ))}
             </div>
 
-            {/* Results Count */}
-            <div className="mt-4 text-sm text-christian-text/60 text-center">
-              Exibindo {filteredAuthors.length}{" "}
-              {filteredAuthors.length === 1 ? "autor" : "autores"}
+            {/* Pagination */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="text-sm text-christian-text/60">
+                Exibindo {authors.length} de {data?.totalElements || 0}{" "}
+                {data?.totalElements === 1 ? "autor" : "autores"} - Página{" "}
+                {currentPage + 1} de {totalPages || 1}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(0, prev - 1))
+                  }
+                  disabled={currentPage === 0}
+                  className="px-4 py-2 bg-white border border-gray-300 text-christian-text rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+                  }
+                  disabled={currentPage >= totalPages - 1}
+                  className="px-4 py-2 bg-white border border-gray-300 text-christian-text rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Próxima
+                </button>
+              </div>
             </div>
           </>
         )}

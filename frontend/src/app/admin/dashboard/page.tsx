@@ -3,7 +3,7 @@
 /**
  * Admin Dashboard Page
  *
- * Dashboard administrativo com métricas e estatísticas.
+ * Dashboard administrativo com métricas e estatísticas reais.
  * Protegido pelo middleware (server-side).
  * Inclui auto-logout por inatividade (1 hora).
  *
@@ -14,12 +14,26 @@ import { useAuthStore } from "@/store";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
+import {
+  useDashboardStats,
+  useDashboardMostViewed,
+  useDashboardMostClicked,
+  useLowStockBooks,
+} from "@/hooks";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
 
   // Auto-logout após 1 hora de inatividade
   useAutoLogoutAfterInactivity();
+
+  // Buscar métricas
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: mostViewed, isLoading: viewedLoading } =
+    useDashboardMostViewed(5);
+  const { data: mostClicked, isLoading: clickedLoading } =
+    useDashboardMostClicked(5);
+  const { data: lowStockData, isLoading: stockLoading } = useLowStockBooks();
 
   return (
     <div className="flex min-h-screen bg-christian-background">
@@ -41,18 +55,22 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Cards de Métricas (Placeholder) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Cards de Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Card 1 - Total de Livros */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-christian-text/60 font-medium">
                   Total de Livros
                 </p>
-                <p className="text-3xl font-bold text-christian-blue mt-2">
-                  --
-                </p>
+                {statsLoading ? (
+                  <div className="h-10 w-16 bg-gray-200 animate-pulse rounded mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-christian-blue mt-2">
+                    {stats?.totalBooks || 0}
+                  </p>
+                )}
               </div>
               <div className="p-3 bg-christian-blue/10 rounded-lg">
                 <svg
@@ -72,16 +90,20 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 2 - Total de Vendas */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          {/* Card 2 - Total de Autores */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-christian-text/60 font-medium">
-                  Total de Vendas
+                  Total de Autores
                 </p>
-                <p className="text-3xl font-bold text-christian-green mt-2">
-                  --
-                </p>
+                {statsLoading ? (
+                  <div className="h-10 w-16 bg-gray-200 animate-pulse rounded mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-christian-green mt-2">
+                    {stats?.totalAuthors || 0}
+                  </p>
+                )}
               </div>
               <div className="p-3 bg-christian-green/10 rounded-lg">
                 <svg
@@ -94,27 +116,45 @@ export default function DashboardPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Card 3 - Livros Mais Clicados */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          {/* Card 3 - Estoque Baixo */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-christian-text/60 font-medium">
-                  Mais Clicados
+                  Estoque Baixo
                 </p>
-                <p className="text-3xl font-bold text-christian-gold mt-2">
-                  --
-                </p>
+                {statsLoading ? (
+                  <div className="h-10 w-16 bg-gray-200 animate-pulse rounded mt-2" />
+                ) : (
+                  <p
+                    className={`text-3xl font-bold mt-2 ${
+                      (stats?.lowStockBooks || 0) > 0
+                        ? "text-red-600"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {stats?.lowStockBooks || 0}
+                  </p>
+                )}
               </div>
-              <div className="p-3 bg-christian-gold/10 rounded-lg">
+              <div
+                className={`p-3 rounded-lg ${
+                  (stats?.lowStockBooks || 0) > 0 ? "bg-red-100" : "bg-gray-100"
+                }`}
+              >
                 <svg
-                  className="w-8 h-8 text-christian-gold"
+                  className={`w-8 h-8 ${
+                    (stats?.lowStockBooks || 0) > 0
+                      ? "text-red-600"
+                      : "text-gray-400"
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -123,40 +163,7 @@ export default function DashboardPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4 - Livros Mais Visualizados */}
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-christian-text/60 font-medium">
-                  Mais Visualizados
-                </p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">--</p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <svg
-                  className="w-8 h-8 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
               </div>
@@ -164,49 +171,245 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mensagem Temporária */}
-        <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
-          <div className="inline-block p-4 bg-christian-blue/10 rounded-full mb-4">
-            <svg
-              className="w-12 h-12 text-christian-blue"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
+        {/* Grid de Tabelas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Top 5 Mais Visualizados */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <svg
+                    className="w-6 h-6 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-christian-text">
+                  Top 5 Mais Visualizados
+                </h2>
+              </div>
+            </div>
+            <div className="p-6">
+              {viewedLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gray-200 animate-pulse rounded" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" />
+                        <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : mostViewed && mostViewed.length > 0 ? (
+                <div className="space-y-4">
+                  {mostViewed.map((book, index) => (
+                    <div
+                      key={book.id}
+                      className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 bg-christian-blue/10 rounded-full flex items-center justify-center font-bold text-christian-blue">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-christian-text truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-sm text-christian-text/60">
+                          <span className="font-medium text-blue-600">
+                            {book.totalMetrics.toLocaleString("pt-BR")}
+                          </span>{" "}
+                          visualizações
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-christian-text/60">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <p>Nenhum livro visualizado ainda</p>
+                </div>
+              )}
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-christian-text mb-2 font-playfair">
-            Dashboard em Construção
-          </h2>
-          <p className="text-christian-text/60 max-w-md mx-auto">
-            As métricas detalhadas serão implementadas assim que o backend
-            fornecer os endpoints correspondentes.
-          </p>
-          <ul className="mt-6 text-left max-w-md mx-auto space-y-2 text-sm text-christian-text/80">
-            <li className="flex items-center">
-              <span className="text-christian-green mr-2">✓</span>
-              Livros mais clicados
-            </li>
-            <li className="flex items-center">
-              <span className="text-christian-green mr-2">✓</span>
-              Livros mais visualizados
-            </li>
-            <li className="flex items-center">
-              <span className="text-christian-green mr-2">✓</span>
-              Total de vendas
-            </li>
-            <li className="flex items-center">
-              <span className="text-christian-green mr-2">✓</span>
-              Livros cadastrados
-            </li>
-          </ul>
+
+          {/* Top 5 Mais Clicados */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <svg
+                    className="w-6 h-6 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-christian-text">
+                  Top 5 Mais Clicados
+                </h2>
+              </div>
+            </div>
+            <div className="p-6">
+              {clickedLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gray-200 animate-pulse rounded" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" />
+                        <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : mostClicked && mostClicked.length > 0 ? (
+                <div className="space-y-4">
+                  {mostClicked.map((book, index) => (
+                    <div
+                      key={book.id}
+                      className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 bg-christian-green/10 rounded-full flex items-center justify-center font-bold text-christian-green">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-christian-text truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-sm text-christian-text/60">
+                          <span className="font-medium text-green-600">
+                            {book.totalMetrics.toLocaleString("pt-BR")}
+                          </span>{" "}
+                          cliques
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-christian-text/60">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                    />
+                  </svg>
+                  <p>Nenhum livro clicado ainda</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* Alerta de Estoque Baixo */}
+        {!stockLoading &&
+          lowStockData &&
+          lowStockData.content &&
+          lowStockData.content.length > 0 && (
+            <div className="bg-white border-l-2 border-amber-500 rounded-lg shadow-md overflow-hidden">
+              {/* Header do Alerta */}
+              <div className="bg-gray-50 px-6 py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 p-2.5 bg-gray-200 rounded-lg">
+                    <svg
+                      className="w-6 h-6 text-amber-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Livros com Estoque Baixo
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lowStockData.totalElements}{" "}
+                      {lowStockData.totalElements === 1 ? "livro" : "livros"}{" "}
+                      com menos de 10 unidades. Recomendamos reposição.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lista de Livros */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  {lowStockData.content.map((book) => (
+                    <div
+                      key={book.id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex-1 min-w-0 pr-4">
+                        <p className="font-semibold text-gray-900 truncate">
+                          {book.title}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1.5">
+                          Estoque:{" "}
+                          <span className="font-bold text-red-600">
+                            {book.stock}{" "}
+                            {book.stock === 1 ? "unidade" : "unidades"}
+                          </span>
+                        </p>
+                      </div>
+                      <button className="ml-4 px-4 py-2 border-2 border-christian-blue text-christian-blue hover:bg-christian-blue hover:text-white rounded-lg font-medium transition-colors flex-shrink-0">
+                        Repor
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
       </main>
     </div>
   );

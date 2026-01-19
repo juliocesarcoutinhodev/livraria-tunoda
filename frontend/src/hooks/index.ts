@@ -65,5 +65,13 @@ export { useOrder, useOrdersAdmin } from "./useOrders";
 // Payments hooks
 export { usePayment, useCreatePayment } from "./usePayments";
 
+// Dashboard hooks
+export {
+  useDashboardStats,
+  useMostViewedBooks as useDashboardMostViewed,
+  useMostClickedBooks as useDashboardMostClicked,
+  useLowStockBooks,
+} from "./useDashboard";
+
 // Utility hooks
 export { useRateLimit } from "./useRateLimit";

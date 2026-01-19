@@ -21,6 +21,7 @@ import type {
   UpdateBookStatusRequest,
   BookMetrics,
   TopBook,
+  TopBooksResponse,
   AdminBookFilterParams,
   PublicBookFilterParams,
 } from "@/types/book";
@@ -82,10 +83,13 @@ const getByIdPublic = async (id: string): Promise<Book> => {
  * ```
  */
 const getMostViewed = async (limit: number = 10): Promise<TopBook[]> => {
-  const response = await apiClient.get<TopBook[]>("/public/books/most-viewed", {
-    params: { limit },
-  });
-  return response.data;
+  const response = await apiClient.get<TopBooksResponse>(
+    "/public/books/most-viewed",
+    {
+      params: { limit },
+    }
+  );
+  return response.data.books;
 };
 
 /**
@@ -100,13 +104,13 @@ const getMostViewed = async (limit: number = 10): Promise<TopBook[]> => {
  * ```
  */
 const getMostClicked = async (limit: number = 10): Promise<TopBook[]> => {
-  const response = await apiClient.get<TopBook[]>(
+  const response = await apiClient.get<TopBooksResponse>(
     "/public/books/most-clicked",
     {
       params: { limit },
     }
   );
-  return response.data;
+  return response.data.books;
 };
 
 /**

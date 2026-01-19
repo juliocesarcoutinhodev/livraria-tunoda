@@ -369,23 +369,263 @@ Senha: admin123
 
 ### **Dashboard Administrativo** (`/admin/dashboard`)
 
-Painel centralizado para gerenciamento da livraria (em construção).
+Painel centralizado para gerenciamento da livraria com **métricas em tempo real** integradas ao backend.
 
-**Features Implementadas:**
+#### **Features Implementadas:**
+
+**Autenticação e Segurança:**
 - ✅ **Autenticação requerida** (redirect se não autenticado)
+- ✅ **Auto-logout por inatividade** (1 hora)
+- ✅ **Proteção de rota** via middleware
 - ✅ **Informações do usuário** no header
-- ✅ **Botão de logout** com redirect para `/login`
+- ✅ **Botão de logout** com confirmação modal
 - ✅ **Layout responsivo** com Tailwind CSS
-- ✅ **Paleta cristã** consistente
 
-**Métricas Planejadas** (placeholders criados):
+**Métricas em Tempo Real:**
 
-| Card | Métrica | Status |
-|------|---------|--------|
-| 📚 | Total de Livros | Aguardando backend |
-| 💰 | Total de Vendas | Aguardando backend |
-| ⭐ | Livros Mais Clicados | Aguardando backend |
-| 👁️ | Livros Mais Visualizados | Aguardando backend |
+| Card | Métrica | Endpoint | Status |
+|------|---------|----------|--------|
+| 📚 | **Total de Livros** | `GET /admin/books` | ✅ Implementado |
+| 👥 | **Total de Autores** | `GET /admin/authors` | ✅ Implementado |
+| ⚠️ | **Livros com Estoque Baixo** | `GET /admin/books?lowStock=true` | ✅ Implementado |
+| 👁️ | **Top 5 Mais Visualizados** | `GET /public/books/most-viewed` | ✅ Implementado |
+| 🖱️ | **Top 5 Mais Clicados** | `GET /public/books/most-clicked` | ✅ Implementado |
+
+#### **Componentes Visuais:**
+
+**1. Cards de Métricas Principais**
+
+Três cards destacados no topo do dashboard:
+
+- **Total de Livros**: Contador com ícone de livro (azul)
+- **Total de Autores**: Contador com ícone de pessoas (verde)
+- **Livros com Estoque Baixo**: Contador com alerta visual (âmbar/vermelho)
+
+**Design:**
+- Fundo branco com sombra sutil
+- Ícones em círculos coloridos
+- Números grandes e legíveis
+- Loading skeleton durante carregamento
+- Formatação de números em pt-BR
+
+**2. Alerta de Estoque Baixo** (Refinado)
+
+Componente visual elegante que lista livros com menos de 10 unidades:
+
+**Visual:**
+- ✅ **Borda esquerda âmbar** (2px) - acento sutil
+- ✅ **Fundo branco** - profissional e limpo
+- ✅ **Header separado** - ícone + título + descrição
+- ✅ **Ícone neutro** - fundo cinza claro (não vermelho)
+- ✅ **Cards de livros** - borda cinza, hover suave
+- ✅ **Vermelho apenas nos números** - foco no dado crítico
+- ✅ **Botão "Repor"** - outline azul (identidade visual)
+- ✅ **Espaçamento generoso** - respiro visual
+
+**Antes vs Depois:**
+```diff
+- Fundo vermelho agressivo
+- Borda 4px vermelha
+- Ícone com fundo vermelho
+- Botão vermelho sólido
++ Fundo branco profissional
++ Borda 2px âmbar sutil
++ Ícone com fundo cinza neutro
++ Botão outline azul elegante
+```
+
+**Dados exibidos:**
+- Título do livro
+- Estoque atual (em vermelho)
+- Botão de ação "Repor"
+
+**3. Top 5 Livros Mais Visualizados**
+
+Tabela limpa com ranking dos livros mais vistos:
+
+**Features:**
+- Badge numerado (1-5) em azul
+- Título do livro
+- Total de visualizações formatado
+- Hover states suaves
+- Loading skeleton animado
+- Empty state amigável
+
+**Estrutura de Dados:**
+```typescript
+interface TopBook {
+  id: string;
+  title: string;
+  photoUrl: string | null;
+  totalMetrics: number; // Total de visualizações
+}
+```
+
+**4. Top 5 Livros Mais Clicados**
+
+Tabela similar aos mais visualizados, destacando cliques:
+
+**Features:**
+- Badge numerado (1-5) em verde
+- Título do livro
+- Total de cliques formatado
+- Hover states suaves
+- Loading skeleton animado
+- Empty state amigável
+
+**Cor diferenciada** (verde) para distinguir de visualizações (azul).
+
+#### **Hooks Personalizados:**
+
+O dashboard utiliza hooks especializados para buscar métricas:
+
+```typescript
+import {
+  useDashboardStats,
+  useMostViewedBooks,
+  useMostClickedBooks,
+  useLowStockBooks,
+} from "@/hooks/useDashboard";
+
+// Estatísticas gerais
+const { data: stats, isLoading: isLoadingStats } = useDashboardStats();
+// Retorna: { totalBooks, totalAuthors, lowStockBooks }
+
+// Top 5 mais visualizados
+const { data: mostViewed, isLoading: isLoadingViewed } = useMostViewedBooks(5);
+
+// Top 5 mais clicados
+const { data: mostClicked, isLoading: isLoadingClicked } = useMostClickedBooks(5);
+
+// Livros com estoque baixo
+const { data: lowStock, isLoading: isLoadingLowStock } = useLowStockBooks();
+```
+
+#### **Integração com Backend:**
+
+**Endpoints Utilizados:**
+
+| Métrica | Endpoint | Método | Parâmetros |
+|---------|----------|--------|------------|
+| Total Livros | `/admin/books` | GET | `page=0&size=1` |
+| Total Autores | `/admin/authors` | GET | `page=0&size=1` |
+| Estoque Baixo | `/admin/books` | GET | `lowStock=true&size=10` |
+| Mais Visualizados | `/public/books/most-viewed` | GET | `limit=5` |
+| Mais Clicados | `/public/books/most-clicked` | GET | `limit=5` |
+
+**Resposta do Backend (Top Books):**
+```json
+{
+  "books": [
+    {
+      "id": "uuid",
+      "title": "Título do Livro",
+      "photoUrl": "https://...",
+      "totalMetrics": 123
+    }
+  ],
+  "generatedAt": "2026-01-19T12:12:26..."
+}
+```
+
+**Mapeamento Frontend:**
+- O `bookService` extrai apenas o array `books` da resposta
+- Frontend usa `id` e `totalMetrics` (alinhado com backend)
+- Type safety completo com interface `TopBook`
+
+#### **Cache e Performance:**
+
+**React Query Configuration:**
+- ✅ **Stale Time**: 2-5 minutos (dependendo da métrica)
+- ✅ **Cache**: Dados mantidos em cache para navegação rápida
+- ✅ **Refetch**: Automático ao focar na aba
+- ✅ **Loading States**: Skeletons durante carregamento
+- ✅ **Error Handling**: Mensagens amigáveis em caso de erro
+
+**Query Keys:**
+```typescript
+queryKeys.dashboard.stats()           // ['dashboard', 'stats']
+queryKeys.books.mostViewed(5)         // ['books', 'most-viewed', 5]
+queryKeys.books.mostClicked(5)        // ['books', 'most-clicked', 5]
+queryKeys.books.lowStock()            // ['books', 'low-stock']
+```
+
+#### **Responsividade:**
+
+**Desktop (>1024px):**
+- Grid de 3 colunas para cards de métricas
+- Grid de 2 colunas para Top 5 (lado a lado)
+- Alerta de estoque em largura total
+- Sidebar fixa
+
+**Tablet (768px-1024px):**
+- Grid de 2 colunas para cards de métricas
+- Grid de 2 colunas para Top 5
+- Alerta de estoque em largura total
+
+**Mobile (<768px):**
+- Cards empilhados verticalmente (1 coluna)
+- Top 5 empilhados
+- Menu hamburger para sidebar
+- Espaçamento otimizado
+
+#### **Design System:**
+
+**Paleta de Cores:**
+- **Azul (`christian-blue`)**: Total de Livros, Mais Visualizados, Botões principais
+- **Verde (`christian-green`)**: Total de Autores, Mais Clicados
+- **Âmbar (`amber-500/600`)**: Alerta de estoque (borda e ícone)
+- **Vermelho (`red-600`)**: Números críticos de estoque
+- **Cinza (`gray-50/200`)**: Fundos neutros, ícones secundários
+
+**Tipografia:**
+- **Títulos**: Playfair Display (elegante)
+- **Números grandes**: Bold, 3xl
+- **Texto corpo**: Inter, regular
+- **Métricas**: Formatadas com `toLocaleString("pt-BR")`
+
+#### **Exemplo de Uso:**
+
+```typescript
+// Página do Dashboard
+export default function DashboardPage() {
+  const { user } = useAuthStore();
+  useAutoLogoutAfterInactivity(); // Auto-logout
+
+  // Buscar métricas
+  const { data: stats } = useDashboardStats();
+  const { data: mostViewed } = useMostViewedBooks(5);
+  const { data: mostClicked } = useMostClickedBooks(5);
+  const { data: lowStock } = useLowStockBooks();
+
+  return (
+    <div className="dashboard">
+      {/* Cards de métricas */}
+      <MetricsCards stats={stats} />
+      
+      {/* Alerta de estoque baixo */}
+      {lowStock?.content.length > 0 && (
+        <LowStockAlert books={lowStock.content} />
+      )}
+      
+      {/* Top 5 tabelas */}
+      <TopBooksGrid 
+        mostViewed={mostViewed} 
+        mostClicked={mostClicked} 
+      />
+    </div>
+  );
+}
+```
+
+#### **Acessibilidade:**
+
+- ✅ **ARIA labels** em todos os ícones
+- ✅ **Semantic HTML** (main, section, article)
+- ✅ **Color contrast** (WCAG AA)
+- ✅ **Keyboard navigation** funcional
+- ✅ **Screen reader** friendly
+- ✅ **Focus states** visíveis
 
 ---
 
@@ -473,24 +713,69 @@ Interface completa para visualizar e gerenciar autores.
 - **Status**: Badge colorido (Verde = Ativo, Cinza = Inativo)
 - **Ações**: Botões "Editar" e "Ativar/Desativar"
 
-#### **4. Filtros e Busca**
+#### **4. Filtros e Busca (Server-Side)**
 
-Painel de filtros acima da tabela com 3 campos:
+Painel de filtros acima da tabela com integração completa ao backend:
 
-**Busca por Nome (client-side):**
-- Campo de texto
-- Filtro em tempo real
-- Case-insensitive
+**Busca por Nome:**
+- Campo de texto com busca server-side
+- Busca parcial e case-insensitive
+- Parâmetro API: `name`
+- Reset automático para página 1 ao buscar
 
 **Filtro por Status:**
 - Dropdown com opções: Todos, Ativos, Inativos
 - Filtro server-side via API
+- Parâmetro API: `status`
+- Reset automático para página 1 ao filtrar
 
 **Ordenação:**
-- Dropdown: A-Z ou Z-A
+- Dropdown: A-Z (asc) ou Z-A (desc)
 - Ordenação server-side via API
+- Parâmetros API: `sortBy=name` e `sortDirection=asc|desc`
+- Reset automático para página 1 ao ordenar
 
-#### **5. Loading Skeleton**
+#### **5. Paginação Server-Side**
+
+Sistema completo de paginação integrado ao backend:
+
+**Features:**
+- **5 registros por página** (configurável via `size`)
+- **Botões de navegação**: Anterior e Próxima
+- **Informações visuais**: "Exibindo X de Y autores - Página N de M"
+- **Controles inteligentes**: Botões desabilitados nas extremidades
+- **Reset automático**: Volta para página 1 ao mudar filtros
+- **Performance**: Carrega apenas dados necessários
+
+**Parâmetros API:**
+```typescript
+{
+  page: 0,        // Página atual (zero-based)
+  size: 5,        // Registros por página
+  sortBy: "name", // Campo de ordenação
+  sortDirection: "asc", // Direção (asc/desc)
+  status: "ACTIVE",     // Filtro opcional
+  name: "Martin"        // Busca opcional
+}
+```
+
+**Exemplo de Requisição:**
+```
+GET /api/admin/authors?page=0&size=5&sortBy=name&sortDirection=asc&status=ACTIVE&name=Martin
+```
+
+**Resposta do Backend:**
+```json
+{
+  "content": [...],      // Array de autores
+  "page": 0,             // Página atual
+  "size": 5,             // Tamanho da página
+  "totalElements": 23,   // Total de registros
+  "totalPages": 5        // Total de páginas
+}
+```
+
+#### **6. Loading Skeleton**
 
 Placeholders animados durante carregamento:
 
@@ -502,7 +787,7 @@ Placeholders animados durante carregamento:
 - Skeleton de cards
 - 5 cards por padrão
 
-#### **6. Estado Vazio**
+#### **7. Estado Vazio**
 
 Tela especial quando não há autores cadastrados:
 
@@ -517,7 +802,7 @@ Tela especial quando não há autores cadastrados:
 - Sem filtros: "Comece adicionando o primeiro autor ao catálogo"
 - Com filtros: "Tente ajustar os filtros de busca"
 
-#### **7. Ações Inline**
+#### **8. Ações Inline**
 
 Botões de ação em cada linha/card:
 
@@ -531,7 +816,7 @@ Botões de ação em cada linha/card:
 - Atualização optimistic via React Query
 - Toast de confirmação (futuro)
 
-#### **8. Avatar Inteligente**
+#### **9. Avatar Inteligente**
 
 **Com Foto:**
 - Image do Next.js (otimizada)
@@ -543,7 +828,7 @@ Botões de ação em cada linha/card:
 - Cor de fundo: azul claro
 - Texto: primeira letra maiúscula
 
-#### **9. Responsividade Completa**
+#### **10. Responsividade Completa**
 
 **Mobile (<768px):**
 - Sidebar vira drawer (menu hamburger)
@@ -584,15 +869,21 @@ src/
 ```typescript
 import { useAuthors, useUpdateAuthorStatus } from "@/hooks";
 
-// Listagem com filtros
-const { data, isLoading } = useAuthors({
-  page: 0,
-  size: 100,
-  status: "ACTIVE",
-  sort: "name,asc"
+// Listagem com paginação e filtros
+const { data, isLoading, error } = useAuthors({
+  page: 0,              // Página atual (zero-based)
+  size: 5,              // 5 registros por página
+  sortBy: "name",       // Campo de ordenação
+  sortDirection: "asc", // Direção: "asc" ou "desc"
+  status: "ACTIVE",     // Filtro opcional por status
+  name: "Martin"        // Busca opcional por nome
 });
 
-// Toggle status
+// Acessar dados paginados
+const authors = data?.content || [];
+const totalPages = data ? Math.ceil(data.totalElements / 5) : 0;
+
+// Toggle status (com invalidação automática de cache)
 const updateStatus = useUpdateAuthorStatus();
 updateStatus.mutate({ 
   id: "author-id", 
@@ -619,11 +910,13 @@ import { AuthorCardSkeleton, TableRowSkeleton } from "@/components/ui";
 
 ### **Performance**
 
-- ✅ **Paginação**: Preparada para >50 autores (size=100 por padrão)
-- ✅ **Optimistic Updates**: Status muda instantaneamente
-- ✅ **Cache**: 5 minutos de stale time
-- ✅ **Images**: Otimização automática via next/image
-- ✅ **Bundle**: Code splitting por rota
+- ✅ **Paginação Server-Side**: Apenas 5 registros carregados por vez
+- ✅ **Filtros no Backend**: Reduz tráfego de rede e processamento no cliente
+- ✅ **Optimistic Updates**: Status muda instantaneamente (React Query)
+- ✅ **Cache Inteligente**: 5 minutos de stale time com invalidação automática
+- ✅ **Images Otimizadas**: Next.js Image com lazy loading
+- ✅ **Bundle Splitting**: Code splitting automático por rota
+- ✅ **Skeleton Loading**: Melhor percepção de performance
 
 ### **Segurança**
 
@@ -1345,7 +1638,8 @@ Todos os services possuem tipos completos:
 - ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
 - ✅ **Proteção de Rotas** (middleware, JWT validation, role check, página 403)
 - ✅ **Logout Seguro** (confirmação, limpeza completa, auto-logout por inatividade)
-- ✅ **Gestão de Autores** (listagem, filtros, busca, ações, responsivo)
+- ✅ **Gestão de Autores** (listagem, filtros, busca, ações, paginação server-side, responsivo)
+- ✅ **Dashboard com Métricas** (total livros/autores, estoque baixo, top 5 visualizados/clicados)
 - ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
 
 ### 🚀 **Próximas Implementações:**
