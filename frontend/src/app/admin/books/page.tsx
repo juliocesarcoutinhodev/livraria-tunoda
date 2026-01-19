@@ -42,7 +42,7 @@ export default function BooksPage() {
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -848,6 +848,7 @@ export default function BooksPage() {
                       value={String(pageSize)}
                       onChange={(value) => handlePageSizeChange(Number(value))}
                       options={[
+                        { value: "5", label: "5" },
                         { value: "10", label: "10" },
                         { value: "25", label: "25" },
                         { value: "50", label: "50" },

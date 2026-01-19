@@ -237,7 +237,7 @@ const updateStatus = async (
   status: "ACTIVE" | "INACTIVE"
 ): Promise<void> => {
   const data: UpdateBookStatusRequest = { status };
-  await apiClient.patch(`/admin/books/${id}/status`, data);
+  await apiClient.put(`/admin/books/${id}/status`, data);
 };
 
 /**

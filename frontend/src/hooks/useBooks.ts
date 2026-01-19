@@ -457,6 +457,10 @@ export function useAdjustBookStock() {
 
       // Invalida listas
       invalidateQueries.booksAdmin(queryClient);
+
+      // Invalida queries do dashboard (low stock, stats)
+      queryClient.invalidateQueries({ queryKey: queryKeys.books.lowStock() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
     },
   });
 }
