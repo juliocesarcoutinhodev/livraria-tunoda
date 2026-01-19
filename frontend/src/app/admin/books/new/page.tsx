@@ -4,6 +4,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminFooter from "@/components/layout/AdminFooter";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import CustomSelect from "@/components/ui/CustomSelect";
 import MultiSelect from "@/components/ui/MultiSelect";
@@ -319,7 +320,7 @@ export default function NewBookPage() {
       setDisplayValues((prev) => ({ ...prev, isbn: formatted }));
       setFormData((prev) => ({ ...prev, isbn: clean }));
     } else if (name === "price") {
-      const formatted = formatCurrency(value, formData.currency);
+      const formatted = formatCurrency(value, formData.currency || "BRL");
       const numValue = parseCurrency(value);
       setDisplayValues((prev) => ({ ...prev, price: formatted }));
       setFormData((prev) => ({ ...prev, price: numValue }));
@@ -435,8 +436,8 @@ export default function NewBookPage() {
       <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
 
-        <div className="flex-1 lg:ml-64 min-w-0">
-          <div className="p-4 lg:p-8">
+        <div className="flex-1 lg:ml-64 min-w-0 flex flex-col">
+          <main className="flex-1 p-4 lg:p-8">
             <Breadcrumb
               items={[
                 { label: "Dashboard", href: "/admin/dashboard" },
@@ -870,7 +871,10 @@ export default function NewBookPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </main>
+
+          {/* Rodapé */}
+          <AdminFooter />
         </div>
       </div>
     </>

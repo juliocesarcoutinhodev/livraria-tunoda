@@ -21,6 +21,7 @@ import {
 } from "@/hooks";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminFooter from "@/components/layout/AdminFooter";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import Modal from "@/components/ui/Modal";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -224,8 +225,8 @@ export default function BooksPage() {
       <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
 
-        <div className="flex-1 lg:ml-64 min-w-0">
-          <div className="p-4 lg:p-8 w-full">
+        <div className="flex-1 lg:ml-64 min-w-0 flex flex-col">
+          <main className="flex-1 p-4 lg:p-8 w-full">
             {/* Breadcrumb */}
             <Breadcrumb
               items={[
@@ -916,7 +917,10 @@ export default function BooksPage() {
                 </div>
               </div>
             )}
-          </div>
+          </main>
+
+          {/* Rodapé */}
+          <AdminFooter />
         </div>
       </div>
 

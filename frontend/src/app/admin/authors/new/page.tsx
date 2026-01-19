@@ -4,6 +4,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminFooter from "@/components/layout/AdminFooter";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import { useCreateAuthor } from "@/hooks";
 import type { CreateAuthorRequest } from "@/types/author";
@@ -161,8 +162,8 @@ export default function NewAuthorPage() {
       <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
 
-        <div className="flex-1 lg:ml-64 min-w-0">
-          <div className="p-4 lg:p-8">
+        <div className="flex-1 lg:ml-64 min-w-0 flex flex-col">
+          <main className="flex-1 p-4 lg:p-8">
             <Breadcrumb
               items={[
                 { label: "Dashboard", href: "/admin/dashboard" },
@@ -388,7 +389,10 @@ export default function NewAuthorPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </main>
+
+          {/* Rodapé */}
+          <AdminFooter />
         </div>
       </div>
     </>
