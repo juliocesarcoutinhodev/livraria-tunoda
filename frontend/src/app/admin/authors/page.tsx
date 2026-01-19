@@ -192,7 +192,7 @@ export default function AuthorsPage() {
                 value={searchName}
                 onChange={(e) => handleSearchNameChange(e.target.value)}
                 placeholder="Digite o nome do autor..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent"
               />
             </div>
 

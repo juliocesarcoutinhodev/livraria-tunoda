@@ -258,7 +258,7 @@ export default function BooksPage() {
                 <div className="lg:col-span-2">
                   <label
                     htmlFor="search"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Buscar por título
                   </label>
@@ -268,7 +268,7 @@ export default function BooksPage() {
                     value={searchTitle}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Digite o título do livro..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent"
                   />
                 </div>
 
