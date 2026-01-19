@@ -10,10 +10,13 @@
  * @module app/admin/dashboard
  */
 
+import { useState } from "react";
 import { useAuthStore } from "@/store";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
+import StockAdjustmentModal from "@/components/ui/StockAdjustmentModal";
+import type { Book } from "@/types/book";
 import {
   useDashboardStats,
   useDashboardMostViewed,
@@ -34,6 +37,26 @@ export default function DashboardPage() {
   const { data: mostClicked, isLoading: clickedLoading } =
     useDashboardMostClicked(5);
   const { data: lowStockData, isLoading: stockLoading } = useLowStockBooks();
+
+  // Estado do modal de ajuste de estoque
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  /**
+   * Abre modal de ajuste de estoque
+   */
+  const openStockModal = (book: Book) => {
+    setSelectedBook(book);
+    setShowStockModal(true);
+  };
+
+  /**
+   * Fecha modal de ajuste de estoque
+   */
+  const closeStockModal = () => {
+    setShowStockModal(false);
+    setSelectedBook(null);
+  };
 
   return (
     <div className="flex min-h-screen bg-christian-background">
@@ -401,7 +424,10 @@ export default function DashboardPage() {
                           </span>
                         </p>
                       </div>
-                      <button className="ml-4 px-4 py-2 border-2 border-christian-blue text-christian-blue hover:bg-christian-blue hover:text-white rounded-lg font-medium transition-colors flex-shrink-0">
+                      <button
+                        onClick={() => openStockModal(book)}
+                        className="ml-4 px-4 py-2 border-2 border-christian-blue text-christian-blue hover:bg-christian-blue hover:text-white rounded-lg font-medium transition-colors flex-shrink-0"
+                      >
                         Repor
                       </button>
                     </div>
@@ -411,6 +437,13 @@ export default function DashboardPage() {
             </div>
           )}
       </main>
+
+      {/* Modal de Ajuste de Estoque */}
+      <StockAdjustmentModal
+        book={selectedBook}
+        isOpen={showStockModal}
+        onClose={closeStockModal}
+      />
     </div>
   );
 }

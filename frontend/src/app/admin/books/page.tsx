@@ -24,6 +24,7 @@ import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import Modal from "@/components/ui/Modal";
 import CustomSelect from "@/components/ui/CustomSelect";
+import StockAdjustmentModal from "@/components/ui/StockAdjustmentModal";
 import { getErrorMessage } from "@/lib/api-client";
 import type { Book, AdminBookFilterParams } from "@/types/book";
 import type { ResourceStatus } from "@/types/api";
@@ -45,6 +46,10 @@ export default function BooksPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Estado do modal de ajuste de estoque
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockBook, setStockBook] = useState<Book | null>(null);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
@@ -134,6 +139,22 @@ export default function BooksPage() {
     setSelectedBook(book);
     setShowConfirmModal(true);
     setErrorMessage(null);
+  };
+
+  /**
+   * Abre modal de ajuste de estoque
+   */
+  const openStockModal = (book: Book) => {
+    setStockBook(book);
+    setShowStockModal(true);
+  };
+
+  /**
+   * Fecha modal de ajuste de estoque
+   */
+  const closeStockModal = () => {
+    setShowStockModal(false);
+    setStockBook(null);
   };
 
   const confirmToggleStatus = async () => {
@@ -495,6 +516,25 @@ export default function BooksPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
                               <button
+                                onClick={() => openStockModal(book)}
+                                className="text-purple-600 hover:text-purple-700 p-1 rounded"
+                                title="Ajustar Estoque"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                  />
+                                </svg>
+                              </button>
+                              <button
                                 onClick={() =>
                                   router.push(`/admin/books/${book.id}/edit`)
                                 }
@@ -682,6 +722,26 @@ export default function BooksPage() {
 
                         {/* Actions compactos */}
                         <div className="flex gap-1">
+                          <button
+                            onClick={() => openStockModal(book)}
+                            className="p-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs"
+                            title="Ajustar Estoque"
+                          >
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                              />
+                            </svg>
+                          </button>
+
                           <button
                             onClick={() =>
                               router.push(`/admin/books/${book.id}/edit`)
@@ -910,6 +970,13 @@ export default function BooksPage() {
           </button>
         </div>
       </Modal>
+
+      {/* Modal de Ajuste de Estoque */}
+      <StockAdjustmentModal
+        book={stockBook}
+        isOpen={showStockModal}
+        onClose={closeStockModal}
+      />
     </>
   );
 }
