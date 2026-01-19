@@ -26,6 +26,7 @@ import Breadcrumb from "@/components/layout/Breadcrumb";
 import Modal from "@/components/ui/Modal";
 import CustomSelect from "@/components/ui/CustomSelect";
 import StockAdjustmentModal from "@/components/ui/StockAdjustmentModal";
+import BookMetricsModal from "@/components/ui/BookMetricsModal";
 import { getErrorMessage } from "@/lib/api-client";
 import type { Book, AdminBookFilterParams } from "@/types/book";
 import type { ResourceStatus } from "@/types/api";
@@ -51,6 +52,10 @@ export default function BooksPage() {
   // Estado do modal de ajuste de estoque
   const [showStockModal, setShowStockModal] = useState(false);
   const [stockBook, setStockBook] = useState<Book | null>(null);
+
+  // Estado do modal de métricas
+  const [showMetricsModal, setShowMetricsModal] = useState(false);
+  const [metricsBook, setMetricsBook] = useState<Book | null>(null);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
@@ -156,6 +161,22 @@ export default function BooksPage() {
   const closeStockModal = () => {
     setShowStockModal(false);
     setStockBook(null);
+  };
+
+  /**
+   * Abre modal de métricas
+   */
+  const openMetricsModal = (book: Book) => {
+    setMetricsBook(book);
+    setShowMetricsModal(true);
+  };
+
+  /**
+   * Fecha modal de métricas
+   */
+  const closeMetricsModal = () => {
+    setShowMetricsModal(false);
+    setMetricsBook(null);
   };
 
   const confirmToggleStatus = async () => {
@@ -557,9 +578,7 @@ export default function BooksPage() {
                                 </svg>
                               </button>
                               <button
-                                onClick={() =>
-                                  router.push(`/admin/books/${book.id}/metrics`)
-                                }
+                                onClick={() => openMetricsModal(book)}
                                 className="text-green-600 hover:text-green-700 p-1 rounded"
                                 title="Ver Métricas"
                               >
@@ -766,9 +785,7 @@ export default function BooksPage() {
                           </button>
 
                           <button
-                            onClick={() =>
-                              router.push(`/admin/books/${book.id}/metrics`)
-                            }
+                            onClick={() => openMetricsModal(book)}
                             className="p-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs"
                             title="Métricas"
                           >
@@ -981,6 +998,13 @@ export default function BooksPage() {
         book={stockBook}
         isOpen={showStockModal}
         onClose={closeStockModal}
+      />
+
+      {/* Modal de Métricas */}
+      <BookMetricsModal
+        book={metricsBook}
+        isOpen={showMetricsModal}
+        onClose={closeMetricsModal}
       />
     </>
   );
