@@ -113,6 +113,10 @@ export interface UpdateBookRequest {
   weight: number;
   /** Unidade de peso */
   weightUnit?: WeightUnit;
+  /** Status do livro */
+  status: ResourceStatus;
+  /** Estoque */
+  stock: number;
   /** IDs dos autores */
   authorIds: string[];
 }

@@ -496,7 +496,7 @@ export default function BooksPage() {
                             <div className="flex items-center justify-end space-x-2">
                               <button
                                 onClick={() =>
-                                  router.push(`/admin/books/${book.id}`)
+                                  router.push(`/admin/books/${book.id}/edit`)
                                 }
                                 className="text-christian-blue hover:text-blue-700 p-1 rounded"
                                 title="Editar"
@@ -684,7 +684,7 @@ export default function BooksPage() {
                         <div className="flex gap-1">
                           <button
                             onClick={() =>
-                              router.push(`/admin/books/${book.id}`)
+                              router.push(`/admin/books/${book.id}/edit`)
                             }
                             className="p-1.5 bg-christian-blue hover:bg-blue-700 text-white rounded text-xs"
                             title="Editar"
