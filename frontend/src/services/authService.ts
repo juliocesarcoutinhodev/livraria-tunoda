@@ -11,7 +11,11 @@
  */
 
 import { apiClient } from "@/lib/api-client";
-import { saveAuthData, clearAuthData } from "@/lib/auth-storage";
+import {
+  saveAuthData,
+  clearAuthData,
+  getRefreshToken,
+} from "@/lib/auth-storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   LoginRequest,
@@ -131,18 +135,35 @@ const getCurrentUser = async (): Promise<User> => {
 
 /**
  * Faz logout do usuário
- * Remove todos os dados de autenticação do localStorage
+ *
+ * 1. Tenta revogar refresh token no backend
+ * 2. Limpa todos os dados de autenticação (localStorage + cookies)
+ * 3. Limpa Zustand store
  *
  * @example
  * ```ts
- * authService.logout();
+ * await authService.logout();
  * router.push("/login");
  * ```
  */
-const logout = (): void => {
-  clearAuthData();
-  // Opcionalmente, fazer chamada ao backend para invalidar token
-  // await apiClient.post("/auth/logout");
+const logout = async (): Promise<void> => {
+  try {
+    // Tenta revogar o refresh token no backend
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      await apiClient.post("/auth/revoke", { refreshToken });
+    }
+  } catch (error) {
+    // Se falhar (ex: backend offline, token já expirado), continua
+    console.warn("Erro ao revogar token no backend:", error);
+  } finally {
+    // SEMPRE limpa dados locais, mesmo se a revogação falhar
+    clearAuthData();
+
+    // Limpa Zustand store
+    const { useAuthStore } = await import("@/store/useAuthStore");
+    useAuthStore.getState().logout();
+  }
 };
 
 /**

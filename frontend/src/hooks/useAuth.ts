@@ -157,7 +157,13 @@ export function useLogin() {
 }
 
 /**
- * Hook para fazer logout
+ * Hook para fazer logout seguro
+ *
+ * Executa todo o processo de logout:
+ * 1. Revoga refresh token no backend (se disponível)
+ * 2. Limpa Zustand store (via authService.logout)
+ * 3. Limpa localStorage e cookies
+ * 4. Invalida cache do React Query
  *
  * @returns Mutation para logout
  *
@@ -167,16 +173,16 @@ export function useLogin() {
  *   const logout = useLogout();
  *   const router = useRouter();
  *
- *   const handleLogout = () => {
- *     logout.mutate(undefined, {
- *       onSuccess: () => {
- *         toast.success("Logout realizado");
- *         router.push("/");
- *       }
- *     });
+ *   const handleLogout = async () => {
+ *     await logout.mutateAsync();
+ *     router.push("/login");
  *   };
  *
- *   return <button onClick={handleLogout}>Sair</button>;
+ *   return (
+ *     <button onClick={handleLogout} disabled={logout.isPending}>
+ *       {logout.isPending ? "Saindo..." : "Sair"}
+ *     </button>
+ *   );
  * }
  * ```
  */
@@ -184,13 +190,20 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => {
-      authService.logout();
-      return Promise.resolve();
+    mutationFn: async () => {
+      // Tenta revogar refresh token no backend
+      // Se falhar (ex: backend offline), authService.logout() faz limpeza local
+      await authService.logout();
     },
     onSuccess: () => {
-      // Limpa todo o cache após logout
+      // Limpa TODO o cache do React Query
       queryClient.clear();
+      console.log("Logout completo realizado com sucesso");
+    },
+    onError: (error) => {
+      // Mesmo em erro, limpa cache por segurança
+      queryClient.clear();
+      console.warn("Erro no logout, mas cache foi limpo:", error);
     },
   });
 }

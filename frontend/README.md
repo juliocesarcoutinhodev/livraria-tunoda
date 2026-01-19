@@ -429,6 +429,183 @@ useAuthStore.getState().setAuth(accessToken, refreshToken, user);
 
 ---
 
+## 🔓 **Logout Seguro**
+
+Sistema completo de logout com confirmação, limpeza total de dados e auto-logout por inatividade.
+
+### **Funcionalidades Implementadas**
+
+#### **1. Logout com Confirmação**
+
+Botão "Sair" no dashboard administrativo com modal de confirmação antes de executar o logout.
+
+**Fluxo:**
+1. Usuário clica em "Sair"
+2. Modal de confirmação aparece
+3. Ao confirmar:
+   - Revoga refresh token no backend (API `/auth/revoke`)
+   - Limpa Zustand store
+   - Limpa localStorage
+   - Limpa cookies
+   - Invalida cache do React Query
+   - Redireciona para `/login`
+
+#### **2. Auto-Logout por Inatividade**
+
+Hook `useAutoLogoutAfterInactivity` que monitora atividade do usuário e faz logout automático após 1 hora de inatividade.
+
+**Eventos monitorados:**
+- Mouse (mousedown, click)
+- Teclado (keydown)
+- Scroll
+- Touch (mobile)
+
+**Comportamento:**
+- Timer é resetado a cada interação do usuário
+- Notificação de aviso 5 minutos antes do logout
+- Logout automático após 1 hora sem atividade
+- Redirect para `/login?session_expired=true`
+
+#### **3. Sessão Expirada**
+
+Alerta amigável na página de login quando usuário é deslogado por inatividade.
+
+**Features:**
+- Ícone de aviso (amarelo)
+- Mensagem clara: "Sua sessão foi encerrada por inatividade"
+- Design consistente com a identidade visual
+
+#### **4. Limpeza Completa de Dados**
+
+Hook `useLogout` garante que TODOS os dados sensíveis sejam removidos:
+
+✅ **Zustand Store:**
+- `accessToken` → `null`
+- `refreshToken` → `null`
+- `user` → `null`
+- `isAuthenticated` → `false`
+
+✅ **LocalStorage:**
+- `livraria_tunoda_access_token` → removido
+- `livraria_tunoda_refresh_token` → removido
+- `livraria_tunoda_user` → removido
+
+✅ **Cookies:**
+- `livraria_tunoda_access_token` → removido
+
+✅ **React Query Cache:**
+- TODO o cache invalidado via `queryClient.clear()`
+
+✅ **Backend:**
+- Refresh token revogado via `POST /api/auth/revoke`
+
+#### **5. Componente Modal Reutilizável**
+
+Componente `Modal` genérico para confirmações e alertas.
+
+**Props:**
+- `isOpen` - Controla visibilidade
+- `onClose` - Callback ao fechar
+- `title` - Título do modal
+- `type` - Tipo visual (`info`, `warning`, `error`, `success`)
+- `actions` - Botões personalizados
+- `closeOnBackdrop` - Se pode fechar clicando fora
+
+**Features:**
+- Fecha com tecla ESC
+- Previne scroll do body quando aberto
+- Backdrop com blur
+- Animações suaves
+- Totalmente acessível (ARIA)
+
+### **Hooks Disponíveis**
+
+#### **useLogout()**
+
+Hook para logout com limpeza completa.
+
+```typescript
+import { useLogout } from "@/hooks";
+
+function LogoutButton() {
+  const logout = useLogout();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout.mutateAsync();
+    router.push("/login");
+  };
+
+  return (
+    <button onClick={handleLogout} disabled={logout.isPending}>
+      {logout.isPending ? "Saindo..." : "Sair"}
+    </button>
+  );
+}
+```
+
+#### **useAutoLogoutAfterInactivity()**
+
+Hook para auto-logout após 1 hora de inatividade.
+
+```typescript
+import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
+
+function AdminLayout({ children }) {
+  // Ativa auto-logout por inatividade
+  useAutoLogoutAfterInactivity();
+
+  return <div>{children}</div>;
+}
+```
+
+#### **useInactivityLogout(options)**
+
+Hook completo com opções personalizáveis.
+
+```typescript
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
+
+function ProtectedRoute({ children }) {
+  useInactivityLogout({
+    timeout: 30 * 60 * 1000, // 30 minutos
+    showWarning: true,
+    warningTime: 5 * 60 * 1000, // Aviso 5 min antes
+  });
+
+  return <div>{children}</div>;
+}
+```
+
+### **Fluxo Completo de Logout**
+
+```
+1. Usuário clica em "Sair" no dashboard
+2. Modal de confirmação aparece
+3. Usuário confirma logout
+4. useLogout hook executa:
+   a. Tenta revogar refresh token no backend (POST /auth/revoke)
+   b. Se falhar (backend offline), continua com limpeza local
+5. authService.logout() limpa:
+   - Zustand store (logout())
+   - LocalStorage (clearAuthData())
+   - Cookies (clearAuthData())
+6. React Query cache é invalidado (queryClient.clear())
+7. Router redireciona para /login
+8. Usuário vê página de login limpa
+```
+
+### **Segurança**
+
+✅ **Limpeza sempre acontece**, mesmo se revogação no backend falhar  
+✅ **Tokens removidos de todos os locais** (store, localStorage, cookies)  
+✅ **Cache limpo** para prevenir acesso a dados em cache  
+✅ **Auto-logout** previne sessões abertas indefinidamente  
+✅ **Confirmação** previne logout acidental  
+✅ **Feedback visual** claro em todas as etapas  
+
+---
+
 ## 🛡️ **Proteção de Rotas (Route Protection)**
 
 Sistema de middleware para proteger rotas administrativas e prevenir acesso não autorizado.
@@ -962,6 +1139,7 @@ Todos os services possuem tipos completos:
 - ✅ **TypeScript Types** (50+ interfaces, zero `any`, barrel export)
 - ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
 - ✅ **Proteção de Rotas** (middleware, JWT validation, role check, página 403)
+- ✅ **Logout Seguro** (confirmação, limpeza completa, auto-logout por inatividade)
 - ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
 
 ### 🚀 **Próximas Implementações:**

@@ -5,20 +5,44 @@
  *
  * Dashboard administrativo com métricas e estatísticas.
  * Protegido pelo middleware (server-side).
+ * Inclui auto-logout por inatividade (1 hora).
  *
  * @module app/admin/dashboard
  */
 
+import { useState } from "react";
 import { useAuthStore } from "@/store";
 import { useRouter } from "next/navigation";
+import { useLogout } from "@/hooks";
+import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
+import { Modal } from "@/components/ui";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const logout = useLogout();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
+  // Auto-logout após 1 hora de inatividade
+  useAutoLogoutAfterInactivity();
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      await logout.mutateAsync();
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      // Mesmo com erro, redireciona
+      router.push("/login");
+    }
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   return (
@@ -36,10 +60,11 @@ export default function DashboardPage() {
               </p>
             </div>
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
+              onClick={handleLogoutClick}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+              disabled={logout.isPending}
             >
-              Sair
+              {logout.isPending ? "Saindo..." : "Sair"}
             </button>
           </div>
         </div>
@@ -214,6 +239,38 @@ export default function DashboardPage() {
           </ul>
         </div>
       </main>
+
+      {/* Modal de Confirmação de Logout */}
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={handleCancelLogout}
+        title="Confirmar Logout"
+        type="warning"
+        closeOnBackdrop={false}
+        actions={
+          <>
+            <button
+              onClick={handleCancelLogout}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-christian-text rounded-lg font-semibold transition-colors"
+              disabled={logout.isPending}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleConfirmLogout}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+              disabled={logout.isPending}
+            >
+              {logout.isPending ? "Saindo..." : "Sair"}
+            </button>
+          </>
+        }
+      >
+        <p>
+          Tem certeza que deseja sair do painel administrativo? Você precisará
+          fazer login novamente para acessar esta área.
+        </p>
+      </Modal>
     </div>
   );
 }
