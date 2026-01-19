@@ -18,6 +18,7 @@ import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import Modal from "@/components/ui/Modal";
+import CustomSelect from "@/components/ui/CustomSelect";
 import { AuthorCardSkeleton, TableRowSkeleton } from "@/components/ui";
 import { getErrorMessage } from "@/lib/api-client";
 import type { Author, AuthorFilterParams } from "@/types/author";
@@ -196,49 +197,29 @@ export default function AuthorsPage() {
             </div>
 
             {/* Status Filter */}
-            <div>
-              <label
-                htmlFor="status"
-                className="block text-sm font-medium text-christian-text mb-2"
-              >
-                Filtrar por status
-              </label>
-              <select
-                id="status"
-                value={statusFilter}
-                onChange={(e) =>
-                  handleStatusFilterChange(
-                    e.target.value as ResourceStatus | "ALL"
-                  )
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
-              >
-                <option value="ALL">Todos</option>
-                <option value="ACTIVE">Ativos</option>
-                <option value="INACTIVE">Inativos</option>
-              </select>
-            </div>
+            <CustomSelect
+              label="Filtrar por status"
+              value={statusFilter}
+              onChange={(value) =>
+                handleStatusFilterChange(value as ResourceStatus | "ALL")
+              }
+              options={[
+                { value: "ALL", label: "Todos" },
+                { value: "ACTIVE", label: "Ativos" },
+                { value: "INACTIVE", label: "Inativos" },
+              ]}
+            />
 
             {/* Sort Order */}
-            <div>
-              <label
-                htmlFor="sort"
-                className="block text-sm font-medium text-christian-text mb-2"
-              >
-                Ordenar por nome
-              </label>
-              <select
-                id="sort"
-                value={sortOrder}
-                onChange={(e) =>
-                  handleSortChange(e.target.value as "asc" | "desc")
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-christian-blue"
-              >
-                <option value="asc">A-Z</option>
-                <option value="desc">Z-A</option>
-              </select>
-            </div>
+            <CustomSelect
+              label="Ordenar por nome"
+              value={sortOrder}
+              onChange={(value) => handleSortChange(value as "asc" | "desc")}
+              options={[
+                { value: "asc", label: "A-Z" },
+                { value: "desc", label: "Z-A" },
+              ]}
+            />
           </div>
         </div>
 

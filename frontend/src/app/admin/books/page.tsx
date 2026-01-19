@@ -784,7 +784,9 @@ export default function BooksPage() {
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between bg-white px-4 py-3 rounded-lg shadow-sm mt-4">
                 <div className="flex items-center space-x-2 mb-3 sm:mb-0">
-                  <span className="text-sm text-gray-700">Itens por página:</span>
+                  <span className="text-sm text-gray-700">
+                    Itens por página:
+                  </span>
                   <div className="w-20">
                     <CustomSelect
                       value={String(pageSize)}
