@@ -4,34 +4,22 @@
  * Admin Dashboard Page
  *
  * Dashboard administrativo com métricas e estatísticas.
- * TODO: Implementar métricas do backend (livros mais clicados, vendas, etc.)
+ * Protegido pelo middleware (server-side).
  *
  * @module app/admin/dashboard
  */
 
 import { useAuthStore } from "@/store";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, user, logout } = useAuthStore();
-
-  // Redirect se não autenticado
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, router]);
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
     router.push("/login");
   };
-
-  if (!isAuthenticated) {
-    return null; // Ou loading spinner
-  }
 
   return (
     <div className="min-h-screen bg-christian-background">

@@ -429,6 +429,133 @@ useAuthStore.getState().setAuth(accessToken, refreshToken, user);
 
 ---
 
+## 🛡️ **Proteção de Rotas (Route Protection)**
+
+Sistema de middleware para proteger rotas administrativas e prevenir acesso não autorizado.
+
+### **Implementação**
+
+#### **Middleware** (`src/middleware.ts`)
+
+Middleware do Next.js que executa no Edge Runtime antes de cada requisição.
+
+**Rotas Protegidas:**
+- `/admin/**` - Requer autenticação + role `ADMIN`
+- `/checkout` - Requer autenticação (futuro)
+
+**Funcionalidades:**
+- ✅ **Verificação de JWT** - Valida token antes de permitir acesso
+- ✅ **Validação de Role** - Verifica se usuário tem permissão `ADMIN`
+- ✅ **Redirect com Query Param** - Preserva URL de destino: `/login?redirect=/admin/books`
+- ✅ **Proteção Server-Side** - Executa no servidor (não pode ser bypassado pelo cliente)
+- ✅ **Cookies + Headers** - Suporta tokens em cookies e headers Authorization
+- ✅ **Página 403** - Exibida quando usuário autenticado não tem permissão
+
+**Fluxo de Proteção:**
+
+```
+1. Usuário tenta acessar /admin/dashboard
+2. Middleware intercepta a requisição
+3. Verifica se há token (cookie ou header)
+4. Se NÃO: redireciona para /login?redirect=/admin/dashboard
+5. Se SIM: valida token e verifica role ADMIN
+6. Se role inválida: redireciona para /403
+7. Se tudo OK: permite acesso
+```
+
+#### **JWT Utils** (`src/lib/jwt-utils.ts`)
+
+Utilitários para validação de tokens JWT no servidor.
+
+**Funções disponíveis:**
+- `decodeJWT(token)` - Decodifica payload sem verificar assinatura
+- `isTokenExpired(token)` - Verifica se token está expirado
+- `getRoleFromToken(token)` - Extrai role do usuário
+- `hasRole(token, role)` - Verifica se usuário tem role específica
+- `isValidToken(token)` - Validação completa (estrutura + expiração)
+
+**Nota:** Validação completa de assinatura é feita pelo backend.
+
+#### **Página 403** (`/403`)
+
+Página exibida quando usuário autenticado tenta acessar rota sem permissão.
+
+**Features:**
+- ✅ Design consistente com identidade visual
+- ✅ Mensagem clara de acesso negado
+- ✅ Botões de ação: "Voltar", "Página Inicial", "Fazer Logout"
+- ✅ Instruções para contato com administrador
+
+#### **Storage em Cookies**
+
+Tokens agora são salvos em **cookies E localStorage**:
+
+```typescript
+// auth-storage.ts
+export const saveAccessToken = (token: string): void => {
+  // LocalStorage (para React Query, Axios)
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  
+  // Cookie (para middleware)
+  document.cookie = `livraria_tunoda_access_token=${token}; path=/; max-age=3600; SameSite=Strict`;
+};
+```
+
+**Benefícios:**
+- Middleware pode acessar token via cookies
+- React Query/Axios usam localStorage
+- Proteção CSRF via SameSite=Strict
+
+#### **Login com Redirect**
+
+Página de login agora suporta query param `?redirect`:
+
+```typescript
+// Exemplo: usuário tenta acessar /admin/books sem estar logado
+// Middleware redireciona: /login?redirect=/admin/books
+// Após login, usuário é redirecionado para /admin/books
+
+const redirectTo = searchParams.get("redirect") || "/admin/dashboard";
+router.push(redirectTo); // Após login bem-sucedido
+```
+
+### **Configuração do Matcher**
+
+Middleware processa todas as rotas EXCETO:
+- `/api/**` - API routes
+- `/_next/static/**` - Arquivos estáticos
+- `/_next/image/**` - Image optimization
+- `/favicon.ico` - Favicon
+- `/img/**` - Imagens públicas
+
+### **Testes de Proteção**
+
+Para validar a proteção de rotas:
+
+1. **Acesso sem autenticação:**
+   - Tente acessar `http://localhost:3000/admin/dashboard`
+   - Deve redirecionar para `/login?redirect=/admin/dashboard`
+
+2. **Login e redirect:**
+   - Faça login com credenciais válidas
+   - Deve redirecionar automaticamente para `/admin/dashboard`
+
+3. **Acesso direto após login:**
+   - Com token válido, acesse `/admin/dashboard`
+   - Deve permitir acesso normalmente
+
+4. **Token expirado:**
+   - Aguarde expiração do token (1 hora)
+   - Acesse rota protegida
+   - Deve redirecionar para `/login`
+
+5. **Role inadequada:**
+   - (Futuro) Login com usuário `USER` (não `ADMIN`)
+   - Tente acessar `/admin/**`
+   - Deve redirecionar para `/403`
+
+---
+
 ### **Hook: useRateLimit**
 
 Hook customizado para controle de tentativas (rate limiting).
@@ -834,6 +961,7 @@ Todos os services possuem tipos completos:
 - ✅ **Zustand Stores** (Auth, Cart, UI com persistência)
 - ✅ **TypeScript Types** (50+ interfaces, zero `any`, barrel export)
 - ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
+- ✅ **Proteção de Rotas** (middleware, JWT validation, role check, página 403)
 - ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
 
 ### 🚀 **Próximas Implementações:**

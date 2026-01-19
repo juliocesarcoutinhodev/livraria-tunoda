@@ -22,13 +22,17 @@ export interface StoredUser {
 }
 
 /**
- * Salva o access token no localStorage
+ * Salva o access token no localStorage E cookies
  *
  * @param token - JWT access token
  */
 export const saveAccessToken = (token: string): void => {
   if (typeof window !== "undefined") {
+    // Salva no localStorage
     localStorage.setItem(ACCESS_TOKEN_KEY, token);
+
+    // TAMBÉM salva em cookie para o middleware acessar
+    document.cookie = `livraria_tunoda_access_token=${token}; path=/; max-age=3600; SameSite=Strict`;
   }
 };
 
@@ -109,14 +113,19 @@ export const saveAuthData = (
 };
 
 /**
- * Remove todos os dados de autenticação do localStorage
+ * Remove todos os dados de autenticação do localStorage E cookies
  * Usado no logout
  */
 export const clearAuthData = (): void => {
   if (typeof window !== "undefined") {
+    // Remove do localStorage
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+
+    // TAMBÉM remove dos cookies
+    document.cookie =
+      "livraria_tunoda_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }
 };
 

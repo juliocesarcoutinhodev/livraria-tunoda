@@ -13,14 +13,16 @@
  * @module app/login
  */
 
-import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, FormEvent, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLogin } from "@/hooks";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { getErrorMessage, getValidationErrors } from "@/lib/api-client";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/admin/dashboard";
   const login = useLogin();
 
   // Form state
@@ -136,8 +138,8 @@ export default function LoginPage() {
         password,
       });
 
-      // Sucesso: redireciona
-      router.push("/admin/dashboard");
+      // Sucesso: redireciona para a URL original ou dashboard
+      router.push(redirectTo);
     } catch (error) {
       handleLoginError(error);
     }
@@ -420,10 +422,24 @@ export default function LoginPage() {
 
         {/* Informações de Segurança */}
         <div className="mt-6 text-center text-xs text-christian-text/50">
-          <p>🔒 Conexão segura via HTTPS</p>
+          <p>Conexão segura via HTTPS</p>
           <p className="mt-1">Limite: 5 tentativas por minuto</p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Carregando...
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

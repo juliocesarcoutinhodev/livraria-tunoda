@@ -74,7 +74,7 @@ const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
         email: user.email,
         role: user.role,
       });
-  } catch (error) {
+  } catch {
     // Se falhar (ex: backend não está rodando /user/me),
     // ainda assim atualiza o Zustand com dados básicos
 
