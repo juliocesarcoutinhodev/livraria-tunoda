@@ -328,16 +328,16 @@ export default function AuthorsPage() {
               <table className="w-full table-fixed">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="w-2/5 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-[35%] px-8 py-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Autor
                     </th>
-                    <th className="w-1/8 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-[15%] px-8 py-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="w-1/6 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-[20%] px-8 py-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Data de Cadastro
                     </th>
-                    <th className="w-1/3 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-[30%] px-8 py-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
@@ -350,8 +350,8 @@ export default function AuthorsPage() {
                         author.status === "INACTIVE" ? "opacity-60" : ""
                       }`}
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
                           {author.photoUrl ? (
                             <Image
                               src={author.photoUrl}
@@ -375,7 +375,7 @@ export default function AuthorsPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-8 py-5">
                         <span
                           className={`inline-flex px-3 py-1.5 text-xs font-bold rounded-full ${
                             author.status === "ACTIVE"
@@ -386,10 +386,10 @@ export default function AuthorsPage() {
                           {author.status === "ACTIVE" ? "Ativo" : "Inativo"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-8 py-5 whitespace-nowrap text-sm text-gray-500">
                         {author.createdAt}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-8 py-5">
                         <div className="flex gap-3">
                           {/* Editar */}
                           <button
