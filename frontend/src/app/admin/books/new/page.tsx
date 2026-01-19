@@ -674,6 +674,7 @@ export default function NewBookPage() {
                           width={300}
                           height={400}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

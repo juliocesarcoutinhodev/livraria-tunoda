@@ -43,6 +43,16 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "example.com",
       },
+      // Aceitar qualquer domínio HTTPS (desenvolvimento)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      // Aceitar qualquer domínio HTTP (desenvolvimento)
+      {
+        protocol: "http",
+        hostname: "**",
+      },
     ],
   },
 };
