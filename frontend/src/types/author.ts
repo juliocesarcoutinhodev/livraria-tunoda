@@ -67,6 +67,8 @@ export interface UpdateAuthorRequest {
   biography: string;
   /** URL da foto (opcional) */
   photoUrl?: string;
+  /** Status do autor */
+  status: ResourceStatus;
 }
 
 /**

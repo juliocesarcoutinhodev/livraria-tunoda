@@ -265,6 +265,7 @@ src/
 - **React Context API** - Gerenciamento de estado do carrinho (legado)
 - **Zustand 5.0.10** - Estado global com 3 stores (Auth, Cart, UI)
 - **Persist Middleware** - Persistência automática no localStorage
+- **React Query (TanStack Query)** - Cache de servidor, mutations, invalidações
 
 ### API & HTTP
 - **Axios** - Cliente HTTP com interceptors
@@ -276,6 +277,10 @@ src/
 - **Prettier 3.4.2** - Formatação de código
 - **TypeScript 5** - Type checking com strict mode (zero `any`)
 - **50+ interfaces** - DTOs que espelham backend Spring Boot
+
+### UI & Feedback
+- **React Hot Toast** - Notificações toast elegantes e acessíveis
+- **Framer Motion** - Animações suaves (futuro)
 
 ### Otimização
 - **next/image** - Otimização automática de imagens
@@ -846,28 +851,299 @@ Botões de ação em cada linha/card:
 - Tabela espaçada
 - Todos os elementos visíveis
 
+#### **11. Criar Novo Autor** (`/admin/authors/new`)
+
+Página dedicada para cadastro de novos autores com formulário completo.
+
+**Features:**
+- ✅ **Formulário validado** com feedback em tempo real
+- ✅ **Validação progressiva** (erros aparecem apenas após interação)
+- ✅ **Contador de caracteres** para Nome (max 200) e Biografia
+- ✅ **Preview de imagem** ao digitar URL da foto
+- ✅ **Textos de ajuda neutros** (não intimidantes)
+- ✅ **Loading state** no botão "Salvar Autor"
+- ✅ **Notificações toast** de sucesso/erro
+- ✅ **Redirect automático** para listagem após sucesso
+- ✅ **Layout compacto** (~720px, sem scroll vertical excessivo)
+- ✅ **Campo de Biografia convidativo** (5 rows, placeholder detalhado)
+- ✅ **Botão Cancelar** discreto, "Salvar" como primário
+
+**Campos do Formulário:**
+- **Nome** (obrigatório, max 200 caracteres)
+- **Biografia** (obrigatório, mínimo 20 caracteres, textarea com 5 linhas)
+- **URL da Foto** (opcional, validação de URL, preview ao digitar)
+
+**Validações:**
+```typescript
+// Frontend
+- Nome: required, maxLength: 200
+- Biografia: required, minLength: 20
+- URL: formato válido (se preenchido)
+
+// Backend (validação completa)
+- Formato de URL
+- Duplicação de nome
+- Regras de negócio específicas
+```
+
+**Experiência UX Refinada:**
+- ✅ **Erros progressivos**: Só aparecem após usuário tocar no campo (`onBlur`)
+- ✅ **Help texts neutros**: "Nome completo do autor", "Mínimo de 20 caracteres"
+- ✅ **Biografia convidativa**: Height otimizada + placeholder com exemplo real
+- ✅ **Hierarquia visual clara**: Título grande, descrição, campos organizados
+- ✅ **Botão primário destacado**: "Salvar Autor" com shadow, "Cancelar" discreto
+- ✅ **Layout mobile-first**: Botões empilhados no mobile, lado a lado no desktop
+
+**Integração Backend:**
+- Endpoint: `POST /api/admin/authors`
+- Hook: `useCreateAuthor()`
+- Invalidação automática de cache da listagem
+
+---
+
+#### **12. Editar Autor** (`/admin/authors/[id]/edit`)
+
+Página para edição de autores existentes com formulário pré-preenchido.
+
+**Features:**
+- ✅ **Busca automática** dos dados do autor via `useAuthorDetail(id)`
+- ✅ **Formulário pré-preenchido** com dados atuais
+- ✅ **Mesmas validações** da criação
+- ✅ **Campo Status** adicional (Ativo/Inativo)
+- ✅ **Botão "Salvar Alterações"** com loading state
+- ✅ **Notificações toast** de sucesso/erro
+- ✅ **Atualização otimista** via React Query
+- ✅ **Redirect automático** para listagem após sucesso
+- ✅ **Loading skeleton** enquanto carrega dados
+- ✅ **Erro 404** se autor não existir
+
+**Campos do Formulário:**
+- Nome (obrigatório)
+- Biografia (obrigatório)
+- URL da Foto (opcional)
+- **Status** (obrigatório: Ativo/Inativo) - Campo adicional
+
+**Diferenças da Criação:**
+```diff
++ Campo Status (dropdown: Ativo/Inativo)
++ Botão "Salvar Alterações" em vez de "Salvar Autor"
++ Loading inicial enquanto busca dados do autor
++ Estado de "Autor não encontrado"
+```
+
+**Integração Backend:**
+- Busca: `GET /api/admin/authors/{id}`
+- Atualização: `PUT /api/admin/authors/{id}`
+- Hook de busca: `useAuthorDetail(id)`
+- Hook de atualização: `useUpdateAuthor()`
+- Invalidação automática de cache (listagem + detalhe)
+
+**Fluxo Completo:**
+```
+1. Admin clica em "Editar" na listagem
+2. Redireciona para /admin/authors/{id}/edit
+3. useAuthorDetail() busca dados do autor
+4. Skeleton exibido durante carregamento
+5. Formulário é pré-preenchido
+6. Admin edita campos
+7. Clica em "Salvar Alterações"
+8. useUpdateAuthor() envia PUT ao backend
+9. Cache do React Query é atualizado
+10. Toast de sucesso aparece
+11. Redireciona para /admin/authors
+```
+
+---
+
+#### **13. Ativar/Desativar Autor**
+
+Funcionalidade para alterar o status de um autor sem deletá-lo.
+
+**Features:**
+- ✅ **Botão toggle** em cada linha da tabela/card
+- ✅ **Modal de confirmação** com mensagem contextual
+- ✅ **Notificações toast** após sucesso/erro
+- ✅ **Atualização otimista** do status
+- ✅ **Badge muda de cor** imediatamente (verde ↔ cinza)
+- ✅ **Autor inativo fica esmaecido** (`opacity-60`)
+- ✅ **Validação de negócio**: Não pode desativar autor com livros ativos
+- ✅ **Mensagem de erro** explicativa no modal
+
+**Modal de Confirmação:**
+```typescript
+// Desativar
+title: "Desativar Autor?"
+message: "O autor {Nome} será marcado como inativo e não aparecerá mais..."
+type: "warning"
+buttons: ["Cancelar", "Desativar"]
+
+// Ativar
+title: "Ativar Autor?"
+message: "O autor {Nome} será marcado como ativo e voltará a aparecer..."
+type: "info"
+buttons: ["Cancelar", "Ativar"]
+```
+
+**Notificações Toast:**
+```typescript
+// Sucesso ao ativar
+toast.success("Autor ativado com sucesso!", {
+  icon: "✅"
+});
+
+// Sucesso ao desativar
+toast.success("Autor desativado com sucesso!", {
+  icon: "🚫"
+});
+
+// Erro (ex: autor tem livros ativos)
+toast.error("Erro ao desativar autor", {
+  duration: 4000
+});
+```
+
+**Validações Backend:**
+- ✅ Autor existe?
+- ✅ Autor tem livros ativos? (bloqueia desativação)
+- ✅ Status é válido? (ACTIVE/INACTIVE)
+
+**Integração:**
+- Endpoint: `PUT /api/admin/authors/{id}/status`
+- Hook: `useUpdateAuthorStatus()`
+- Payload: `{ status: "ACTIVE" | "INACTIVE" }`
+
+**Comportamento Visual:**
+```
+✅ ATIVO:
+- Badge verde com texto "Ativo"
+- Linha normal (sem opacidade)
+- Botão: "Desativar" (cinza)
+
+🚫 INATIVO:
+- Badge cinza com texto "Inativo"
+- Linha esmaecida (opacity-60)
+- Botão: "Ativar" (verde)
+```
+
+---
+
+#### **14. Notificações Toast** (`react-hot-toast`)
+
+Sistema de notificações elegante e não intrusivo para feedback ao usuário.
+
+**Biblioteca:**
+- `react-hot-toast` (3KB gzipped)
+- Instalação: `npm install react-hot-toast`
+
+**Configuração Global** (`src/app/layout.tsx`):
+```tsx
+import { Toaster } from "react-hot-toast";
+
+<Toaster
+  position="top-right"
+  toastOptions={{
+    duration: 3000,  // 3 segundos
+    style: {
+      background: "#fff",
+      color: "#363636",
+      padding: "16px",
+      borderRadius: "8px",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    },
+    success: {
+      iconTheme: {
+        primary: "#10b981",  // Verde
+        secondary: "#fff",
+      },
+    },
+    error: {
+      iconTheme: {
+        primary: "#ef4444",  // Vermelho
+        secondary: "#fff",
+      },
+    },
+  }}
+/>
+```
+
+**Uso nas Páginas:**
+```typescript
+import toast from "react-hot-toast";
+
+// Sucesso
+toast.success("Autor ativado com sucesso!", {
+  icon: "✅",
+});
+
+// Erro
+toast.error("Erro ao desativar autor", {
+  duration: 4000,
+});
+
+// Carregando
+const toastId = toast.loading("Salvando autor...");
+// Depois atualizar:
+toast.success("Autor criado!", { id: toastId });
+```
+
+**Features:**
+- ✅ **Posição top-right** (não intrusivo)
+- ✅ **Auto-dismiss** após 3 segundos
+- ✅ **Hover pause** - pausa ao passar o mouse
+- ✅ **Animações suaves** - slide in/out
+- ✅ **Empilhamento** - múltiplos toasts organizados
+- ✅ **Personalização por tipo** (success, error, loading)
+- ✅ **Ícones customizáveis** (✅, 🚫, ❌, etc.)
+- ✅ **Acessível** - ARIA announcements
+- ✅ **Responsivo** - adapta em mobile
+
+**Casos de Uso Implementados:**
+- ✅ Criar autor: "Autor criado com sucesso!"
+- ✅ Editar autor: "Autor atualizado com sucesso!"
+- ✅ Ativar autor: "Autor ativado com sucesso!" ✅
+- ✅ Desativar autor: "Autor desativado com sucesso!" 🚫
+- ✅ Erro ao criar: "Erro ao criar autor"
+- ✅ Erro ao editar: "Erro ao atualizar autor"
+- ✅ Erro ao ativar/desativar: "Erro ao ativar/desativar autor"
+
+---
+
 ### **Arquitetura**
 
 ```
 src/
-├── app/admin/authors/
-│   └── page.tsx              # Página principal de listagem
+├── app/
+│   ├── layout.tsx            # ✨ Toaster global
+│   └── admin/authors/
+│       ├── page.tsx          # Listagem + Ativar/Desativar
+│       ├── new/
+│       │   └── page.tsx      # ✨ Criar novo autor
+│       └── [id]/
+│           └── edit/
+│               └── page.tsx  # ✨ Editar autor
 ├── components/
 │   ├── layout/
 │   │   ├── AdminSidebar.tsx  # Sidebar de navegação
 │   │   └── Breadcrumb.tsx    # Navegação hierárquica
 │   └── ui/
-│       └── Skeleton.tsx      # Loading skeletons
+│       ├── Skeleton.tsx      # Loading skeletons
+│       └── Modal.tsx         # ✨ Modal de confirmação
 ├── hooks/
-│   └── useAuthors.ts         # React Query hooks
+│   └── useAuthors.ts         # ✨ React Query hooks (5 hooks)
+├── services/
+│   └── authorService.ts      # ✨ API integration (5 métodos)
 └── types/
-    └── author.ts             # TypeScript types
+    └── author.ts             # ✨ TypeScript types completos
 ```
 
 ### **Hooks Disponíveis**
 
+O arquivo `src/hooks/useAuthors.ts` exporta **5 hooks React Query** para gerenciamento completo de autores:
+
+#### **1. useAuthors() - Listagem Paginada**
+
 ```typescript
-import { useAuthors, useUpdateAuthorStatus } from "@/hooks";
+import { useAuthors } from "@/hooks";
 
 // Listagem com paginação e filtros
 const { data, isLoading, error } = useAuthors({
@@ -882,13 +1158,190 @@ const { data, isLoading, error } = useAuthors({
 // Acessar dados paginados
 const authors = data?.content || [];
 const totalPages = data ? Math.ceil(data.totalElements / 5) : 0;
+const totalAuthors = data?.totalElements || 0;
+```
 
-// Toggle status (com invalidação automática de cache)
+**Features:**
+- ✅ Paginação server-side
+- ✅ Filtros server-side (status, name)
+- ✅ Ordenação server-side (sortBy, sortDirection)
+- ✅ Cache inteligente (5 min stale time)
+- ✅ Refetch automático ao focar na aba
+
+---
+
+#### **2. useAuthorDetail(id) - Buscar Autor por ID**
+
+```typescript
+import { useAuthorDetail } from "@/hooks";
+
+// Buscar autor específico
+const { data: author, isLoading, error } = useAuthorDetail(authorId);
+
+if (isLoading) return <Skeleton />;
+if (!author) return <NotFound />;
+
+// Usar dados
+console.log(author.name);        // Nome do autor
+console.log(author.biography);   // Biografia completa
+console.log(author.status);      // "ACTIVE" | "INACTIVE"
+```
+
+**Usado em:**
+- ✅ Formulário de edição (pré-preencher campos)
+- ✅ Página de detalhes do autor
+- ✅ Preview no modal
+
+---
+
+#### **3. useCreateAuthor() - Criar Novo Autor**
+
+```typescript
+import { useCreateAuthor } from "@/hooks";
+import toast from "react-hot-toast";
+
+const createAuthor = useCreateAuthor();
+
+const handleSubmit = async (formData: CreateAuthorRequest) => {
+  try {
+    await createAuthor.mutateAsync(formData);
+    toast.success("Autor criado com sucesso!");
+    router.push("/admin/authors");
+  } catch (error) {
+    toast.error("Erro ao criar autor");
+  }
+};
+
+// Loading state
+if (createAuthor.isPending) {
+  return <button disabled>Salvando...</button>;
+}
+```
+
+**Features:**
+- ✅ Invalidação automática de cache da listagem
+- ✅ Tratamento de erros de validação
+- ✅ Loading state
+- ✅ TypeScript completo
+
+---
+
+#### **4. useUpdateAuthor() - Editar Autor**
+
+```typescript
+import { useUpdateAuthor } from "@/hooks";
+
+const updateAuthor = useUpdateAuthor();
+
+const handleUpdate = async () => {
+  await updateAuthor.mutateAsync({
+    id: authorId,
+    data: {
+      name: "Nome Atualizado",
+      biography: "Nova biografia...",
+      photoUrl: "https://...",
+      status: "ACTIVE"
+    }
+  });
+  
+  toast.success("Autor atualizado com sucesso!");
+};
+```
+
+**Features:**
+- ✅ Atualização otimista (UI muda antes da resposta)
+- ✅ Invalidação de cache (listagem + detalhe)
+- ✅ Rollback automático em caso de erro
+- ✅ TypeScript completo
+
+---
+
+#### **5. useUpdateAuthorStatus() - Ativar/Desativar**
+
+```typescript
+import { useUpdateAuthorStatus } from "@/hooks";
+
 const updateStatus = useUpdateAuthorStatus();
-updateStatus.mutate({ 
-  id: "author-id", 
-  status: "INACTIVE" 
-});
+
+// Ativar ou desativar
+const handleToggleStatus = async (author: Author) => {
+  const newStatus = author.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+  
+  try {
+    await updateStatus.mutateAsync({
+      id: author.id,
+      status: newStatus
+    });
+    
+    toast.success(
+      newStatus === "ACTIVE" 
+        ? "Autor ativado com sucesso!" 
+        : "Autor desativado com sucesso!"
+    );
+  } catch (error) {
+    toast.error("Erro ao alterar status");
+  }
+};
+
+// Loading state por autor
+const isUpdating = updateStatus.isPending;
+```
+
+**Features:**
+- ✅ Atualização otimista
+- ✅ Invalidação automática de cache
+- ✅ Validação backend (não desativa se houver livros ativos)
+- ✅ Feedback de erro explicativo
+
+---
+
+### **Resumo dos Hooks:**
+
+| Hook | Tipo | Uso Principal | Cache |
+|------|------|---------------|-------|
+| `useAuthors()` | **Query** | Listagem paginada | 5 min |
+| `useAuthorDetail(id)` | **Query** | Buscar por ID | 5 min |
+| `useCreateAuthor()` | **Mutation** | Criar novo | Invalida lista |
+| `useUpdateAuthor()` | **Mutation** | Editar existente | Invalida lista + detalhe |
+| `useUpdateAuthorStatus()` | **Mutation** | Ativar/Desativar | Invalida lista + detalhe |
+
+**Query Keys:**
+```typescript
+queryKeys.authors.all()                    // ['authors']
+queryKeys.authors.list(filters)            // ['authors', 'list', { ...filters }]
+queryKeys.authors.detail(id)               // ['authors', 'detail', id]
+```
+
+**Exemplo Completo (Listagem):**
+```typescript
+export default function AuthorsPage() {
+  const [page, setPage] = useState(0);
+  const [filters, setFilters] = useState<AuthorFilterParams>({
+    page: 0,
+    size: 5,
+    sortBy: "name",
+    sortDirection: "asc"
+  });
+
+  // Buscar autores
+  const { data, isLoading } = useAuthors(filters);
+  
+  // Ativar/Desativar
+  const updateStatus = useUpdateAuthorStatus();
+
+  const handleToggleStatus = (author: Author) => {
+    const newStatus = author.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    updateStatus.mutate({ id: author.id, status: newStatus });
+  };
+
+  return (
+    <div>
+      {/* Filtros */}
+      {/* Tabela */}
+      {/* Paginação */}
+    </div>
+  );
+}
 ```
 
 ### **Componentes Reutilizáveis**
@@ -1627,20 +2080,111 @@ Todos os services possuem tipos completos:
 
 ### ✅ **Já Implementado:**
 
-- ✅ **API Integration completa** (Spring Boot)
-- ✅ **Sistema de autenticação** (JWT + refresh token)
-- ✅ **Services layer** (7 services completos)
-- ✅ **Types TypeScript** (100% tipado)
-- ✅ **API Client** (Axios + interceptors)
-- ✅ **React Query** (cache, mutations, optimistic updates)
-- ✅ **Zustand Stores** (Auth, Cart, UI com persistência)
-- ✅ **TypeScript Types** (50+ interfaces, zero `any`, barrel export)
-- ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
-- ✅ **Proteção de Rotas** (middleware, JWT validation, role check, página 403)
-- ✅ **Logout Seguro** (confirmação, limpeza completa, auto-logout por inatividade)
-- ✅ **Gestão de Autores** (listagem, filtros, busca, ações, paginação server-side, responsivo)
-- ✅ **Dashboard com Métricas** (total livros/autores, estoque baixo, top 5 visualizados/clicados)
-- ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
+#### **🏗️ Fundação & Arquitetura:**
+- ✅ **Next.js 16** com App Router + Turbopack
+- ✅ **TypeScript 5** - Strict mode, zero `any`, 50+ interfaces
+- ✅ **Tailwind CSS 4** - Design system cristão completo
+- ✅ **API Integration completa** (Spring Boot REST API)
+- ✅ **Services layer** (7 services: auth, author, book, cart, shipping, order, payment)
+- ✅ **API Client** (Axios + interceptors, refresh token automático)
+- ✅ **React Query** (cache inteligente, mutations, optimistic updates)
+- ✅ **Zustand Stores** (Auth, Cart, UI com persistência localStorage)
+- ✅ **TypeScript Types** (50+ interfaces, enums, barrel export)
+
+#### **🔐 Autenticação & Segurança:**
+- ✅ **Login JWT** (access token + refresh token)
+- ✅ **Página de Login** (validação, rate limiting, loading states)
+- ✅ **Proteção de Rotas** (middleware server-side, role check, página 403)
+- ✅ **Logout Seguro** (confirmação modal, limpeza total, revogação backend)
+- ✅ **Auto-logout** por inatividade (1h, com aviso 5 min antes)
+- ✅ **JWT Storage** (localStorage + cookies para middleware)
+- ✅ **Rate Limiting** (5 tentativas/min no login)
+
+#### **📊 Dashboard Administrativo:**
+- ✅ **Métricas em Tempo Real**:
+  - Total de Livros Cadastrados
+  - Total de Autores Cadastrados
+  - Livros com Estoque Baixo (alerta refinado)
+  - Top 5 Livros Mais Visualizados
+  - Top 5 Livros Mais Clicados
+- ✅ **Loading Skeletons** em todos os cards/tabelas
+- ✅ **Responsive Design** (mobile, tablet, desktop)
+- ✅ **Cache Inteligente** (React Query, 2-5 min stale time)
+
+#### **👥 Gestão de Autores (CRUD Completo):**
+- ✅ **Listagem Paginada**:
+  - Paginação server-side (5 registros/página)
+  - Filtros server-side (status, nome)
+  - Ordenação server-side (nome: A-Z, Z-A)
+  - Busca em tempo real
+  - Loading skeletons
+  - Estado vazio com CTA
+  - Responsivo (tabela desktop, cards mobile)
+  
+- ✅ **Criar Autor** (`/admin/authors/new`):
+  - Formulário validado (nome, biografia, foto URL)
+  - Validação progressiva (erros após interação)
+  - Preview de imagem ao digitar URL
+  - Contador de caracteres
+  - Help texts neutros
+  - Layout compacto (~720px, sem scroll excessivo)
+  - Toast de sucesso/erro
+  - Redirect após criação
+
+- ✅ **Editar Autor** (`/admin/authors/[id]/edit`):
+  - Formulário pré-preenchido
+  - Busca automática de dados
+  - Campo Status adicional (Ativo/Inativo)
+  - Mesmas validações da criação
+  - Atualização otimista
+  - Toast de sucesso/erro
+  - Redirect após edição
+
+- ✅ **Ativar/Desativar Autor**:
+  - Modal de confirmação contextual
+  - Toast de feedback (✅ ativar, 🚫 desativar)
+  - Atualização otimista (badge muda instantaneamente)
+  - Linha esmaecida para autores inativos
+  - Validação backend (não desativa se houver livros ativos)
+  - Mensagem de erro explicativa
+
+#### **🔔 Sistema de Notificações:**
+- ✅ **React Hot Toast** integrado globalmente
+- ✅ **Posição top-right** (não intrusivo)
+- ✅ **Auto-dismiss** após 3 segundos
+- ✅ **Hover pause** - pausa ao passar o mouse
+- ✅ **Animações suaves** - slide in/out
+- ✅ **Ícones personalizados** (✅, 🚫, ❌, etc.)
+- ✅ **Tipos coloridos** (success verde, error vermelho)
+- ✅ **Acessível** (ARIA announcements)
+
+#### **🎨 Componentes & UI:**
+- ✅ **AdminSidebar** - Navegação lateral responsiva
+- ✅ **Breadcrumb** - Navegação hierárquica
+- ✅ **Modal** - Confirmações reutilizável (4 tipos)
+- ✅ **Skeleton** - Loading states elegantes
+- ✅ **Button** - Botão reutilizável com variants
+- ✅ **Toaster** - Notificações globais
+
+#### **🚀 Hooks Personalizados:**
+- ✅ **useAuth** (login, logout, isAuthenticated, hasRole)
+- ✅ **useAuthors** (list, detail, create, update, updateStatus) - 5 hooks
+- ✅ **useDashboard** (stats, mostViewed, mostClicked, lowStock)
+- ✅ **useRateLimit** (controle de tentativas)
+- ✅ **useInactivityLogout** (auto-logout por inatividade)
+
+#### **🐛 Correções & Refinamentos:**
+- ✅ **Botão "Entrar"** - Visível com cores corretas
+- ✅ **Redirect após login** - Zustand atualizado corretamente
+- ✅ **Scroll horizontal** - Removido no desktop
+- ✅ **Conteúdo mobile** - Seção "Sobre" visível
+- ✅ **Menu ativo** - Sidebar destaca página atual
+- ✅ **Grid de autores** - Colunas alinhadas corretamente
+- ✅ **Avatar placeholder** - Ícone SVG quando sem foto
+- ✅ **Top Books** - Estrutura de dados correta (`totalMetrics`)
+- ✅ **Alerta de estoque** - Visual refinado (menos agressivo)
+- ✅ **Layout de formulário** - Compacto, sem scroll excessivo
+- ✅ **Validação de status** - Campo status enviado no PUT
 
 ### 🚀 **Próximas Implementações:**
 

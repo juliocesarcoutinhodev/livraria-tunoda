@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { CartProvider } from "@/contexts/CartContext";
 import "./globals.css";
@@ -37,6 +38,31 @@ export default function RootLayout({
         <ReactQueryProvider>
           <CartProvider>{children}</CartProvider>
         </ReactQueryProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#fff",
+              color: "#363636",
+              padding: "16px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            },
+            success: {
+              iconTheme: {
+                primary: "#10b981",
+                secondary: "#fff",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#ef4444",
+                secondary: "#fff",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );

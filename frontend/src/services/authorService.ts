@@ -117,7 +117,7 @@ const updateStatus = async (
   status: "ACTIVE" | "INACTIVE"
 ): Promise<void> => {
   const data: UpdateAuthorStatusRequest = { status };
-  await apiClient.patch(`/admin/authors/${id}/status`, data);
+  await apiClient.put(`/admin/authors/${id}/status`, data);
 };
 
 /**

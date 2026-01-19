@@ -12,11 +12,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import { useAuthors, useUpdateAuthorStatus } from "@/hooks";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
+import Modal from "@/components/ui/Modal";
 import { AuthorCardSkeleton, TableRowSkeleton } from "@/components/ui";
+import { getErrorMessage } from "@/lib/api-client";
 import type { Author, AuthorFilterParams } from "@/types/author";
 import type { ResourceStatus } from "@/types/api";
 
@@ -28,6 +31,9 @@ export default function AuthorsPage() {
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(0);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
@@ -67,9 +73,49 @@ export default function AuthorsPage() {
   };
 
   const handleToggleStatus = (author: Author) => {
+    setSelectedAuthor(author);
+    setShowConfirmModal(true);
+    setErrorMessage(null);
+  };
+
+  const confirmToggleStatus = async () => {
+    if (!selectedAuthor) return;
+
     const newStatus: ResourceStatus =
-      author.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    updateStatus.mutate({ id: author.id, status: newStatus });
+      selectedAuthor.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    const actionText = newStatus === "ACTIVE" ? "ativado" : "desativado";
+
+    try {
+      await updateStatus.mutateAsync({
+        id: selectedAuthor.id,
+        status: newStatus,
+      });
+      setShowConfirmModal(false);
+      setSelectedAuthor(null);
+      setErrorMessage(null);
+
+      // Toast de sucesso
+      toast.success(`Autor ${actionText} com sucesso!`, {
+        icon: newStatus === "ACTIVE" ? "✅" : "🚫",
+      });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      setErrorMessage(message);
+
+      // Toast de erro
+      toast.error(
+        `Erro ao ${newStatus === "ACTIVE" ? "ativar" : "desativar"} autor`,
+        {
+          duration: 4000,
+        }
+      );
+    }
+  };
+
+  const cancelToggleStatus = () => {
+    setShowConfirmModal(false);
+    setSelectedAuthor(null);
+    setErrorMessage(null);
   };
 
   const handleEdit = (authorId: string) => {
@@ -313,7 +359,9 @@ export default function AuthorsPage() {
                   {authors.map((author) => (
                     <tr
                       key={author.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      className={`hover:bg-gray-50 transition-colors ${
+                        author.status === "INACTIVE" ? "opacity-60" : ""
+                      }`}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -425,7 +473,9 @@ export default function AuthorsPage() {
               {authors.map((author) => (
                 <div
                   key={author.id}
-                  className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+                  className={`bg-white rounded-lg shadow-sm p-4 border border-gray-200 ${
+                    author.status === "INACTIVE" ? "opacity-60" : ""
+                  }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
@@ -558,6 +608,96 @@ export default function AuthorsPage() {
           </>
         )}
       </main>
+
+      {/* Modal de Confirmação */}
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={cancelToggleStatus}
+        title={
+          selectedAuthor?.status === "ACTIVE"
+            ? "Desativar Autor"
+            : "Ativar Autor"
+        }
+        type={selectedAuthor?.status === "ACTIVE" ? "warning" : "info"}
+        actions={
+          <>
+            <button
+              onClick={cancelToggleStatus}
+              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+              disabled={updateStatus.isPending}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmToggleStatus}
+              disabled={updateStatus.isPending}
+              className={`px-6 py-2 rounded-lg font-semibold transition-colors disabled:opacity-50 ${
+                selectedAuthor?.status === "ACTIVE"
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
+            >
+              {updateStatus.isPending
+                ? "Processando..."
+                : selectedAuthor?.status === "ACTIVE"
+                  ? "Sim, Desativar"
+                  : "Sim, Ativar"}
+            </button>
+          </>
+        }
+      >
+        {errorMessage ? (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+            <div className="flex items-start">
+              <svg
+                className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <p className="font-semibold text-red-800">
+                  Erro ao alterar status
+                </p>
+                <p className="text-sm text-red-700 mt-1">{errorMessage}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            {selectedAuthor?.status === "ACTIVE" ? (
+              <>
+                <p className="mb-3">
+                  Tem certeza que deseja desativar o autor{" "}
+                  <strong>{selectedAuthor?.name}</strong>?
+                </p>
+                <p className="text-sm text-gray-600">
+                  O autor não aparecerá mais no catálogo público. Caso existam
+                  livros ativos vinculados a este autor, a operação será
+                  bloqueada.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mb-3">
+                  Tem certeza que deseja ativar o autor{" "}
+                  <strong>{selectedAuthor?.name}</strong>?
+                </p>
+                <p className="text-sm text-gray-600">
+                  O autor voltará a aparecer no catálogo público.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
