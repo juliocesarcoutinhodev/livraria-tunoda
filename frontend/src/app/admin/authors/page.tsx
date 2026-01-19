@@ -132,7 +132,7 @@ export default function AuthorsPage() {
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-6 lg:p-8">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
         {/* Breadcrumb */}
         <Breadcrumb
           items={[
@@ -477,7 +477,7 @@ export default function AuthorsPage() {
                     author.status === "INACTIVE" ? "opacity-60" : ""
                   }`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3">
                     {/* Avatar */}
                     {author.photoUrl ? (
                       <Image
@@ -513,14 +513,16 @@ export default function AuthorsPage() {
                       </span>
 
                       {/* Actions */}
-                      <div className="flex gap-3 mt-3">
+                      <div className="flex gap-2 mt-3">
                         {/* Editar */}
                         <button
                           onClick={() => handleEdit(author.id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-christian-blue hover:bg-christian-green text-white rounded-lg font-medium transition-colors"
+                          className="p-2 bg-christian-blue hover:bg-christian-blue/90 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
+                          aria-label="Editar autor"
+                          title="Editar"
                         >
                           <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -532,21 +534,28 @@ export default function AuthorsPage() {
                               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                             />
                           </svg>
-                          Editar
                         </button>
 
                         {/* Ativar/Desativar */}
                         <button
                           onClick={() => handleToggleStatus(author)}
                           disabled={updateStatus.isPending}
-                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                          className={`p-2 rounded-lg transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
                             author.status === "ACTIVE"
                               ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                               : "bg-green-500 hover:bg-green-600 text-white"
                           }`}
+                          aria-label={
+                            author.status === "ACTIVE"
+                              ? "Desativar autor"
+                              : "Ativar autor"
+                          }
+                          title={
+                            author.status === "ACTIVE" ? "Desativar" : "Ativar"
+                          }
                         >
                           <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -567,7 +576,6 @@ export default function AuthorsPage() {
                               />
                             )}
                           </svg>
-                          {author.status === "ACTIVE" ? "Desativar" : "Ativar"}
                         </button>
                       </div>
                     </div>
@@ -578,19 +586,19 @@ export default function AuthorsPage() {
 
             {/* Pagination */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg border border-gray-200">
-              <div className="text-sm text-christian-text/60">
+              <div className="text-xs sm:text-sm text-christian-text/60 text-center sm:text-left">
                 Exibindo {authors.length} de {data?.totalElements || 0}{" "}
                 {data?.totalElements === 1 ? "autor" : "autores"} - Página{" "}
                 {currentPage + 1} de {totalPages || 1}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(0, prev - 1))
                   }
                   disabled={currentPage === 0}
-                  className="px-4 py-2 bg-white border border-gray-300 text-christian-text rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-300 text-christian-text rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm whitespace-nowrap"
                 >
                   Anterior
                 </button>
@@ -599,7 +607,7 @@ export default function AuthorsPage() {
                     setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
                   }
                   disabled={currentPage >= totalPages - 1}
-                  className="px-4 py-2 bg-white border border-gray-300 text-christian-text rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="flex-1 sm:flex-none px-4 py-2 bg-christian-blue hover:bg-christian-green text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm whitespace-nowrap"
                 >
                   Próxima
                 </button>

@@ -41,7 +41,7 @@ export default function DashboardPage() {
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-6 lg:p-8">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
         {/* Breadcrumb */}
         <Breadcrumb items={[{ label: "Dashboard" }]} />
 
@@ -172,12 +172,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid de Tabelas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Top 5 Mais Visualizados */}
           <div className="bg-white rounded-xl shadow-md border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
+            <div className="p-4 sm:p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
                   <svg
                     className="w-6 h-6 text-blue-600"
                     fill="none"
@@ -198,12 +198,12 @@ export default function DashboardPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-christian-text">
+                <h2 className="text-lg sm:text-xl font-bold text-christian-text">
                   Top 5 Mais Visualizados
                 </h2>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {viewedLoading ? (
                 <div className="space-y-4">
                   {[...Array(5)].map((_, i) => (
@@ -263,9 +263,9 @@ export default function DashboardPage() {
 
           {/* Top 5 Mais Clicados */}
           <div className="bg-white rounded-xl shadow-md border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
+            <div className="p-4 sm:p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
                   <svg
                     className="w-6 h-6 text-green-600"
                     fill="none"
@@ -280,12 +280,12 @@ export default function DashboardPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-christian-text">
+                <h2 className="text-lg sm:text-xl font-bold text-christian-text">
                   Top 5 Mais Clicados
                 </h2>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {clickedLoading ? (
                 <div className="space-y-4">
                   {[...Array(5)].map((_, i) => (
