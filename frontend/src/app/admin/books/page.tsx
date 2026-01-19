@@ -169,10 +169,6 @@ export default function BooksPage() {
     }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
-
   const getStockBadge = (stock: number) => {
     if (stock < 5) {
       return (
@@ -494,7 +490,7 @@ export default function BooksPage() {
                             {getStatusBadge(book.status)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(book.createdAt)}
+                            {book.createdAt}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
