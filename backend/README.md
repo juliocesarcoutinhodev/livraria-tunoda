@@ -139,6 +139,7 @@ Senha: admin123
 | `/api/public/books` | GET | Listar livros (com busca e ordenação) | Público |
 | `/api/admin/books` | GET | Listar livros admin (com filtros) | ADMIN |
 | `/api/admin/books` | POST | Criar livro | ADMIN |
+| `/api/admin/books/{id}` | GET | Buscar livro por ID | ADMIN |
 | `/api/admin/books/{id}/stock` | POST | Atualizar estoque | ADMIN |
 | `/api/admin/authors` | GET | Listar autores (com busca e ordenação) | ADMIN |
 | `/api/admin/authors/{id}` | GET | Buscar autor por ID | ADMIN |

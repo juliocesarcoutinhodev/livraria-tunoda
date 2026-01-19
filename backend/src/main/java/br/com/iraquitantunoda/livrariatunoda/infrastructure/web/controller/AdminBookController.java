@@ -9,6 +9,7 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateBookRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateStockRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ChangeBookStatusUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateBookUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetBookDetailAdminUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetBookMetricsUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ListBooksUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateBookStockUseCase;
@@ -29,6 +30,7 @@ public class AdminBookController {
     private final UpdateBookUseCase updateBookUseCase;
     private final ChangeBookStatusUseCase changeBookStatusUseCase;
     private final GetBookMetricsUseCase getBookMetricsUseCase;
+    private final GetBookDetailAdminUseCase getBookDetailAdminUseCase;
     private final ListBooksUseCase listBooksUseCase;
     private final UpdateBookStockUseCase updateBookStockUseCase;
 
@@ -44,6 +46,12 @@ public class AdminBookController {
         @RequestParam(required = false) String sortDirection
     ) {
         var response = listBooksUseCase.execute(page, size, status, authorId, lowStock, title, sortBy, sortDirection);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{bookId}")
+    public ResponseEntity<BookResponse> getBookDetail(@PathVariable String bookId) {
+        var response = getBookDetailAdminUseCase.execute(bookId);
         return ResponseEntity.ok(response);
     }
 

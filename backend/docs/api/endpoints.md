@@ -197,6 +197,32 @@ Response: {
 }
 ```
 
+### Buscar Livro por ID ⭐ NOVO
+```
+GET /api/admin/books/{bookId}
+Auth: ROLE_ADMIN
+Response: {
+  id: "uuid",
+  title: "Clean Code",
+  description: "...",
+  photoUrl: "https://...",
+  isbn: "978-0132350884",
+  price: 49.90,
+  currency: "BRL",
+  weight: 0.680,
+  weightUnit: "KILOGRAMS",
+  stock: 100,
+  authors: [{id, name}],
+  status: "ACTIVE",
+  createdAt: "15/01/2026",
+  updatedAt: "19/01/2026"
+}
+
+Busca um livro específico pelo ID. Útil para preencher formulários de edição.
+Retorna 404 se livro não encontrado.
+Retorna dados completos incluindo estoque, peso e datas formatadas.
+```
+
 ### Criar Livro
 ```
 POST /api/admin/books

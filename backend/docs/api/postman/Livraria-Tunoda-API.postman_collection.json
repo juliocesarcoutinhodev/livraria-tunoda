@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "livraria-tunoda-api",
     "name": "Livraria Tunoda API",
-    "description": "Collection completa da API REST da Livraria Tunoda com 47 endpoints implementados (incluindo busca de autor por ID, logout/revoke, gestão de estoque, listagem admin, health checks e monitoramento)",
+    "description": "Collection completa da API REST da Livraria Tunoda com 48 endpoints implementados (incluindo busca de livro/autor por ID, logout/revoke, gestão de estoque, listagem admin, health checks e monitoramento)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "livraria-tunoda"
   },
@@ -420,6 +420,27 @@
               ]
             },
             "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo, título). Ordenação configurável. Padrão: createdAt DESC. Retorna campo stock e informações completas dos autores."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Livro por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/books/{{book_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "books",
+                "{{book_id}}"
+              ]
+            },
+            "description": "Busca um livro específico pelo ID. Retorna todos os dados do livro incluindo estoque, preço, peso, autores e datas formatadas (dd/MM/yyyy). Útil para preencher formulários de edição."
           },
           "response": []
         },

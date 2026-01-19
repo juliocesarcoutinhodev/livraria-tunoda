@@ -10,7 +10,8 @@ Histórico de mudanças por versão.
   - Livros (admin): busca parcial por título
   - Livros (público): busca parcial por título
 - Query JPQL otimizada com `CAST(:param AS string)` para evitar erro PostgreSQL bytea
-- **GET /api/admin/authors/{id}** - Buscar autor por ID (para formulário de edição) ⭐ NOVO
+- **GET /api/admin/authors/{id}** - Buscar autor por ID (para formulário de edição)
+- **GET /api/admin/books/{id}** - Buscar livro por ID (para formulário de edição) ⭐ NOVO
 
 ### 📊 Ordenação Dinâmica
 - **Parâmetros sortBy e sortDirection** em todos os endpoints de listagem
@@ -55,10 +56,19 @@ Histórico de mudanças por versão.
 - Aplicação subindo sem erros de bean do BookRepository
 
 ### 📊 Estatísticas
-- **Endpoints totais:** 42 → 47 (+5 novos)
+- **Endpoints totais:** 42 → 48 (+6 novos)
 - **Parâmetros de busca:** +9 (name, title, sortBy, sortDirection, stock, etc.)
 - **Arquivos de documentação:** +4 guias completos
 - **Migrations:** +1 (estoque)
+
+### 📅 Formatação de Datas
+- **Datas em formato brasileiro** `dd/MM/yyyy` nos endpoints de listagem
+  - `GET /api/admin/authors` - createdAt e updatedAt formatados
+  - `GET /api/admin/authors/{id}` - createdAt e updatedAt formatados
+  - `GET /api/admin/books` - createdAt e updatedAt formatados
+  - `GET /api/admin/books/{id}` - createdAt e updatedAt formatados
+- Banco de dados continua armazenando UTC completo
+- Formatação apenas na camada de apresentação (DTOs)
 
 ## [1.0.0] - 2026-01-18
 
