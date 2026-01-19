@@ -23,6 +23,10 @@ Guia completo sobre busca por nome/título com LIKE case-insensitive.
 
 Guia completo sobre ordenação dinâmica com sortBy e sortDirection.
 
+### [Buscar Autor por ID](GET_AUTHOR_BY_ID.md) ⭐ NOVO
+
+Endpoint para buscar autor específico por ID (útil para formulários de edição).
+
 ### [Error Handling](error-handling.md)
 
 Tratamento de erros padronizado e códigos HTTP.
@@ -34,8 +38,8 @@ Correção do erro PostgreSQL `function lower(bytea) does not exist`.
 ### [Postman Collections](postman/)
 
 Collections para importar no Postman:
-- `Livraria-Tunoda-API.postman_collection.json` - Local (46 endpoints)
-- `Livraria-Tunoda-API-STAGING.postman_collection.json` - Staging (46 endpoints)
+- `Livraria-Tunoda-API.postman_collection.json` - Local (47 endpoints)
+- `Livraria-Tunoda-API-STAGING.postman_collection.json` - Staging (47 endpoints)
 
 ## Categorias de Endpoints
 

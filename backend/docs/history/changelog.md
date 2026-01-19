@@ -10,6 +10,7 @@ Histórico de mudanças por versão.
   - Livros (admin): busca parcial por título
   - Livros (público): busca parcial por título
 - Query JPQL otimizada com `CAST(:param AS string)` para evitar erro PostgreSQL bytea
+- **GET /api/admin/authors/{id}** - Buscar autor por ID (para formulário de edição) ⭐ NOVO
 
 ### 📊 Ordenação Dinâmica
 - **Parâmetros sortBy e sortDirection** em todos os endpoints de listagem
@@ -54,7 +55,7 @@ Histórico de mudanças por versão.
 - Aplicação subindo sem erros de bean do BookRepository
 
 ### 📊 Estatísticas
-- **Endpoints totais:** 42 → 46 (+4 novos)
+- **Endpoints totais:** 42 → 47 (+5 novos)
 - **Parâmetros de busca:** +9 (name, title, sortBy, sortDirection, stock, etc.)
 - **Arquivos de documentação:** +4 guias completos
 - **Migrations:** +1 (estoque)

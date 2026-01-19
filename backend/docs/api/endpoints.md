@@ -116,6 +116,23 @@ Exemplos:
 - Mais recentes: ?sortBy=createdAt&sortDirection=desc
 ```
 
+### Buscar Autor por ID ⭐ NOVO
+```
+GET /api/admin/authors/{authorId}
+Auth: ROLE_ADMIN
+Response: {
+  id: "uuid",
+  name: "Robert C. Martin",
+  biography: "...",
+  photoUrl: "https://...",
+  status: "ACTIVE",
+  createdAt: "2026-01-19T10:00:00"
+}
+
+Busca um autor específico pelo ID. Útil para preencher formulários de edição.
+Retorna 404 se autor não encontrado.
+```
+
 ### Criar Autor
 ```
 POST /api/admin/authors

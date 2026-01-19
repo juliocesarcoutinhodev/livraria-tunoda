@@ -7,6 +7,7 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.PageResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateAuthorRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ChangeAuthorStatusUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateAuthorUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetAuthorDetailUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ListAuthorsUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateAuthorUseCase;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status;
@@ -25,6 +26,7 @@ public class AdminAuthorController {
     private final UpdateAuthorUseCase updateAuthorUseCase;
     private final ChangeAuthorStatusUseCase changeAuthorStatusUseCase;
     private final ListAuthorsUseCase listAuthorsUseCase;
+    private final GetAuthorDetailUseCase getAuthorDetailUseCase;
 
     @GetMapping
     public ResponseEntity<PageResponse<AuthorResponse>> listAuthors(
@@ -36,6 +38,12 @@ public class AdminAuthorController {
         @RequestParam(required = false) String sortDirection
     ) {
         var response = listAuthorsUseCase.execute(page, size, status, name, sortBy, sortDirection);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{authorId}")
+    public ResponseEntity<AuthorResponse> getAuthorDetail(@PathVariable String authorId) {
+        var response = getAuthorDetailUseCase.execute(authorId);
         return ResponseEntity.ok(response);
     }
 
