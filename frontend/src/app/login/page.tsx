@@ -149,6 +149,31 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-christian-background via-white to-christian-blue/5 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
+        {/* Link Voltar para Loja */}
+        <div className="mb-6 animate-fade-in">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-christian-blue hover:text-christian-green transition-colors duration-200 font-medium group"
+            aria-label="Voltar para a loja"
+          >
+            <svg
+              className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            <span>Voltar para a Loja</span>
+          </a>
+        </div>
+
         {/* Card de Login */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10 animate-fade-in">
           {/* Logo/Header */}
@@ -435,15 +460,6 @@ function LoginForm() {
                 )}
               </button>
             </div>
-
-            {/* Informações de Teste */}
-            {process.env.NODE_ENV === "development" && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
-                <p className="font-semibold mb-1">Credenciais de teste:</p>
-                <p>Email: admin@livraria.com</p>
-                <p>Senha: admin123</p>
-              </div>
-            )}
           </form>
 
           {/* Footer */}
