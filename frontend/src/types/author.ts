@@ -21,13 +21,26 @@ export interface Author {
   /** Biografia/descrição do autor */
   biography: string;
   /** URL da foto do autor */
-  photoUrl?: string;
+  photoUrl: string | null;
   /** Status (ACTIVE | INACTIVE) */
   status: ResourceStatus;
   /** Data de criação */
   createdAt: string;
   /** Data da última atualização */
   updatedAt?: string;
+}
+
+/**
+ * Autor resumido
+ * Usado em relacionamentos (ex: Book.authors)
+ */
+export interface AuthorSummary {
+  /** ID único do autor */
+  id: string;
+  /** Nome completo do autor */
+  name: string;
+  /** URL da foto do autor */
+  photoUrl: string | null;
 }
 
 /**

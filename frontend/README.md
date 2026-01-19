@@ -211,8 +211,8 @@ src/
 │       ├── Hero.tsx          # Seção hero
 │       ├── Books.tsx         # Catálogo de livros
 │       └── About.tsx         # Sobre o autor
-├── contexts/                 # React Context API
-│   └── CartContext.tsx       # Estado do carrinho
+├── contexts/                 # React Context API (legado)
+│   └── CartContext.tsx       # Estado do carrinho (migrar para Zustand)
 ├── services/                 # ✨ API Services (NOVO)
 │   ├── authService.ts        # Autenticação (login, refresh, logout)
 │   ├── authorService.ts      # CRUD autores (ADMIN)
@@ -224,17 +224,24 @@ src/
 ├── lib/                      # Utilitários e configurações
 │   ├── api-client.ts         # ✨ Axios configurado + interceptors
 │   └── auth-storage.ts       # ✨ Gerenciamento de tokens
-├── types/                    # ✨ TypeScript types/interfaces (NOVO)
-│   ├── api.ts                # Tipos comuns (paginação, erros)
-│   ├── auth.ts               # Autenticação
-│   ├── author.ts             # Autores
-│   ├── book.ts               # Livros
-│   ├── cart.ts               # Carrinho
-│   ├── shipping.ts           # Frete
+├── types/                    # ✨ TypeScript Types (REFINADO)
+│   ├── api.ts                # Tipos comuns + enums (Currency, WeightUnit)
+│   ├── auth.ts               # Autenticação e usuário
+│   ├── author.ts             # Author + AuthorSummary
+│   ├── book.ts               # Book completo com currency/weightUnit
+│   ├── cart.ts               # Carrinho de compras
+│   ├── shipping.ts           # Cálculo de frete
 │   ├── order.ts              # Pedidos
-│   └── payment.ts            # Pagamentos
+│   ├── payment.ts            # Pagamentos (Mercado Pago)
+│   └── index.ts              # Barrel export (50+ types)
 ├── hooks/                    # Custom React Hooks
-├── store/                    # Estado global (Zustand)
+├── store/                    # ✨ Zustand Stores (NOVO)
+│   ├── useAuthStore.ts       # Auth + persistência
+│   ├── useCartStore.ts       # Carrinho temporário
+│   ├── useUIStore.ts         # UI (modais, sidebar, notifications)
+│   ├── middleware/
+│   │   └── logger.ts         # Logger dev only
+│   └── index.ts              # Barrel export
 ├── constants/                # Constantes da aplicação
 └── public/
     └── img/                  # Imagens estáticas
@@ -252,8 +259,9 @@ src/
 - **@tailwindcss/postcss** - Integração PostCSS
 
 ### Estado e Dados
-- **React Context API** - Gerenciamento de estado do carrinho
-- **Zustand 5.0.2** - Estado global (preparado para uso)
+- **React Context API** - Gerenciamento de estado do carrinho (legado)
+- **Zustand 5.0.10** - Estado global com 3 stores (Auth, Cart, UI)
+- **Persist Middleware** - Persistência automática no localStorage
 
 ### API & HTTP
 - **Axios** - Cliente HTTP com interceptors
@@ -263,12 +271,244 @@ src/
 ### Qualidade de Código
 - **ESLint 9** - Linter (eslint-config-next)
 - **Prettier 3.4.2** - Formatação de código
-- **TypeScript** - Type checking com strict mode
+- **TypeScript 5** - Type checking com strict mode (zero `any`)
+- **50+ interfaces** - DTOs que espelham backend Spring Boot
 
 ### Otimização
 - **next/image** - Otimização automática de imagens
 - **Turbopack** - Bundler ultra-rápido
 - **Fontes Google** - Otimizadas com `display: 'swap'`
+
+## 🗄️ Zustand State Management
+
+O projeto utiliza **Zustand** para gerenciamento de estado global com 3 stores principais.
+
+### **Stores Disponíveis:**
+
+#### **1. useAuthStore** (com persistência)
+Gerencia autenticação com JWT tokens.
+
+```typescript
+import { useAuthStore, useIsAuthenticated } from "@/store";
+
+// Login
+const setAuth = useAuthStore((state) => state.setAuth);
+setAuth(accessToken, refreshToken, userData);
+
+// Verificar autenticação (otimizado com selector)
+const isAuth = useIsAuthenticated();
+
+// Logout
+const logout = useAuthStore((state) => state.logout);
+logout();
+```
+
+**Estado:** accessToken, refreshToken, user, isAuthenticated  
+**Persistência:** ✅ localStorage (chave: `auth-storage`)  
+**Devtools:** ✅ Habilitadas (dev only)
+
+#### **2. useCartStore** (temporário)
+Carrinho em memória antes de sincronizar com backend.
+
+```typescript
+import { useCartStore, useCartItemCount } from "@/store";
+
+// Adicionar item
+const addItem = useCartStore((state) => state.addItem);
+addItem({ id, title, price, quantity: 1 });
+
+// Badge do carrinho (otimizado)
+const count = useCartItemCount();
+```
+
+**Estado:** items, total, itemCount  
+**Persistência:** ❌ Memória apenas  
+**Devtools:** ✅ Habilitadas (dev only)
+
+#### **3. useUIStore** (UI state)
+Gerencia modais, sidebar, notificações e loading.
+
+```typescript
+import { useUIStore, useNotification } from "@/store";
+
+// Notificações
+const notify = useNotification();
+notify({ type: "success", message: "Salvo!" });
+
+// Modais
+const openModal = useUIStore((state) => state.openModal);
+openModal("book-detail", { bookId: "123" });
+
+// Sidebar (mobile)
+const toggleSidebar = useUIStore((state) => state.toggleSidebar);
+```
+
+**Estado:** modals, notifications, sidebar, loading  
+**Persistência:** ❌ Memória apenas  
+**Devtools:** ✅ Habilitadas (dev only)
+
+### **Features:**
+- ✅ **3 stores** (Auth, Cart, UI)
+- ✅ **Persistência** automática (authStore)
+- ✅ **Middleware de logging** (dev only)
+- ✅ **Devtools** do Zustand
+- ✅ **Selectors otimizados** (evita re-renders)
+- ✅ **TypeScript completo**
+- ✅ **Documentação completa** em `docs/ZUSTAND_STORES.md`
+
+### **Exemplo de Uso com Selectors:**
+
+```typescript
+// ❌ Ruim: re-render sempre que qualquer coisa mudar
+const { user, isLoading, error } = useAuthStore();
+
+// ✅ Bom: re-render apenas quando userName mudar
+const userName = useAuthStore((state) => state.user?.name);
+
+// ✅ Melhor: use helpers pré-definidos
+const user = useCurrentUser();
+const isAuth = useIsAuthenticated();
+const cartCount = useCartItemCount();
+```
+
+**Documentação completa**: Ver `docs/ZUSTAND_STORES.md`
+
+---
+
+## 📝 TypeScript Types
+
+O projeto possui **type-safety completo** com tipos que espelham 100% os DTOs do backend Spring Boot.
+
+### **Estrutura Organizada:**
+
+```
+src/types/
+├── api.ts          # Tipos comuns (paginação, erros, enums)
+├── auth.ts         # Autenticação
+├── author.ts       # Autores
+├── book.ts         # Livros
+├── cart.ts         # Carrinho
+├── shipping.ts     # Frete
+├── order.ts        # Pedidos
+├── payment.ts      # Pagamentos
+└── index.ts        # Barrel export (importação centralizada)
+```
+
+### **Tipos Principais:**
+
+#### **Author & AuthorSummary**
+```typescript
+interface Author {
+  id: string;
+  name: string;
+  biography: string;
+  photoUrl: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Usado em relacionamentos (Book.authors)
+interface AuthorSummary {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+}
+```
+
+#### **Book**
+```typescript
+interface Book {
+  id: string;
+  title: string;
+  description: string;
+  photoUrl: string | null;
+  isbn: string | null;
+  price: number;
+  currency: Currency;        // 'BRL' | 'USD' | 'EUR'
+  weight: number;
+  weightUnit: WeightUnit;    // 'KG' | 'G'
+  stock: number;
+  status: ResourceStatus;    // 'ACTIVE' | 'INACTIVE'
+  authors: AuthorSummary[];
+  createdAt: string;
+  updatedAt?: string;
+}
+```
+
+#### **Request DTOs**
+```typescript
+interface CreateBookRequest {
+  title: string;
+  description: string;
+  photoUrl?: string;
+  isbn?: string;
+  price: number;
+  currency?: Currency;
+  weight: number;
+  weightUnit?: WeightUnit;
+  authorIds: string[];
+}
+```
+
+### **Enums Disponíveis:**
+
+| Enum | Valores | Uso |
+|------|---------|-----|
+| `ResourceStatus` | `"ACTIVE"` \| `"INACTIVE"` | Status de recursos |
+| `Currency` | `"BRL"` \| `"USD"` \| `"EUR"` | Moedas suportadas |
+| `WeightUnit` | `"KG"` \| `"G"` | Unidades de peso |
+| `StockOperation` | `"ADD"` \| `"REMOVE"` \| `"SET"` | Operações de estoque |
+| `MetricEventType` | `"VIEW"` \| `"CLICK"` | Eventos de métrica |
+| `OrderStatus` | `"PENDING_PAYMENT"` \| `"PAID"` \| ... | Status de pedidos |
+| `PaymentStatus` | `"PENDING"` \| `"APPROVED"` \| ... | Status de pagamento |
+| `PaymentMethod` | `"CREDIT_CARD"` \| `"PIX"` \| ... | Métodos de pagamento |
+
+### **Barrel Export (Importação Simplificada):**
+
+```typescript
+// ❌ Antes (imports verbosos)
+import { Book } from "@/types/book";
+import { Author } from "@/types/author";
+import { PaginatedResponse } from "@/types/api";
+
+// ✅ Depois (import único)
+import { Book, Author, PaginatedResponse } from "@/types";
+```
+
+### **Exemplo de Uso:**
+
+```typescript
+import {
+  Book,
+  CreateBookRequest,
+  Currency,
+  WeightUnit,
+  ResourceStatus,
+} from "@/types";
+
+const newBook: CreateBookRequest = {
+  title: "Caminho da Esperança",
+  description: "Uma jornada inspiradora...",
+  price: 45.90,
+  currency: "BRL",      // ✅ Tipado
+  weight: 300,
+  weightUnit: "G",      // ✅ Tipado
+  stock: 100,
+  authorIds: ["author-id-123"]
+};
+```
+
+### **Features:**
+- ✅ **50+ interfaces** documentadas
+- ✅ **15+ enums/types** para type-safety
+- ✅ **Zero `any`** no código (100% tipado)
+- ✅ **JSDoc completo** em todos os tipos
+- ✅ **Espelha backend** Spring Boot 1:1
+- ✅ **Barrel export** para imports limpos
+- ✅ **Organização modular** (8 arquivos por domínio)
+
+---
 
 ## 🔌 API Integration (Backend Spring Boot)
 
@@ -409,6 +649,9 @@ Todos os services possuem tipos completos:
 - ✅ **Services layer** (7 services completos)
 - ✅ **Types TypeScript** (100% tipado)
 - ✅ **API Client** (Axios + interceptors)
+- ✅ **React Query** (cache, mutations, optimistic updates)
+- ✅ **Zustand Stores** (Auth, Cart, UI com persistência)
+- ✅ **TypeScript Types** (50+ interfaces, zero `any`, barrel export)
 
 ### 🚀 **Próximas Implementações:**
 

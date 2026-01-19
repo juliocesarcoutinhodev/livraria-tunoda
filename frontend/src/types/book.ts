@@ -7,8 +7,8 @@
  * @module types/book
  */
 
-import type { ResourceStatus } from "./api";
-import type { Author } from "./author";
+import type { ResourceStatus, WeightUnit, Currency } from "./api";
+import type { AuthorSummary } from "./author";
 
 /**
  * Livro completo
@@ -21,20 +21,24 @@ export interface Book {
   title: string;
   /** Descrição/sinopse */
   description: string;
-  /** Preço em reais */
+  /** URL da foto da capa */
+  photoUrl: string | null;
+  /** ISBN (opcional) */
+  isbn: string | null;
+  /** Preço */
   price: number;
+  /** Moeda do preço (BRL, USD, EUR) */
+  currency: Currency;
+  /** Peso */
+  weight: number;
+  /** Unidade de peso (KG ou G) */
+  weightUnit: WeightUnit;
   /** Quantidade em estoque */
   stock: number;
-  /** Peso em gramas (para cálculo de frete) */
-  weight: number;
-  /** ISBN (opcional) */
-  isbn?: string;
-  /** URL da foto da capa */
-  photoUrl?: string;
-  /** Lista de autores */
-  authors: Author[];
   /** Status (ACTIVE | INACTIVE) */
   status: ResourceStatus;
+  /** Lista de autores (resumida) */
+  authors: AuthorSummary[];
   /** Data de criação */
   createdAt: string;
   /** Data da última atualização */
@@ -51,10 +55,12 @@ export interface BookSummary {
   title: string;
   /** Descrição resumida */
   description: string;
-  /** Preço em reais */
+  /** Preço */
   price: number;
+  /** Moeda do preço */
+  currency: Currency;
   /** URL da foto da capa */
-  photoUrl?: string;
+  photoUrl: string | null;
   /** Nome dos autores (string concatenada) */
   authorsNames: string;
 }
@@ -68,16 +74,20 @@ export interface CreateBookRequest {
   title: string;
   /** Descrição/sinopse */
   description: string;
-  /** Preço em reais */
-  price: number;
-  /** Quantidade inicial em estoque */
-  stock: number;
-  /** Peso em gramas */
-  weight: number;
-  /** ISBN (opcional) */
-  isbn?: string;
   /** URL da foto da capa (opcional) */
   photoUrl?: string;
+  /** ISBN (opcional) */
+  isbn?: string;
+  /** Preço */
+  price: number;
+  /** Moeda (default: BRL) */
+  currency?: Currency;
+  /** Peso */
+  weight: number;
+  /** Unidade de peso (default: G) */
+  weightUnit?: WeightUnit;
+  /** Quantidade inicial em estoque */
+  stock: number;
   /** IDs dos autores */
   authorIds: string[];
 }
@@ -91,14 +101,18 @@ export interface UpdateBookRequest {
   title: string;
   /** Descrição/sinopse */
   description: string;
-  /** Preço em reais */
-  price: number;
-  /** Peso em gramas */
-  weight: number;
-  /** ISBN (opcional) */
-  isbn?: string;
   /** URL da foto da capa (opcional) */
   photoUrl?: string;
+  /** ISBN (opcional) */
+  isbn?: string;
+  /** Preço */
+  price: number;
+  /** Moeda */
+  currency?: Currency;
+  /** Peso */
+  weight: number;
+  /** Unidade de peso */
+  weightUnit?: WeightUnit;
   /** IDs dos autores */
   authorIds: string[];
 }

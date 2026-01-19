@@ -79,6 +79,16 @@ export interface PaginationParams {
 export type ResourceStatus = "ACTIVE" | "INACTIVE";
 
 /**
+ * Unidade de peso
+ */
+export type WeightUnit = "KG" | "G";
+
+/**
+ * Moeda suportada
+ */
+export type Currency = "BRL" | "USD" | "EUR";
+
+/**
  * Tipos de operações em estoque
  */
 export type StockOperation = "ADD" | "REMOVE" | "SET";
