@@ -176,10 +176,14 @@ export interface AdminBookFilterParams {
   status?: ResourceStatus;
   /** Filtrar por autor */
   authorId?: string;
-  /** Retornar apenas livros com estoque baixo (<10) */
+  /** Buscar por título (case-insensitive, busca parcial) */
+  title?: string;
+  /** Retornar apenas livros com estoque baixo (<5) */
   lowStock?: boolean;
-  /** Ordenação */
-  sort?: string;
+  /** Campo para ordenação (ex: title, price, createdAt) */
+  sortBy?: string;
+  /** Direção da ordenação (asc ou desc) */
+  sortDirection?: "asc" | "desc";
 }
 
 /**

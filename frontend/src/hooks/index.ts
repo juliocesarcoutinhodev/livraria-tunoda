@@ -75,3 +75,4 @@ export {
 
 // Utility hooks
 export { useRateLimit } from "./useRateLimit";
+export { useDebounce } from "./useDebounce";
