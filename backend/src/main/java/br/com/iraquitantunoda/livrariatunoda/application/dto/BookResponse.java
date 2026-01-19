@@ -15,7 +15,9 @@ public record BookResponse(
     String weightUnit,
     Integer stock,
     List<AuthorSummaryDTO> authors,
-    String status
+    String status,
+    String createdAt,
+    String updatedAt
 ) {
 }
 

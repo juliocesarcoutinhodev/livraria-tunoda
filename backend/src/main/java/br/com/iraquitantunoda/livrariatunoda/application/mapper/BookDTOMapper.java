@@ -2,13 +2,19 @@ package br.com.iraquitantunoda.livrariatunoda.application.mapper;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.*;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Book;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.BookEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface BookDTOMapper {
+
+    DateTimeFormatter BRAZILIAN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Mapping(target = "id", source = "book.id.value")
     @Mapping(target = "title", source = "book.title")
@@ -39,4 +45,26 @@ public interface BookDTOMapper {
     @Mapping(target = "status", expression = "java(book.getStatus().name())")
     @Mapping(target = "authors", source = "authors")
     BookResponse toResponse(Book book, List<AuthorSummaryDTO> authors);
+
+    @Mapping(target = "id", source = "entity.id")
+    @Mapping(target = "title", source = "entity.title")
+    @Mapping(target = "description", source = "entity.description")
+    @Mapping(target = "photoUrl", source = "entity.photoUrl")
+    @Mapping(target = "isbn", source = "entity.isbn")
+    @Mapping(target = "price", source = "entity.priceAmount")
+    @Mapping(target = "currency", source = "entity.priceCurrency")
+    @Mapping(target = "weight", source = "entity.weightValue")
+    @Mapping(target = "weightUnit", expression = "java(entity.getWeightUnit().name())")
+    @Mapping(target = "stock", source = "entity.stock")
+    @Mapping(target = "status", expression = "java(entity.getStatus().name())")
+    @Mapping(target = "authors", source = "authors")
+    @Mapping(target = "createdAt", source = "entity.createdAt", qualifiedByName = "formatDate")
+    @Mapping(target = "updatedAt", source = "entity.updatedAt", qualifiedByName = "formatDate")
+    BookResponse toResponseFromEntity(BookEntity entity, List<AuthorSummaryDTO> authors);
+
+    @Named("formatDate")
+    default String formatDate(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.format(BRAZILIAN_DATE_FORMAT) : null;
+    }
 }
+

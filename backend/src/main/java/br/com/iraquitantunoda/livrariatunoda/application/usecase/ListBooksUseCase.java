@@ -1,16 +1,17 @@
 package br.com.iraquitantunoda.livrariatunoda.application.usecase;
 
+import br.com.iraquitantunoda.livrariatunoda.application.dto.AuthorSummaryDTO;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.BookResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.PageResponse;
-import br.com.iraquitantunoda.livrariatunoda.application.mapper.AuthorDTOMapper;
 import br.com.iraquitantunoda.livrariatunoda.application.mapper.BookDTOMapper;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.Author;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.AuthorId;
-import br.com.iraquitantunoda.livrariatunoda.domain.model.Book;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status;
-import br.com.iraquitantunoda.livrariatunoda.domain.repository.AuthorRepository;
-import br.com.iraquitantunoda.livrariatunoda.domain.repository.BookRepository;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.AuthorEntity;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.BookEntity;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.repository.AuthorJpaRepository;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.repository.BookJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,63 +25,79 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ListBooksUseCase {
 
-    private final BookRepository bookRepository;
-    private final AuthorRepository authorRepository;
+    private final BookJpaRepository bookJpaRepository;
+    private final AuthorJpaRepository authorJpaRepository;
     private final BookDTOMapper bookDTOMapper;
-    private final AuthorDTOMapper authorDTOMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<BookResponse> execute(int page, int size, Status status, String authorId, Boolean lowStock, String title, String sortBy, String sortDirection) {
-        var pageResult = bookRepository.findAllWithFilters(page, size, status, authorId, lowStock, title, sortBy, sortDirection);
-        var books = pageResult.content();
+        var sort = createSort(sortBy != null ? sortBy : "createdAt", sortDirection != null ? sortDirection : "desc");
+        var pageable = PageRequest.of(page, size, sort);
+        var pageResult = bookJpaRepository.findAllWithFilters(status, authorId, lowStock, title, pageable);
 
-        if (books.isEmpty()) {
+        var bookEntities = pageResult.getContent();
+
+        if (bookEntities.isEmpty()) {
             return new PageResponse<>(
                 List.of(),
-                pageResult.page(),
-                pageResult.size(),
-                pageResult.totalElements()
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements()
             );
         }
 
-        var allAuthorIds = extractAllAuthorIds(books);
+        var allAuthorIds = extractAllAuthorIds(bookEntities);
         var authorsMap = fetchAuthorsAsMap(allAuthorIds);
 
-        var responses = books.stream()
+        var responses = bookEntities.stream()
             .map(book -> mapToResponse(book, authorsMap))
             .toList();
 
         return new PageResponse<>(
             responses,
-            pageResult.page(),
-            pageResult.size(),
-            pageResult.totalElements()
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements()
         );
     }
 
-    private Set<AuthorId> extractAllAuthorIds(List<Book> books) {
-        var authorIds = new HashSet<AuthorId>();
+    private Set<String> extractAllAuthorIds(List<BookEntity> books) {
+        var authorIds = new HashSet<String>();
         books.forEach(book -> authorIds.addAll(book.getAuthorIds()));
         return authorIds;
     }
 
-    private Map<String, Author> fetchAuthorsAsMap(Set<AuthorId> authorIds) {
-        return authorRepository.findByIds(authorIds)
+    private Map<String, AuthorEntity> fetchAuthorsAsMap(Set<String> authorIds) {
+        return authorJpaRepository.findAllById(authorIds)
             .stream()
             .collect(Collectors.toMap(
-                author -> author.getId().getValue(),
+                AuthorEntity::getId,
                 author -> author
             ));
     }
 
-    private BookResponse mapToResponse(Book book, Map<String, Author> authorsMap) {
+    private BookResponse mapToResponse(BookEntity book, Map<String, AuthorEntity> authorsMap) {
         var authorSummaries = book.getAuthorIds().stream()
-            .map(AuthorId::getValue)
             .map(authorsMap::get)
             .filter(java.util.Objects::nonNull)
-            .map(authorDTOMapper::toSummaryDTO)
+            .map(this::toAuthorSummary)
             .toList();
 
-        return bookDTOMapper.toResponse(book, authorSummaries);
+        return bookDTOMapper.toResponseFromEntity(book, authorSummaries);
+    }
+
+    private AuthorSummaryDTO toAuthorSummary(AuthorEntity author) {
+        return new AuthorSummaryDTO(
+            author.getId(),
+            author.getName()
+        );
+    }
+
+    private Sort createSort(String sortBy, String sortDirection) {
+        var direction = "desc".equalsIgnoreCase(sortDirection)
+            ? Sort.Direction.DESC
+            : Sort.Direction.ASC;
+        return Sort.by(direction, sortBy);
     }
 }
+

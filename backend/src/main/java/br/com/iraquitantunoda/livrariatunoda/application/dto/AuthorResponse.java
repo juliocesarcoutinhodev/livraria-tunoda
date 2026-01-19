@@ -5,7 +5,9 @@ public record AuthorResponse(
     String name,
     String biography,
     String photoUrl,
-    String status
+    String status,
+    String createdAt,
+    String updatedAt
 ) {
 }
 
