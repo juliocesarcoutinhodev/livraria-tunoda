@@ -17,8 +17,8 @@ public class ListAuthorsUseCase {
     private final AuthorDTOMapper authorDTOMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<AuthorResponse> execute(int page, int size, Status status, String name) {
-        var pageResult = authorRepository.findWithFilters(page, size, status, name);
+    public PageResponse<AuthorResponse> execute(int page, int size, Status status, String name, String sortBy, String sortDirection) {
+        var pageResult = authorRepository.findWithFilters(page, size, status, name, sortBy, sortDirection);
 
         var responses = pageResult.content().stream()
             .map(authorDTOMapper::toResponse)

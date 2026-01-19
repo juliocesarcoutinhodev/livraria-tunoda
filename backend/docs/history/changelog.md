@@ -2,6 +2,63 @@
 
 Histórico de mudanças por versão.
 
+## [1.1.0] - 2026-01-19
+
+### 🔍 Busca e Filtros
+- **Busca por nome/título** com LIKE case-insensitive
+  - Autores: busca parcial por nome
+  - Livros (admin): busca parcial por título
+  - Livros (público): busca parcial por título
+- Query JPQL otimizada com `CAST(:param AS string)` para evitar erro PostgreSQL bytea
+
+### 📊 Ordenação Dinâmica
+- **Parâmetros sortBy e sortDirection** em todos os endpoints de listagem
+  - Autores: ordenar por name, createdAt, status (padrão: name ASC)
+  - Livros: ordenar por title, price, stock, createdAt (padrão: createdAt DESC)
+- Método helper `createSort()` nos repository adapters
+- Valores padrão configuráveis por endpoint
+
+### 🚪 Sistema de Logout
+- **POST /api/auth/revoke** - Logout simples (revoga 1 token)
+- **POST /api/auth/revoke-all** - Logout completo (revoga todos os tokens do usuário)
+- Revogação real no banco de dados (campo `revoked`)
+- Logs de auditoria para rastreamento
+- Scripts automáticos no Postman para limpar tokens
+
+### 📦 Gestão de Estoque
+- Campo `stock` adicionado ao agregado Book
+- **POST /api/admin/books/{id}/stock** - Ajustar estoque
+  - Tipos: SET (absoluto), INCREASE (adicionar), DECREASE (remover)
+  - Validações de negócio (não pode ficar negativo)
+  - Registro de histórico de ajustes
+- Filtro `lowStock` para listar livros com estoque < 10
+- Migration Flyway criada (V13)
+
+### 🔒 Segurança e CORS
+- CorsFilter customizado com `@Order(HIGHEST_PRECEDENCE)`
+- Headers CORS em respostas de erro (401/403)
+- Preflight (OPTIONS) funcionando corretamente
+- Configuração centralizada com CorsProperties
+
+### 📚 Documentação
+- Guia completo: [Filtros de Busca](../api/SEARCH_FILTERS.md)
+- Guia completo: [Ordenação (Sort)](../api/SORT_IMPLEMENTATION.md)
+- Guia completo: [Sistema de Logout](../security/LOGOUT_IMPLEMENTATION.md)
+- Bugfix documentado: [Correção Filtro NULL PostgreSQL](../api/BUGFIX_NULL_FILTER.md)
+- Collections Postman atualizadas (LOCAL e STAGING)
+- README principal atualizado com novos endpoints
+
+### 🐛 Bugfixes
+- Corrigido erro `function lower(bytea) does not exist` ao buscar sem filtro
+- CORS funcionando corretamente em todas as requisições
+- Aplicação subindo sem erros de bean do BookRepository
+
+### 📊 Estatísticas
+- **Endpoints totais:** 42 → 46 (+4 novos)
+- **Parâmetros de busca:** +9 (name, title, sortBy, sortDirection, stock, etc.)
+- **Arquivos de documentação:** +4 guias completos
+- **Migrations:** +1 (estoque)
+
 ## [1.0.0] - 2026-01-18
 
 ### Infraestrutura

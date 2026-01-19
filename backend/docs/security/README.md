@@ -15,6 +15,10 @@ Documentação sobre autenticação, autorização e segurança do sistema.
 
 Como funciona o sistema de autenticação JWT.
 
+### [Logout (Revoke)](LOGOUT_IMPLEMENTATION.md) ⭐ NOVO
+
+Sistema completo de logout com revogação de tokens.
+
 ### [Autorização](authorization.md)
 
 Controle de acesso baseado em roles.
@@ -50,6 +54,20 @@ Authorization: Bearer {accessToken}
 POST /api/auth/refresh
 Body: { refreshToken }
 → Novos tokens
+```
+
+### Logout ⭐ NOVO
+
+```bash
+# Logout simples
+POST /api/auth/revoke
+Body: { refreshToken }
+→ 204 No Content
+
+# Logout completo (todas as sessões)
+POST /api/auth/revoke-all
+Body: { refreshToken }
+→ 204 No Content
 ```
 
 ## Níveis de Acesso

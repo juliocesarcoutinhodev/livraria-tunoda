@@ -72,6 +72,7 @@ curl http://localhost:8080/api/v1/actuator/health
 ### 🔐 Segurança
 
 - [Autenticação](docs/security/authentication.md) - JWT e tokens
+- [Logout (Revoke)](docs/security/LOGOUT_IMPLEMENTATION.md) - Sistema de logout ⭐ NOVO
 - [Autorização](docs/security/authorization.md) - Roles e permissões
 - [Credenciais Admin](docs/security/ADMIN_CREDENTIALS.md) - Usuário administrativo
 - [Boas Práticas](docs/security/best-practices.md) - Segurança geral
@@ -87,6 +88,9 @@ curl http://localhost:8080/api/v1/actuator/health
 
 - [Endpoints](docs/api/endpoints.md) - Documentação de rotas
 - [Error Handling](docs/api/error-handling.md) - Tratamento de erros
+- [Filtros de Busca](docs/api/SEARCH_FILTERS.md) - Busca por nome/título ⭐ NOVO
+- [Ordenação (Sort)](docs/api/SORT_IMPLEMENTATION.md) - Ordenação dinâmica ⭐ NOVO
+- [Bugfix: Filtro NULL](docs/api/BUGFIX_NULL_FILTER.md) - Correção PostgreSQL
 - [Postman Collections](docs/api/postman/) - Collections para testes
 
 ### ⚙️ Operations
@@ -131,11 +135,17 @@ Senha: admin123
 |----------|--------|-----------|------|
 | `/api/v1/actuator/health` | GET | Health check | Público |
 | `/api/auth/login` | POST | Autenticação | Público |
-| `/api/public/books` | GET | Listar livros | Público |
+| `/api/auth/revoke` | POST | Logout (revogar token) | Público |
+| `/api/public/books` | GET | Listar livros (com busca e ordenação) | Público |
+| `/api/admin/books` | GET | Listar livros admin (com filtros) | ADMIN |
 | `/api/admin/books` | POST | Criar livro | ADMIN |
+| `/api/admin/books/{id}/stock` | POST | Atualizar estoque | ADMIN |
+| `/api/admin/authors` | GET | Listar autores (com busca e ordenação) | ADMIN |
 | `/api/carts` | POST | Criar carrinho | Público |
 | `/api/shipping/quotes` | POST | Calcular frete | Público |
 | `/api/payments` | POST | Criar pagamento | Público |
+
+**✨ Novidades:** Busca por nome/título, ordenação dinâmica (sortBy/sortDirection), logout seguro, gestão de estoque
 
 **Documentação completa:** [docs/api/endpoints.md](docs/api/endpoints.md)
 

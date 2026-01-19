@@ -30,8 +30,8 @@ public class ListBooksUseCase {
     private final AuthorDTOMapper authorDTOMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<BookResponse> execute(int page, int size, Status status, String authorId, Boolean lowStock, String title) {
-        var pageResult = bookRepository.findAllWithFilters(page, size, status, authorId, lowStock, title);
+    public PageResponse<BookResponse> execute(int page, int size, Status status, String authorId, Boolean lowStock, String title, String sortBy, String sortDirection) {
+        var pageResult = bookRepository.findAllWithFilters(page, size, status, authorId, lowStock, title, sortBy, sortDirection);
         var books = pageResult.content();
 
         if (books.isEmpty()) {

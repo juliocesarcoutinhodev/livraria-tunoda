@@ -15,15 +15,27 @@ Documentação dos endpoints REST da API.
 
 Lista completa de todos os endpoints da API com exemplos.
 
+### [Filtros de Busca](SEARCH_FILTERS.md) ⭐ NOVO
+
+Guia completo sobre busca por nome/título com LIKE case-insensitive.
+
+### [Ordenação (Sort)](SORT_IMPLEMENTATION.md) ⭐ NOVO
+
+Guia completo sobre ordenação dinâmica com sortBy e sortDirection.
+
 ### [Error Handling](error-handling.md)
 
 Tratamento de erros padronizado e códigos HTTP.
 
+### [Bugfix: Filtro NULL](BUGFIX_NULL_FILTER.md)
+
+Correção do erro PostgreSQL `function lower(bytea) does not exist`.
+
 ### [Postman Collections](postman/)
 
 Collections para importar no Postman:
-- `Livraria-Tunoda-API.postman_collection.json` - Local
-- `Livraria-Tunoda-API-STAGING.postman_collection.json` - Staging
+- `Livraria-Tunoda-API.postman_collection.json` - Local (46 endpoints)
+- `Livraria-Tunoda-API-STAGING.postman_collection.json` - Staging (46 endpoints)
 
 ## Categorias de Endpoints
 
@@ -55,6 +67,49 @@ Content-Type: application/json
 }
 ```
 
+### Logout ⭐ NOVO
+
+```bash
+POST /api/auth/revoke
+Content-Type: application/json
+
+{
+  "refreshToken": "seu-refresh-token"
+}
+```
+
+### Buscar Livros com Filtros ⭐ ATUALIZADO
+
+```bash
+# Busca + Ordenação
+GET /api/public/books?title=java&sortBy=price&sortDirection=asc
+
+# Estoque baixo ordenado
+GET /api/admin/books?lowStock=true&sortBy=stock&sortDirection=asc
+Authorization: Bearer {token}
+```
+
+### Buscar Autores ⭐ ATUALIZADO
+
+```bash
+GET /api/admin/authors?name=martin&sortBy=name&sortDirection=asc
+Authorization: Bearer {token}
+```
+
+### Atualizar Estoque ⭐ NOVO
+
+```bash
+POST /api/admin/books/{id}/stock
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "adjustmentType": "INCREASE",
+  "quantity": 10,
+  "reason": "Reposição de estoque"
+}
+```
+
 ### Criar Livro (Admin)
 
 ```bash
@@ -66,16 +121,12 @@ Content-Type: application/json
   "title": "Dom Casmurro",
   "description": "Romance clássico",
   "price": 45.90,
+  "stock": 50,
   "weight": 0.350,
   "authorIds": ["uuid-autor"]
 }
 ```
 
-### Listar Livros (Público)
-
-```bash
-GET /api/public/books?page=0&size=10
-```
 
 ## Referências
 

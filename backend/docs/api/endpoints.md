@@ -18,6 +18,26 @@ Body: { refreshToken }
 Response: { accessToken, refreshToken, tokenType, expiresIn }
 ```
 
+### Logout (Revoke Token) ⭐ NOVO
+```
+POST /api/auth/revoke
+Body: { refreshToken }
+Response: 204 No Content
+
+Revoga o refresh token fornecido, impedindo renovação futura.
+O access token expira naturalmente (1 hora).
+```
+
+### Logout Completo (Revoke All) ⭐ NOVO
+```
+POST /api/auth/revoke-all
+Body: { refreshToken }
+Response: 204 No Content
+
+Revoga TODOS os tokens do usuário, invalidando todas as sessões ativas.
+Útil em casos de comprometimento de segurança.
+```
+
 ### Usuário Atual
 ```
 GET /api/user/me
@@ -27,10 +47,22 @@ Response: { id, name, email, role }
 
 ## Catálogo Público
 
-### Listar Livros
+### Listar Livros ⭐ ATUALIZADO
 ```
-GET /api/public/books?page=0&size=10&sort=title,asc
+GET /api/public/books?page=0&size=10&title=java&sortBy=price&sortDirection=asc
+Query Params:
+  - page (default: 0)
+  - size (default: 10)
+  - title (opcional: busca parcial case-insensitive) ⭐ NOVO
+  - sortBy (opcional: campo para ordenar - title, price, createdAt) ⭐ NOVO
+  - sortDirection (opcional: asc ou desc, default: desc) ⭐ NOVO
 Response: { content: [...], totalElements, totalPages }
+
+Exemplos:
+- Busca: ?title=java
+- Mais baratos: ?sortBy=price&sortDirection=asc
+- Lançamentos: ?sortBy=createdAt&sortDirection=desc
+- A-Z: ?sortBy=title&sortDirection=asc
 ```
 
 ### Detalhes do Livro
@@ -60,16 +92,28 @@ Response: 204 No Content
 
 ## Admin - Autores
 
-### Listar Autores
+### Listar Autores ⭐ ATUALIZADO
 ```
-GET /api/admin/authors?page=0&size=10&status=ACTIVE
+GET /api/admin/authors?page=0&size=10&status=ACTIVE&name=martin&sortBy=name&sortDirection=asc
 Auth: ROLE_ADMIN
+Query Params:
+  - page (default: 0)
+  - size (default: 10)
+  - status (opcional: ACTIVE | INACTIVE)
+  - name (opcional: busca parcial case-insensitive) ⭐ NOVO
+  - sortBy (opcional: campo para ordenar - name, createdAt) ⭐ NOVO
+  - sortDirection (opcional: asc ou desc, default: asc) ⭐ NOVO
 Response: {
   content: [{ id, name, biography, photoUrl, status, createdAt }],
   page: 0,
   size: 10,
   totalElements: 25
 }
+
+Exemplos:
+- Buscar: ?name=martin
+- Z-A: ?sortBy=name&sortDirection=desc
+- Mais recentes: ?sortBy=createdAt&sortDirection=desc
 ```
 
 ### Criar Autor
@@ -98,12 +142,32 @@ Response: 200 OK
 
 ## Admin - Livros
 
-### Listar Livros
+### Listar Livros ⭐ ATUALIZADO
 ```
-GET /api/admin/books?page=0&size=10&status=ACTIVE&authorId=uuid&lowStock=true
+GET /api/admin/books?page=0&size=10&status=ACTIVE&authorId=uuid&lowStock=true&title=java&sortBy=price&sortDirection=asc
 Auth: ROLE_ADMIN
 Query Params:
   - page (default: 0)
+  - size (default: 10)
+  - status (opcional: ACTIVE | INACTIVE)
+  - authorId (opcional: filtrar por autor)
+  - lowStock (opcional: boolean - retorna livros com estoque < 10) ⭐ ATUALIZADO
+  - title (opcional: busca parcial case-insensitive) ⭐ NOVO
+  - sortBy (opcional: campo para ordenar - title, price, stock, createdAt) ⭐ NOVO
+  - sortDirection (opcional: asc ou desc, default: desc) ⭐ NOVO
+Response: {
+  content: [{ id, title, description, price, stock, authors, status, ... }],
+  page: 0,
+  size: 10,
+  totalElements: 42
+}
+
+Exemplos:
+- Buscar: ?title=java
+- Estoque baixo: ?lowStock=true&sortBy=stock&sortDirection=asc
+- Mais caros: ?sortBy=price&sortDirection=desc
+- A-Z: ?sortBy=title&sortDirection=asc
+```
   - size (default: 10)
   - status (optional: ACTIVE | INACTIVE)
   - authorId (optional: filtrar por autor)
@@ -150,10 +214,30 @@ Auth: ROLE_ADMIN
 Response: { views, clicks, lastViewedAt }
 ```
 
-### Ajustar Estoque
+### Ajustar Estoque ⭐ ATUALIZADO
 ```
-PATCH /api/admin/books/{id}/stock
+POST /api/admin/books/{id}/stock
 Auth: ROLE_ADMIN
+Body: {
+  "adjustmentType": "SET" | "INCREASE" | "DECREASE",
+  "quantity": 10,
+  "reason": "Reposição de estoque"
+}
+Response: {
+  bookId: "uuid",
+  previousStock: 5,
+  newStock: 15,
+  adjustmentType: "INCREASE",
+  quantity: 10,
+  reason: "Reposição de estoque",
+  adjustedAt: "2026-01-19T12:00:00"
+}
+
+Tipos de ajuste:
+- SET: Define estoque absoluto (quantity = novo valor)
+- INCREASE: Adiciona ao estoque (quantity = valor a adicionar)
+- DECREASE: Remove do estoque (quantity = valor a remover)
+```
 Body: {
   operation: "ADD" | "REMOVE" | "SET",
   quantity: 10,

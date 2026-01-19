@@ -96,8 +96,9 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
     }
 
     @Override
-    public PageResult<Author> findWithFilters(int page, int size, Status status, String name) {
-        var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+    public PageResult<Author> findWithFilters(int page, int size, Status status, String name, String sortBy, String sortDirection) {
+        var sort = createSort(sortBy != null ? sortBy : "name", sortDirection != null ? sortDirection : "asc");
+        var pageable = PageRequest.of(page, size, sort);
         var pageResult = jpaRepository.findWithFilters(status, name, pageable);
 
         var authors = pageResult.getContent().stream()
@@ -110,6 +111,13 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
             pageResult.getSize(),
             pageResult.getTotalElements()
         );
+    }
+
+    private Sort createSort(String sortBy, String sortDirection) {
+        var direction = "desc".equalsIgnoreCase(sortDirection)
+            ? Sort.Direction.DESC
+            : Sort.Direction.ASC;
+        return Sort.by(direction, sortBy);
     }
 
     private record PageResultImpl<T>(

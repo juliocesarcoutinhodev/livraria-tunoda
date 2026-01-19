@@ -62,8 +62,9 @@ public class BookRepositoryAdapter implements BookRepository {
     }
 
     @Override
-    public PageResult<Book> findAllActiveWithFilters(int page, int size, String title) {
-        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public PageResult<Book> findAllActiveWithFilters(int page, int size, String title, String sortBy, String sortDirection) {
+        var sort = createSort(sortBy != null ? sortBy : "createdAt", sortDirection != null ? sortDirection : "desc");
+        var pageable = PageRequest.of(page, size, sort);
         var pageResult = jpaRepository.findAllActiveWithFilters(title, pageable);
 
         var books = pageResult.getContent()
@@ -80,8 +81,9 @@ public class BookRepositoryAdapter implements BookRepository {
     }
 
     @Override
-    public PageResult<Book> findAllWithFilters(int page, int size, br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status status, String authorId, Boolean lowStock, String title) {
-        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public PageResult<Book> findAllWithFilters(int page, int size, br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status status, String authorId, Boolean lowStock, String title, String sortBy, String sortDirection) {
+        var sort = createSort(sortBy != null ? sortBy : "createdAt", sortDirection != null ? sortDirection : "desc");
+        var pageable = PageRequest.of(page, size, sort);
 
         var pageResult = jpaRepository.findAllWithFilters(status, authorId, lowStock, title, pageable);
 
@@ -109,6 +111,13 @@ public class BookRepositoryAdapter implements BookRepository {
             authorId.getValue(),
             Status.ACTIVE
         );
+    }
+
+    private Sort createSort(String sortBy, String sortDirection) {
+        var direction = "desc".equalsIgnoreCase(sortDirection)
+            ? Sort.Direction.DESC
+            : Sort.Direction.ASC;
+        return Sort.by(direction, sortBy);
     }
 
     private record PageResultImpl<T>(

@@ -31,9 +31,11 @@ public class AdminAuthorController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(required = false) Status status,
-        @RequestParam(required = false) String name
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(required = false) String sortDirection
     ) {
-        var response = listAuthorsUseCase.execute(page, size, status, name);
+        var response = listAuthorsUseCase.execute(page, size, status, name, sortBy, sortDirection);
         return ResponseEntity.ok(response);
     }
 

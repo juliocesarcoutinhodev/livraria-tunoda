@@ -30,9 +30,11 @@ public class PublicBookController {
     public ResponseEntity<PageResponse<BookCatalogResponse>> listActiveBooks(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
-        @RequestParam(required = false) String title
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String sortBy,
+        @RequestParam(required = false) String sortDirection
     ) {
-        var response = listActiveBooksUseCase.execute(page, size, title);
+        var response = listActiveBooksUseCase.execute(page, size, title, sortBy, sortDirection);
         return ResponseEntity.ok(response);
     }
 

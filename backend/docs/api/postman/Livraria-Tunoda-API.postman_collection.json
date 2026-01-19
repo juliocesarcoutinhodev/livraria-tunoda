@@ -40,10 +40,20 @@
                   "key": "title",
                   "value": "",
                   "description": "Filtro opcional: busca por título (case-insensitive, busca parcial)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Campo para ordenação (ex: title, createdAt, price). Padrão: createdAt"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "desc",
+                  "description": "Direção da ordenação: asc ou desc. Padrão: desc"
                 }
               ]
             },
-            "description": "Lista livros ativos do catálogo com paginação e filtro opcional por título. Ordenado por data de criação (mais recentes primeiro)."
+            "description": "Lista livros ativos do catálogo com paginação, filtro opcional por título e ordenação configurável. Ordenação padrão: createdAt DESC (mais recentes primeiro)."
           },
           "response": []
         },
@@ -217,10 +227,20 @@
                   "key": "name",
                   "value": "",
                   "description": "Filtro opcional: busca por nome (case-insensitive, busca parcial)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name",
+                  "description": "Campo para ordenação (ex: name, createdAt). Padrão: name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc",
+                  "description": "Direção da ordenação: asc ou desc. Padrão: asc"
                 }
               ]
             },
-            "description": "Lista todos os autores com paginação e filtros opcionais. Filtros disponíveis: status (ACTIVE/INACTIVE) e name (busca parcial por nome). Ordenado por nome (ASC)."
+            "description": "Lista todos os autores com paginação e filtros opcionais. Filtros: status (ACTIVE/INACTIVE), name (busca parcial). Ordenação: sortBy (campo) e sortDirection (asc/desc)."
           },
           "response": []
         },
@@ -365,10 +385,20 @@
                   "key": "title",
                   "value": "",
                   "description": "Filtro opcional: busca por título (case-insensitive, busca parcial)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Campo para ordenação (ex: title, createdAt, price, stock). Padrão: createdAt"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "desc",
+                  "description": "Direção da ordenação: asc ou desc. Padrão: desc"
                 }
               ]
             },
-            "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo, título). Ordenado por data de criação (DESC). Retorna campo stock e informações completas dos autores."
+            "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo, título). Ordenação configurável. Padrão: createdAt DESC. Retorna campo stock e informações completas dos autores."
           },
           "response": []
         },
