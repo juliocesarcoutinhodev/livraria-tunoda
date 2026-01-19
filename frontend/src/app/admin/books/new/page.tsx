@@ -45,6 +45,105 @@ export default function NewBookPage() {
     {}
   );
 
+  // Display values (formatted)
+  const [displayValues, setDisplayValues] = useState({
+    isbn: "",
+    price: "",
+    weight: "",
+  });
+
+  /**
+   * Formata ISBN conforme digita (ISBN-10 ou ISBN-13)
+   */
+  const formatISBN = (value: string): string => {
+    // Remove tudo que não é dígito ou X
+    const cleaned = value.replace(/[^0-9X]/gi, "").toUpperCase();
+
+    if (cleaned.length <= 10) {
+      // ISBN-10: X-XXX-XXXXX-X
+      if (cleaned.length <= 1) return cleaned;
+      if (cleaned.length <= 4)
+        return `${cleaned.slice(0, 1)}-${cleaned.slice(1)}`;
+      if (cleaned.length <= 9)
+        return `${cleaned.slice(0, 1)}-${cleaned.slice(1, 4)}-${cleaned.slice(4)}`;
+      return `${cleaned.slice(0, 1)}-${cleaned.slice(1, 4)}-${cleaned.slice(4, 9)}-${cleaned.slice(9, 10)}`;
+    } else {
+      // ISBN-13: XXX-X-XXX-XXXXX-X
+      if (cleaned.length <= 3) return cleaned;
+      if (cleaned.length <= 4)
+        return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+      if (cleaned.length <= 7)
+        return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 4)}-${cleaned.slice(4)}`;
+      if (cleaned.length <= 12)
+        return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 4)}-${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 4)}-${cleaned.slice(4, 7)}-${cleaned.slice(7, 12)}-${cleaned.slice(12, 13)}`;
+    }
+  };
+
+  /**
+   * Formata valor monetário conforme moeda
+   */
+  const formatCurrency = (value: string, currency: Currency): string => {
+    // Remove tudo que não é dígito
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) return "";
+
+    // Converte para número (centavos)
+    const numValue = parseInt(cleaned, 10) / 100;
+
+    // Formata conforme moeda
+    switch (currency) {
+      case "BRL":
+        return new Intl.NumberFormat("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(numValue);
+      case "USD":
+        return new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(numValue);
+      case "EUR":
+        return new Intl.NumberFormat("de-DE", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(numValue);
+      default:
+        return numValue.toFixed(2);
+    }
+  };
+
+  /**
+   * Formata peso com decimais
+   */
+  const formatWeight = (value: string): string => {
+    // Remove tudo que não é dígito
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) return "";
+
+    // Converte para número com 3 casas decimais
+    const numValue = parseInt(cleaned, 10) / 1000;
+    return numValue.toFixed(3);
+  };
+
+  /**
+   * Remove formatação do valor para obter número puro
+   */
+  const parseCurrency = (value: string): number => {
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) return 0;
+    return parseInt(cleaned, 10) / 100;
+  };
+
+  /**
+   * Remove formatação do peso para obter número puro
+   */
+  const parseWeight = (value: string): number => {
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) return 0;
+    return parseInt(cleaned, 10) / 1000;
+  };
+
   /**
    * Valida URL de imagem
    */
@@ -213,11 +312,30 @@ export default function NewBookPage() {
   ) => {
     const { name, value } = e.target;
 
-    // Converter para número se for campo numérico
-    const numericFields = ["price", "weight", "stock"];
-    const newValue = numericFields.includes(name) ? Number(value) : value;
-
-    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    // Campos com formatação especial
+    if (name === "isbn") {
+      const formatted = formatISBN(value);
+      const clean = formatted.replace(/-/g, "");
+      setDisplayValues((prev) => ({ ...prev, isbn: formatted }));
+      setFormData((prev) => ({ ...prev, isbn: clean }));
+    } else if (name === "price") {
+      const formatted = formatCurrency(value, formData.currency);
+      const numValue = parseCurrency(value);
+      setDisplayValues((prev) => ({ ...prev, price: formatted }));
+      setFormData((prev) => ({ ...prev, price: numValue }));
+    } else if (name === "weight") {
+      const formatted = formatWeight(value);
+      const numValue = parseWeight(value);
+      setDisplayValues((prev) => ({ ...prev, weight: formatted }));
+      setFormData((prev) => ({ ...prev, weight: numValue }));
+    } else if (name === "stock") {
+      // Stock: apenas números inteiros
+      const numValue = parseInt(value) || 0;
+      setFormData((prev) => ({ ...prev, stock: numValue }));
+    } else {
+      // Outros campos (text, textarea)
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
 
     // Limpa erro do campo ao digitar
     if (errors[name]) {
@@ -226,6 +344,21 @@ export default function NewBookPage() {
         delete newErrors[name];
         return newErrors;
       });
+    }
+  };
+
+  /**
+   * Handle mudança de moeda (reformat price)
+   */
+  const handleCurrencyChange = (newCurrency: string) => {
+    setFormData((prev) => ({ ...prev, currency: newCurrency as Currency }));
+    // Reformata o preço com a nova moeda
+    if (formData.price > 0) {
+      const formatted = formatCurrency(
+        (formData.price * 100).toString(),
+        newCurrency as Currency
+      );
+      setDisplayValues((prev) => ({ ...prev, price: formatted }));
     }
   };
 
@@ -448,13 +581,14 @@ export default function NewBookPage() {
                           type="text"
                           id="isbn"
                           name="isbn"
-                          value={formData.isbn}
+                          value={displayValues.isbn}
                           onChange={handleChange}
                           onBlur={() => handleBlur("isbn")}
+                          maxLength={17}
                           className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent ${
                             errors.isbn ? "border-red-300" : "border-gray-300"
                           }`}
-                          placeholder="978-0-123456-78-9"
+                          placeholder="978-0-123-45678-9"
                         />
                         {errors.isbn && (
                           <p className="text-sm text-red-600 mt-1">
@@ -462,7 +596,8 @@ export default function NewBookPage() {
                           </p>
                         )}
                         <p className="text-xs text-gray-500 mt-1">
-                          Opcional - ISBN-10 ou ISBN-13
+                          Opcional - ISBN-10 (10 dígitos) ou ISBN-13 (13
+                          dígitos)
                         </p>
                       </div>
                     </div>
@@ -483,20 +618,22 @@ export default function NewBookPage() {
                         >
                           Preço <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="number"
-                          id="price"
-                          name="price"
-                          value={formData.price || ""}
-                          onChange={handleChange}
-                          onBlur={() => handleBlur("price")}
-                          step="0.01"
-                          min="0"
-                          className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent ${
-                            errors.price ? "border-red-300" : "border-gray-300"
-                          }`}
-                          placeholder="0.00"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="price"
+                            name="price"
+                            value={displayValues.price}
+                            onChange={handleChange}
+                            onBlur={() => handleBlur("price")}
+                            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent ${
+                              errors.price
+                                ? "border-red-300"
+                                : "border-gray-300"
+                            }`}
+                            placeholder="0,00"
+                          />
+                        </div>
                         {errors.price && (
                           <p className="text-sm text-red-600 mt-1">
                             {errors.price}
@@ -508,12 +645,7 @@ export default function NewBookPage() {
                       <CustomSelect
                         label="Moeda"
                         value={formData.currency || "BRL"}
-                        onChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            currency: value as Currency,
-                          }))
-                        }
+                        onChange={handleCurrencyChange}
                         options={[
                           { value: "BRL", label: "BRL - Real" },
                           { value: "USD", label: "USD - Dólar" },
@@ -568,18 +700,16 @@ export default function NewBookPage() {
                           Peso <span className="text-red-500">*</span>
                         </label>
                         <input
-                          type="number"
+                          type="text"
                           id="weight"
                           name="weight"
-                          value={formData.weight || ""}
+                          value={displayValues.weight}
                           onChange={handleChange}
                           onBlur={() => handleBlur("weight")}
-                          step="0.01"
-                          min="0"
                           className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent ${
                             errors.weight ? "border-red-300" : "border-gray-300"
                           }`}
-                          placeholder="0.00"
+                          placeholder="0.000"
                         />
                         {errors.weight && (
                           <p className="text-sm text-red-600 mt-1">
