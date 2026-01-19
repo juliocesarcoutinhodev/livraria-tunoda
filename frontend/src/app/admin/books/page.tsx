@@ -206,8 +206,9 @@ export default function BooksPage() {
       <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
 
-        <div className="flex-1 lg:ml-64">
-          <div className="p-4 lg:p-8">
+        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+          <div className="p-4 lg:p-8 max-w-full overflow-x-hidden">
+            <div className="w-full max-w-full overflow-x-hidden">
             {/* Breadcrumb */}
             <Breadcrumb
               items={[
@@ -217,8 +218,8 @@ export default function BooksPage() {
             />
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 w-full max-w-full">
+              <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">
                   Gerenciar Livros
                 </h1>
@@ -231,7 +232,7 @@ export default function BooksPage() {
 
               <button
                 onClick={() => router.push("/admin/books/new")}
-                className="mt-3 sm:mt-0 bg-christian-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+                className="mt-3 sm:mt-0 bg-christian-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center shrink-0 w-full sm:w-auto justify-center"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -251,7 +252,7 @@ export default function BooksPage() {
             </div>
 
             {/* Filtros e Busca */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-6 w-full max-w-full overflow-x-hidden">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Busca por título */}
                 <div className="lg:col-span-2">
@@ -336,7 +337,7 @@ export default function BooksPage() {
             </div>
 
             {/* Tabela Desktop */}
-            <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -612,7 +613,7 @@ export default function BooksPage() {
             </div>
 
             {/* Cards Mobile */}
-            <div className="md:hidden space-y-4">
+            <div className="lg:hidden space-y-4 w-full overflow-hidden">
               {isLoading ? (
                 Array.from({ length: pageSize }).map((_, index) => (
                   <div
@@ -642,11 +643,11 @@ export default function BooksPage() {
                 books.map((book) => (
                   <div
                     key={book.id}
-                    className={`bg-white rounded-lg shadow-sm p-4 border border-gray-200 ${
+                    className={`bg-white rounded-lg shadow-sm p-3 border border-gray-200 w-full max-w-full overflow-hidden ${
                       book.status === "INACTIVE" ? "opacity-60" : ""
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 min-w-0 w-full">
                       {/* Capa do livro */}
                       <div className="flex-shrink-0">
                         {book.photoUrl ? (
@@ -660,7 +661,7 @@ export default function BooksPage() {
                         ) : (
                           <div className="h-16 w-12 bg-gray-200 rounded flex items-center justify-center">
                             <svg
-                              className="w-6 h-6 text-gray-400"
+                              className="w-5 h-5 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -678,46 +679,41 @@ export default function BooksPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h3
-                          className="font-semibold text-gray-900 truncate cursor-help"
-                          title={book.title}
-                        >
+                        <h3 className="font-semibold text-sm text-gray-900 truncate mb-1">
                           {book.title}
                         </h3>
 
-                        <div className="text-sm text-gray-600 mt-1">
-                          <div className="truncate">
-                            Autores:{" "}
-                            {book.authors.map((a) => a.name).join(", ")}
-                          </div>
-                          <div className="mt-1 flex items-center gap-2">
-                            <span>{formatPrice(book.price)}</span>
-                            <span>•</span>
-                            <span>ISBN: {book.isbn || "N/A"}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Criado: {formatDate(book.createdAt)}
-                          </div>
+                        <p className="text-xs text-gray-600 truncate mb-1">
+                          {book.authors.map((a) => a.name).join(", ")}
+                        </p>
+
+                        <div className="text-xs text-gray-600 mb-2 truncate">
+                          <span className="font-medium">
+                            {formatPrice(book.price)}
+                          </span>
+                          <span className="text-gray-400 mx-1">•</span>
+                          <span className="truncate inline-block max-w-[120px] align-bottom">
+                            {book.isbn || "N/A"}
+                          </span>
                         </div>
 
-                        {/* Status e estoque */}
-                        <div className="flex items-center gap-2 mt-2">
+                        {/* Status compacto */}
+                        <div className="flex items-center gap-1 mb-2">
                           {getStockBadge(book.stock)}
                           {getStatusBadge(book.status)}
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-2 mt-3">
-                          {/* Editar */}
+                        {/* Actions compactos */}
+                        <div className="flex gap-1">
                           <button
                             onClick={() =>
                               router.push(`/admin/books/${book.id}`)
                             }
-                            className="p-2 bg-christian-blue hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
-                            title="Editar livro"
+                            className="p-1.5 bg-christian-blue hover:bg-blue-700 text-white rounded text-xs"
+                            title="Editar"
                           >
                             <svg
-                              className="w-4 h-4"
+                              className="w-3 h-3"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -731,16 +727,15 @@ export default function BooksPage() {
                             </svg>
                           </button>
 
-                          {/* Ver Métricas */}
                           <button
                             onClick={() =>
                               router.push(`/admin/books/${book.id}/metrics`)
                             }
-                            className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
-                            title="Ver métricas"
+                            className="p-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs"
+                            title="Métricas"
                           >
                             <svg
-                              className="w-4 h-4"
+                              className="w-3 h-3"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -754,24 +749,21 @@ export default function BooksPage() {
                             </svg>
                           </button>
 
-                          {/* Ativar/Desativar */}
                           <button
                             onClick={() => handleToggleStatus(book)}
                             disabled={updateBookStatus.isPending}
-                            className={`p-2 rounded-lg transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                            className={`p-1.5 rounded text-xs transition-colors disabled:opacity-50 ${
                               book.status === "ACTIVE"
                                 ? "bg-red-100 hover:bg-red-200 text-red-800"
                                 : "bg-green-100 hover:bg-green-200 text-green-800"
                             }`}
                             title={
-                              book.status === "ACTIVE"
-                                ? "Desativar livro"
-                                : "Ativar livro"
+                              book.status === "ACTIVE" ? "Desativar" : "Ativar"
                             }
                           >
                             {book.status === "ACTIVE" ? (
                               <svg
-                                className="w-4 h-4"
+                                className="w-3 h-3"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -785,7 +777,7 @@ export default function BooksPage() {
                               </svg>
                             ) : (
                               <svg
-                                className="w-4 h-4"
+                                className="w-3 h-3"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -806,85 +798,88 @@ export default function BooksPage() {
                 ))
               )}
             </div>
-          </div>
 
-          {/* Paginação */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between bg-white px-4 py-3 rounded-lg shadow-sm mt-4">
-              <div className="flex items-center space-x-2 mb-3 sm:mb-0">
-                <label className="text-sm text-gray-700">
-                  Itens por página:
-                </label>
-                <select
-                  value={pageSize}
-                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <span className="text-sm text-gray-700">
-                  {currentPage * pageSize + 1}-
-                  {Math.min((currentPage + 1) * pageSize, totalElements)} de{" "}
-                  {totalElements}
-                </span>
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between bg-white px-4 py-3 rounded-lg shadow-sm mt-4">
+                <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+                  <label className="text-sm text-gray-700">
+                    Itens por página:
+                  </label>
+                  <select
+                    value={pageSize}
+                    onChange={(e) =>
+                      handlePageSizeChange(Number(e.target.value))
+                    }
+                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <span className="text-sm text-gray-700">
+                    {currentPage * pageSize + 1}-
+                    {Math.min((currentPage + 1) * pageSize, totalElements)} de{" "}
+                    {totalElements}
+                  </span>
+                </div>
+
+                <div className="flex space-x-1">
+                  <button
+                    onClick={() => setCurrentPage(0)}
+                    disabled={currentPage === 0}
+                    className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Primeira
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 0}
+                    className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Anterior
+                  </button>
+
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const startPage = Math.max(
+                      0,
+                      Math.min(currentPage - 2, totalPages - 5)
+                    );
+                    const page = startPage + i;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 text-sm rounded border ${
+                          currentPage === page
+                            ? "bg-christian-blue text-white"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        {page + 1}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Próxima
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages - 1)}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Última
+                  </button>
+                </div>
               </div>
-
-              <div className="flex space-x-1">
-                <button
-                  onClick={() => setCurrentPage(0)}
-                  disabled={currentPage === 0}
-                  className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Primeira
-                </button>
-                <button
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 0}
-                  className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Anterior
-                </button>
-
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const startPage = Math.max(
-                    0,
-                    Math.min(currentPage - 2, totalPages - 5)
-                  );
-                  const page = startPage + i;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 text-sm rounded border ${
-                        currentPage === page
-                          ? "bg-christian-blue text-white"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {page + 1}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage >= totalPages - 1}
-                  className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Próxima
-                </button>
-                <button
-                  onClick={() => setCurrentPage(totalPages - 1)}
-                  disabled={currentPage >= totalPages - 1}
-                  className="px-3 py-1 text-sm rounded border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Última
-                </button>
-              </div>
+            )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
