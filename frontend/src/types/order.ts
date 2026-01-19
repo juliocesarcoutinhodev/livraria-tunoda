@@ -10,26 +10,31 @@
  * Status do pedido
  */
 export type OrderStatus =
-  | "PENDING_PAYMENT"
-  | "PAID"
+  | "PENDING"
+  | "CONFIRMED"
   | "PROCESSING"
   | "SHIPPED"
   | "DELIVERED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "EXPIRED";
 
 /**
  * Item do pedido
  */
 export interface OrderItem {
+  /** ID do item */
+  itemId: string;
   /** ID do livro */
   bookId: string;
   /** Título do livro */
-  title: string;
+  bookTitle: string;
   /** Preço unitário no momento da compra */
-  price: number;
+  unitPrice: number;
+  /** Moeda */
+  currency: string;
   /** Quantidade */
   quantity: number;
-  /** Subtotal (price * quantity) */
+  /** Subtotal (unitPrice * quantity) */
   subtotal: number;
 }
 
@@ -54,19 +59,27 @@ export interface OrderShipping {
  */
 export interface Order {
   /** ID único do pedido */
-  id: string;
-  /** Email do cliente */
-  customerEmail: string;
+  orderId: string;
+  /** ID do carrinho */
+  cartId: string;
+  /** ID da cotação de frete */
+  shippingQuoteId: string;
+  /** Email do cliente (apenas no detalhe) */
+  customerEmail?: string;
   /** Lista de itens */
   items: OrderItem[];
   /** Subtotal dos itens */
   subtotal: number;
-  /** Informações de frete */
-  shipping: OrderShipping;
+  /** Informações de frete (apenas no detalhe) */
+  shipping?: OrderShipping;
   /** Custo do frete */
   shippingCost: number;
+  /** Moeda */
+  currency: string;
   /** Total do pedido (subtotal + shippingCost) */
   total: number;
+  /** Referência do pagamento */
+  paymentReference: string;
   /** Status atual do pedido */
   status: OrderStatus;
   /** Data de criação */
