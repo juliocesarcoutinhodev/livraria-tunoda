@@ -143,6 +143,7 @@ Senha: admin123
 | `/api/admin/books/{id}/stock` | POST | Atualizar estoque | ADMIN |
 | `/api/admin/authors` | GET | Listar autores (com busca e ordenação) | ADMIN |
 | `/api/admin/authors/{id}` | GET | Buscar autor por ID | ADMIN |
+| `/api/admin/orders` | GET | Listar pedidos (com filtros de status) | ADMIN |
 | `/api/carts` | POST | Criar carrinho | Público |
 | `/api/shipping/quotes` | POST | Calcular frete | Público |
 | `/api/payments` | POST | Criar pagamento | Público |

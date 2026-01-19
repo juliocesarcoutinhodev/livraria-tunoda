@@ -4,11 +4,19 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderItemDTO;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Order;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.OrderItem;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.OrderEntity;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.OrderItemEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Mapper(componentModel = "spring")
 public interface OrderDTOMapper {
+
+    DateTimeFormatter BRAZILIAN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Mapping(target = "orderId", source = "id.value")
     @Mapping(target = "cartId", source = "cartId.value")
@@ -22,6 +30,19 @@ public interface OrderDTOMapper {
     @Mapping(target = "createdAt", source = "createdAt")
     OrderResponse toResponse(Order order);
 
+    @Mapping(target = "orderId", source = "entity.id")
+    @Mapping(target = "cartId", source = "entity.cartId")
+    @Mapping(target = "shippingQuoteId", source = "entity.shippingQuoteId")
+    @Mapping(target = "status", expression = "java(entity.getStatus().name())")
+    @Mapping(target = "items", source = "entity.items")
+    @Mapping(target = "subtotal", source = "entity.subtotalAmount")
+    @Mapping(target = "shippingCost", source = "entity.shippingCostAmount")
+    @Mapping(target = "currency", source = "entity.subtotalCurrency")
+    @Mapping(target = "total", source = "entity.totalAmount")
+    @Mapping(target = "paymentReference", source = "entity.paymentReference")
+    @Mapping(target = "createdAt", source = "entity.createdAt", qualifiedByName = "formatDate")
+    OrderResponse toResponseFromEntity(OrderEntity entity);
+
     @Mapping(target = "itemId", source = "id.value")
     @Mapping(target = "bookId", source = "bookId.value")
     @Mapping(target = "bookTitle", source = "bookTitle")
@@ -30,5 +51,18 @@ public interface OrderDTOMapper {
     @Mapping(target = "currency", source = "unitPrice.currency")
     @Mapping(target = "subtotal", expression = "java(item.getSubtotal().getAmount())")
     OrderItemDTO toItemDTO(OrderItem item);
-}
 
+    @Mapping(target = "itemId", source = "id")
+    @Mapping(target = "bookId", source = "bookId")
+    @Mapping(target = "bookTitle", source = "bookTitle")
+    @Mapping(target = "quantity", source = "quantity")
+    @Mapping(target = "unitPrice", source = "unitPriceAmount")
+    @Mapping(target = "currency", source = "unitPriceCurrency")
+    @Mapping(target = "subtotal", expression = "java(item.getUnitPriceAmount().multiply(java.math.BigDecimal.valueOf(item.getQuantity())))")
+    OrderItemDTO toItemDTOFromEntity(OrderItemEntity item);
+
+    @Named("formatDate")
+    default String formatDate(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.format(BRAZILIAN_DATE_FORMAT) : null;
+    }
+}

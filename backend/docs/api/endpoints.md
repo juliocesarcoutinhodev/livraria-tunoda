@@ -157,6 +157,48 @@ Body: { status: "ACTIVE" | "INACTIVE" }
 Response: 200 OK
 ```
 
+## Admin - Pedidos ⭐ NOVO
+
+### Listar Pedidos
+```
+GET /api/admin/orders?page=0&size=10&status=PENDING&sortBy=createdAt&sortDirection=desc
+Auth: ROLE_ADMIN
+Query Params:
+  - page (default: 0)
+  - size (default: 10)
+  - status (opcional: PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, EXPIRED)
+  - sortBy (opcional: campo para ordenar - createdAt, status, totalAmount, subtotalAmount)
+  - sortDirection (opcional: asc ou desc, default: desc)
+Response: {
+  content: [{
+    orderId: "uuid",
+    cartId: "uuid",
+    shippingQuoteId: "uuid",
+    status: "PENDING",
+    items: [{itemId, bookId, bookTitle, quantity, unitPrice, currency, subtotal}],
+    subtotal: 100.00,
+    shippingCost: 20.00,
+    currency: "BRL",
+    total: 120.00,
+    paymentReference: "MP-123456",
+    createdAt: "19/01/2026"
+  }],
+  page: 0,
+  size: 10,
+  totalElements: 42
+}
+
+Exemplos:
+- Pedidos pendentes: ?status=PENDING
+- Pedidos confirmados: ?status=CONFIRMED
+- Pedidos em processamento: ?status=PROCESSING
+- Pedidos enviados: ?status=SHIPPED
+- Pedidos entregues: ?status=DELIVERED
+- Pedidos cancelados: ?status=CANCELLED
+- Ordenar por data: ?sortBy=createdAt&sortDirection=desc
+- Todos os pedidos: (sem filtro status)
+```
+
 ## Admin - Livros
 
 ### Listar Livros ⭐ ATUALIZADO

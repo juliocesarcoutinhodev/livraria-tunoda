@@ -12,6 +12,10 @@ Histórico de mudanças por versão.
 - Query JPQL otimizada com `CAST(:param AS string)` para evitar erro PostgreSQL bytea
 - **GET /api/admin/authors/{id}** - Buscar autor por ID (para formulário de edição)
 - **GET /api/admin/books/{id}** - Buscar livro por ID (para formulário de edição) ⭐ NOVO
+- **GET /api/admin/orders** - Listar pedidos com filtros de status ⭐ NOVO
+  - Filtros: PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, EXPIRED
+  - Ordenação: sortBy (createdAt, status, totalAmount) e sortDirection (asc/desc)
+  - Paginação completa
 
 ### 📊 Ordenação Dinâmica
 - **Parâmetros sortBy e sortDirection** em todos os endpoints de listagem
@@ -56,8 +60,8 @@ Histórico de mudanças por versão.
 - Aplicação subindo sem erros de bean do BookRepository
 
 ### 📊 Estatísticas
-- **Endpoints totais:** 42 → 48 (+6 novos)
-- **Parâmetros de busca:** +9 (name, title, sortBy, sortDirection, stock, etc.)
+- **Endpoints totais:** 42 → 49 (+7 novos)
+- **Parâmetros de busca:** +9 (name, title, sortBy, sortDirection, stock, status, etc.)
 - **Arquivos de documentação:** +4 guias completos
 - **Migrations:** +1 (estoque)
 

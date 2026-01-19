@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "livraria-tunoda-api",
     "name": "Livraria Tunoda API",
-    "description": "Collection completa da API REST da Livraria Tunoda com 48 endpoints implementados (incluindo busca de livro/autor por ID, logout/revoke, gestão de estoque, listagem admin, health checks e monitoramento)",
+    "description": "Collection completa da API REST da Livraria Tunoda com 49 endpoints implementados (incluindo listagem de pedidos, busca de livro/autor por ID, logout/revoke, gestão de estoque, health checks e monitoramento)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "livraria-tunoda"
   },
@@ -1441,6 +1441,59 @@
         }
       ],
       "description": "Endpoints de autenticação JWT para usuários administrativos"
+    },
+    {
+      "name": "Admin - Pedidos",
+      "item": [
+        {
+          "name": "Listar Pedidos (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?page=0&size=10&status=PENDING&sortBy=createdAt&sortDirection=desc",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número da página (começa em 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Quantidade de itens por página"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "description": "Filtro opcional: PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, EXPIRED (omitir para listar todos)"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Campo para ordenação (ex: createdAt, status, total). Padrão: createdAt"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "desc",
+                  "description": "Direção da ordenação: asc ou desc. Padrão: desc"
+                }
+              ]
+            },
+            "description": "Lista todos os pedidos com paginação e filtros opcionais. Filtros: status (todos os OrderStatus). Ordenação: sortBy (campo) e sortDirection (asc/desc). Retorna data formatada (dd/MM/yyyy)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de gestão de pedidos (admin)"
     },
     {
       "name": "Health Check & Monitoring",
