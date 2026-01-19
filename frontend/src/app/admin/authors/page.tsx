@@ -247,6 +247,9 @@ export default function AuthorsPage() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data de Cadastro
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
@@ -325,11 +328,14 @@ export default function AuthorsPage() {
               <table className="w-full table-fixed">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="w-1/2 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-2/5 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Autor
                     </th>
-                    <th className="w-1/6 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="w-1/8 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Status
+                    </th>
+                    <th className="w-1/6 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Data de Cadastro
                     </th>
                     <th className="w-1/3 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Ações
@@ -379,6 +385,9 @@ export default function AuthorsPage() {
                         >
                           {author.status === "ACTIVE" ? "Ativo" : "Inativo"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {author.createdAt}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-3">
