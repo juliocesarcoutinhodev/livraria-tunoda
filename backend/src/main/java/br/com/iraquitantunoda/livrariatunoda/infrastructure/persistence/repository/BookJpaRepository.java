@@ -21,13 +21,23 @@ public interface BookJpaRepository extends JpaRepository<BookEntity, String> {
     long countByAuthorIdsContainingAndStatus(String authorId, Status status);
 
     @Query("SELECT b FROM BookEntity b WHERE " +
+           "b.status = 'ACTIVE' AND " +
+           "(:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%')))")
+    Page<BookEntity> findAllActiveWithFilters(
+        @Param("title") String title,
+        Pageable pageable
+    );
+
+    @Query("SELECT b FROM BookEntity b WHERE " +
            "(:status IS NULL OR b.status = :status) AND " +
            "(:authorId IS NULL OR :authorId MEMBER OF b.authorIds) AND " +
-           "(:lowStock IS NULL OR (:lowStock = true AND b.stock < 10))")
+           "(:lowStock IS NULL OR (:lowStock = true AND b.stock < 10)) AND " +
+           "(:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%')))")
     Page<BookEntity> findAllWithFilters(
         @Param("status") Status status,
         @Param("authorId") String authorId,
         @Param("lowStock") Boolean lowStock,
+        @Param("title") String title,
         Pageable pageable
     );
 }

@@ -35,10 +35,15 @@
                   "key": "size",
                   "value": "10",
                   "description": "Quantidade de itens por página"
+                },
+                {
+                  "key": "title",
+                  "value": "",
+                  "description": "Filtro opcional: busca por título (case-insensitive, busca parcial)"
                 }
               ]
             },
-            "description": "Lista livros ativos do catálogo com paginação. Ordenado por data de criação (mais recentes primeiro)."
+            "description": "Lista livros ativos do catálogo com paginação e filtro opcional por título. Ordenado por data de criação (mais recentes primeiro)."
           },
           "response": []
         },
@@ -207,10 +212,15 @@
                   "key": "status",
                   "value": "ACTIVE",
                   "description": "Filtro opcional: ACTIVE, INACTIVE (omitir para listar todos)"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filtro opcional: busca por nome (case-insensitive, busca parcial)"
                 }
               ]
             },
-            "description": "Lista todos os autores com paginação e filtro opcional por status. Ordenado por nome (ASC). Retorna autores ativos e inativos quando filtro é omitido."
+            "description": "Lista todos os autores com paginação e filtros opcionais. Filtros disponíveis: status (ACTIVE/INACTIVE) e name (busca parcial por nome). Ordenado por nome (ASC)."
           },
           "response": []
         },
@@ -350,10 +360,15 @@
                   "key": "lowStock",
                   "value": "false",
                   "description": "Filtro opcional: true para listar apenas livros com estoque < 10"
+                },
+                {
+                  "key": "title",
+                  "value": "",
+                  "description": "Filtro opcional: busca por título (case-insensitive, busca parcial)"
                 }
               ]
             },
-            "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo). Ordenado por data de criação (DESC). Retorna campo stock e informações completas dos autores."
+            "description": "Lista todos os livros com paginação e filtros opcionais (status, autor, estoque baixo, título). Ordenado por data de criação (DESC). Retorna campo stock e informações completas dos autores."
           },
           "response": []
         },

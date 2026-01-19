@@ -30,9 +30,10 @@ public class AdminAuthorController {
     public ResponseEntity<PageResponse<AuthorResponse>> listAuthors(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
-        @RequestParam(required = false) Status status
+        @RequestParam(required = false) Status status,
+        @RequestParam(required = false) String name
     ) {
-        var response = listAuthorsUseCase.execute(page, size, status);
+        var response = listAuthorsUseCase.execute(page, size, status, name);
         return ResponseEntity.ok(response);
     }
 

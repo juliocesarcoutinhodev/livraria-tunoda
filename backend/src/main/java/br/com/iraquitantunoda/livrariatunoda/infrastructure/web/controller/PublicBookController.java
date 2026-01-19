@@ -29,9 +29,10 @@ public class PublicBookController {
     @GetMapping
     public ResponseEntity<PageResponse<BookCatalogResponse>> listActiveBooks(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String title
     ) {
-        var response = listActiveBooksUseCase.execute(page, size);
+        var response = listActiveBooksUseCase.execute(page, size, title);
         return ResponseEntity.ok(response);
     }
 

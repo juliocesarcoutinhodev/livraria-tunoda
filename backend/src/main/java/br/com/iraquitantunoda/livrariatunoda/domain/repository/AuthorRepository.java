@@ -24,6 +24,8 @@ public interface AuthorRepository {
 
     PageResult<Author> findByStatusWithPagination(Status status, int page, int size);
 
+    PageResult<Author> findWithFilters(int page, int size, Status status, String name);
+
     interface PageResult<T> {
         List<T> content();
         int page();

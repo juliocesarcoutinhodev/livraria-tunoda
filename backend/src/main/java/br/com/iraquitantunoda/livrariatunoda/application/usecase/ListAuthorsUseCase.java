@@ -17,10 +17,8 @@ public class ListAuthorsUseCase {
     private final AuthorDTOMapper authorDTOMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<AuthorResponse> execute(int page, int size, Status status) {
-        var pageResult = status == null
-            ? authorRepository.findAllWithPagination(page, size)
-            : authorRepository.findByStatusWithPagination(status, page, size);
+    public PageResponse<AuthorResponse> execute(int page, int size, Status status, String name) {
+        var pageResult = authorRepository.findWithFilters(page, size, status, name);
 
         var responses = pageResult.content().stream()
             .map(authorDTOMapper::toResponse)

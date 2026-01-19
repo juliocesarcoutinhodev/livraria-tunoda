@@ -29,8 +29,8 @@ public class ListActiveBooksUseCase {
     private final AuthorDTOMapper authorDTOMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<BookCatalogResponse> execute(int page, int size) {
-        var pageResult = bookRepository.findAllActiveWithPagination(page, size);
+    public PageResponse<BookCatalogResponse> execute(int page, int size, String title) {
+        var pageResult = bookRepository.findAllActiveWithFilters(page, size, title);
         var books = pageResult.content();
 
         if (books.isEmpty()) {

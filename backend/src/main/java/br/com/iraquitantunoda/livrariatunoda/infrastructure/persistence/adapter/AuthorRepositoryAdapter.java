@@ -95,6 +95,23 @@ public class AuthorRepositoryAdapter implements AuthorRepository {
         );
     }
 
+    @Override
+    public PageResult<Author> findWithFilters(int page, int size, Status status, String name) {
+        var pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        var pageResult = jpaRepository.findWithFilters(status, name, pageable);
+
+        var authors = pageResult.getContent().stream()
+            .map(mapper::toDomain)
+            .toList();
+
+        return new PageResultImpl<>(
+            authors,
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements()
+        );
+    }
+
     private record PageResultImpl<T>(
         List<T> content,
         int page,

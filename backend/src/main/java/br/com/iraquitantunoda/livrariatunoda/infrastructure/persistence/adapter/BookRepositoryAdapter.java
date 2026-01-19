@@ -62,10 +62,28 @@ public class BookRepositoryAdapter implements BookRepository {
     }
 
     @Override
-    public PageResult<Book> findAllWithFilters(int page, int size, br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status status, String authorId, Boolean lowStock) {
+    public PageResult<Book> findAllActiveWithFilters(int page, int size, String title) {
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        var pageResult = jpaRepository.findAllActiveWithFilters(title, pageable);
+
+        var books = pageResult.getContent()
+            .stream()
+            .map(mapper::toDomain)
+            .toList();
+
+        return new PageResultImpl<>(
+            books,
+            pageResult.getNumber(),
+            pageResult.getSize(),
+            pageResult.getTotalElements()
+        );
+    }
+
+    @Override
+    public PageResult<Book> findAllWithFilters(int page, int size, br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Status status, String authorId, Boolean lowStock, String title) {
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        var pageResult = jpaRepository.findAllWithFilters(status, authorId, lowStock, pageable);
+        var pageResult = jpaRepository.findAllWithFilters(status, authorId, lowStock, title, pageable);
 
         var books = pageResult.getContent()
             .stream()

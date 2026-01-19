@@ -38,9 +38,10 @@ public class AdminBookController {
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(required = false) Status status,
         @RequestParam(required = false) String authorId,
-        @RequestParam(required = false) Boolean lowStock
+        @RequestParam(required = false) Boolean lowStock,
+        @RequestParam(required = false) String title
     ) {
-        var response = listBooksUseCase.execute(page, size, status, authorId, lowStock);
+        var response = listBooksUseCase.execute(page, size, status, authorId, lowStock, title);
         return ResponseEntity.ok(response);
     }
 

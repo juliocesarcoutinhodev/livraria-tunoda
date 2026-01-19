@@ -18,7 +18,9 @@ public interface BookRepository {
 
     PageResult<Book> findAllActiveWithPagination(int page, int size);
 
-    PageResult<Book> findAllWithFilters(int page, int size, Status status, String authorId, Boolean lowStock);
+    PageResult<Book> findAllActiveWithFilters(int page, int size, String title);
+
+    PageResult<Book> findAllWithFilters(int page, int size, Status status, String authorId, Boolean lowStock, String title);
 
     boolean existsById(BookId id);
 
