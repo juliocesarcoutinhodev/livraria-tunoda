@@ -81,7 +81,7 @@ export type ResourceStatus = "ACTIVE" | "INACTIVE";
 /**
  * Unidade de peso
  */
-export type WeightUnit = "KG" | "G";
+export type WeightUnit = "GRAMS" | "KILOGRAMS";
 
 /**
  * Moeda suportada
