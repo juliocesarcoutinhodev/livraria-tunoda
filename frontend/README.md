@@ -429,6 +429,211 @@ useAuthStore.getState().setAuth(accessToken, refreshToken, user);
 
 ---
 
+## 📚 **Gestão de Autores (Admin)**
+
+Sistema completo de listagem e gerenciamento de autores no painel administrativo.
+
+### **Funcionalidades Implementadas**
+
+#### **1. Sidebar de Navegação Admin**
+
+Menu lateral responsivo com navegação entre páginas administrativas.
+
+**Features:**
+- Logo + Nome do painel
+- Links para Dashboard, Autores, Livros, Pedidos
+- Indicador visual de página ativa
+- Informações do usuário logado
+- Botão de logout com confirmação
+- Drawer mobile (menu hamburger)
+- Backdrop com blur no mobile
+- Posição fixa no desktop
+
+#### **2. Breadcrumb**
+
+Navegação hierárquica exibindo o caminho atual.
+
+**Exemplo:**
+```
+Dashboard > Autores
+```
+
+#### **3. Página de Listagem** (`/admin/authors`)
+
+Interface completa para visualizar e gerenciar autores.
+
+**Layout:**
+- ✅ **Desktop**: Tabela com 3 colunas (Autor, Status, Ações)
+- ✅ **Mobile**: Cards responsivos com todas as informações
+- ✅ **Sidebar**: Navegação fixa à esquerda
+- ✅ **Header**: Título + Botão "Novo Autor"
+
+**Colunas da Tabela:**
+- **Autor**: Foto (thumbnail circular) + Nome
+- **Status**: Badge colorido (Verde = Ativo, Cinza = Inativo)
+- **Ações**: Botões "Editar" e "Ativar/Desativar"
+
+#### **4. Filtros e Busca**
+
+Painel de filtros acima da tabela com 3 campos:
+
+**Busca por Nome (client-side):**
+- Campo de texto
+- Filtro em tempo real
+- Case-insensitive
+
+**Filtro por Status:**
+- Dropdown com opções: Todos, Ativos, Inativos
+- Filtro server-side via API
+
+**Ordenação:**
+- Dropdown: A-Z ou Z-A
+- Ordenação server-side via API
+
+#### **5. Loading Skeleton**
+
+Placeholders animados durante carregamento:
+
+**Desktop:**
+- Skeleton de linhas de tabela
+- 5 linhas por padrão
+
+**Mobile:**
+- Skeleton de cards
+- 5 cards por padrão
+
+#### **6. Estado Vazio**
+
+Tela especial quando não há autores cadastrados:
+
+**Features:**
+- Ícone grande de usuários (azul)
+- Título: "Nenhum autor encontrado"
+- Mensagem contextual (depende se há filtros ativos)
+- Botão CTA: "Adicionar Primeiro Autor"
+- Design centralizado e convidativo
+
+**Mensagens:**
+- Sem filtros: "Comece adicionando o primeiro autor ao catálogo"
+- Com filtros: "Tente ajustar os filtros de busca"
+
+#### **7. Ações Inline**
+
+Botões de ação em cada linha/card:
+
+**Editar:**
+- Botão azul
+- Redireciona para `/admin/authors/{id}/edit`
+
+**Ativar/Desativar:**
+- Botão verde (Ativar) ou cinza (Desativar)
+- Loading state durante mutação
+- Atualização optimistic via React Query
+- Toast de confirmação (futuro)
+
+#### **8. Avatar Inteligente**
+
+**Com Foto:**
+- Image do Next.js (otimizada)
+- Circular, object-cover
+- 40x40px (desktop) / 64x64px (mobile)
+
+**Sem Foto:**
+- Círculo com inicial do nome
+- Cor de fundo: azul claro
+- Texto: primeira letra maiúscula
+
+#### **9. Responsividade Completa**
+
+**Mobile (<768px):**
+- Sidebar vira drawer (menu hamburger)
+- Tabela vira cards
+- Filtros empilhados verticalmente
+- Botões ocupam largura total
+
+**Tablet (768px-1024px):**
+- Sidebar visível
+- Tabela compacta
+- Filtros em grid 3 colunas
+
+**Desktop (>1024px):**
+- Layout completo com sidebar fixa
+- Tabela espaçada
+- Todos os elementos visíveis
+
+### **Arquitetura**
+
+```
+src/
+├── app/admin/authors/
+│   └── page.tsx              # Página principal de listagem
+├── components/
+│   ├── layout/
+│   │   ├── AdminSidebar.tsx  # Sidebar de navegação
+│   │   └── Breadcrumb.tsx    # Navegação hierárquica
+│   └── ui/
+│       └── Skeleton.tsx      # Loading skeletons
+├── hooks/
+│   └── useAuthors.ts         # React Query hooks
+└── types/
+    └── author.ts             # TypeScript types
+```
+
+### **Hooks Disponíveis**
+
+```typescript
+import { useAuthors, useUpdateAuthorStatus } from "@/hooks";
+
+// Listagem com filtros
+const { data, isLoading } = useAuthors({
+  page: 0,
+  size: 100,
+  status: "ACTIVE",
+  sort: "name,asc"
+});
+
+// Toggle status
+const updateStatus = useUpdateAuthorStatus();
+updateStatus.mutate({ 
+  id: "author-id", 
+  status: "INACTIVE" 
+});
+```
+
+### **Componentes Reutilizáveis**
+
+```tsx
+// Sidebar (usa em todas as páginas admin)
+import AdminSidebar from "@/components/layout/AdminSidebar";
+
+// Breadcrumb
+import Breadcrumb from "@/components/layout/Breadcrumb";
+<Breadcrumb items={[
+  { label: "Dashboard", href: "/admin/dashboard" },
+  { label: "Autores" }
+]} />
+
+// Skeletons
+import { AuthorCardSkeleton, TableRowSkeleton } from "@/components/ui";
+```
+
+### **Performance**
+
+- ✅ **Paginação**: Preparada para >50 autores (size=100 por padrão)
+- ✅ **Optimistic Updates**: Status muda instantaneamente
+- ✅ **Cache**: 5 minutos de stale time
+- ✅ **Images**: Otimização automática via next/image
+- ✅ **Bundle**: Code splitting por rota
+
+### **Segurança**
+
+- ✅ **Proteção de Rota**: Middleware verifica role ADMIN
+- ✅ **Auto-logout**: 1h de inatividade
+- ✅ **JWT**: Token validado em cada requisição
+- ✅ **403**: Página de acesso negado
+
+---
+
 ## 🔓 **Logout Seguro**
 
 Sistema completo de logout com confirmação, limpeza total de dados e auto-logout por inatividade.
@@ -1140,6 +1345,7 @@ Todos os services possuem tipos completos:
 - ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
 - ✅ **Proteção de Rotas** (middleware, JWT validation, role check, página 403)
 - ✅ **Logout Seguro** (confirmação, limpeza completa, auto-logout por inatividade)
+- ✅ **Gestão de Autores** (listagem, filtros, busca, ações, responsivo)
 - ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
 
 ### 🚀 **Próximas Implementações:**

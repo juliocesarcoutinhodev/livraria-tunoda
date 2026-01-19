@@ -10,68 +10,37 @@
  * @module app/admin/dashboard
  */
 
-import { useState } from "react";
 import { useAuthStore } from "@/store";
-import { useRouter } from "next/navigation";
-import { useLogout } from "@/hooks";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
-import { Modal } from "@/components/ui";
+import AdminSidebar from "@/components/layout/AdminSidebar";
+import Breadcrumb from "@/components/layout/Breadcrumb";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { user } = useAuthStore();
-  const logout = useLogout();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Auto-logout após 1 hora de inatividade
   useAutoLogoutAfterInactivity();
 
-  const handleLogoutClick = () => {
-    setShowLogoutModal(true);
-  };
-
-  const handleConfirmLogout = async () => {
-    try {
-      await logout.mutateAsync();
-      router.push("/login");
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-      // Mesmo com erro, redireciona
-      router.push("/login");
-    }
-  };
-
-  const handleCancelLogout = () => {
-    setShowLogoutModal(false);
-  };
-
   return (
-    <div className="min-h-screen bg-christian-background">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-christian-text font-playfair">
-                Dashboard Administrativo
-              </h1>
-              <p className="text-sm text-christian-text/60 mt-1">
-                Bem-vindo, {user?.email || "Administrador"}
-              </p>
-            </div>
-            <button
-              onClick={handleLogoutClick}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
-              disabled={logout.isPending}
-            >
-              {logout.isPending ? "Saindo..." : "Sair"}
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen bg-christian-background">
+      {/* Sidebar */}
+      <AdminSidebar />
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 p-6 lg:p-8">
+        {/* Breadcrumb */}
+        <Breadcrumb items={[{ label: "Dashboard" }]} />
+
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-christian-text font-playfair">
+            Dashboard Administrativo
+          </h1>
+          <p className="text-christian-text/60 mt-1">
+            Bem-vindo, {user?.name || user?.email || "Administrador"}
+          </p>
+        </div>
+
         {/* Cards de Métricas (Placeholder) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Card 1 - Total de Livros */}
@@ -239,38 +208,6 @@ export default function DashboardPage() {
           </ul>
         </div>
       </main>
-
-      {/* Modal de Confirmação de Logout */}
-      <Modal
-        isOpen={showLogoutModal}
-        onClose={handleCancelLogout}
-        title="Confirmar Logout"
-        type="warning"
-        closeOnBackdrop={false}
-        actions={
-          <>
-            <button
-              onClick={handleCancelLogout}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-christian-text rounded-lg font-semibold transition-colors"
-              disabled={logout.isPending}
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleConfirmLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
-              disabled={logout.isPending}
-            >
-              {logout.isPending ? "Saindo..." : "Sair"}
-            </button>
-          </>
-        }
-      >
-        <p>
-          Tem certeza que deseja sair do painel administrativo? Você precisará
-          fazer login novamente para acessar esta área.
-        </p>
-      </Modal>
     </div>
   );
 }
