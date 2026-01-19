@@ -23,6 +23,7 @@ import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Breadcrumb from "@/components/layout/Breadcrumb";
 import Modal from "@/components/ui/Modal";
+import CustomSelect from "@/components/ui/CustomSelect";
 import { getErrorMessage } from "@/lib/api-client";
 import type { Book, AdminBookFilterParams } from "@/types/book";
 import type { ResourceStatus } from "@/types/api";
@@ -206,9 +207,8 @@ export default function BooksPage() {
       <div className="flex min-h-screen bg-gray-50">
         <AdminSidebar />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
-          <div className="p-4 lg:p-8 max-w-full overflow-x-hidden">
-            <div className="w-full max-w-full overflow-x-hidden">
+        <div className="flex-1 lg:ml-64 min-w-0">
+          <div className="p-4 lg:p-8 w-full">
             {/* Breadcrumb */}
             <Breadcrumb
               items={[
@@ -218,7 +218,7 @@ export default function BooksPage() {
             />
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 w-full max-w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">
                   Gerenciar Livros
@@ -232,7 +232,7 @@ export default function BooksPage() {
 
               <button
                 onClick={() => router.push("/admin/books/new")}
-                className="mt-3 sm:mt-0 bg-christian-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center shrink-0 w-full sm:w-auto justify-center"
+                className="mt-3 sm:mt-0 bg-christian-blue hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center sm:justify-start whitespace-nowrap"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -252,8 +252,8 @@ export default function BooksPage() {
             </div>
 
             {/* Filtros e Busca */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6 w-full max-w-full overflow-x-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
                 {/* Busca por título */}
                 <div className="lg:col-span-2">
                   <label
@@ -273,51 +273,32 @@ export default function BooksPage() {
                 </div>
 
                 {/* Filtro por status */}
-                <div>
-                  <label
-                    htmlFor="status"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Status
-                  </label>
-                  <select
-                    id="status"
-                    value={statusFilter}
-                    onChange={(e) =>
-                      handleStatusFilterChange(
-                        e.target.value as ResourceStatus | "ALL"
-                      )
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent"
-                  >
-                    <option value="ALL">Todos</option>
-                    <option value="ACTIVE">Ativos</option>
-                    <option value="INACTIVE">Inativos</option>
-                  </select>
-                </div>
+                <CustomSelect
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(value) =>
+                    handleStatusFilterChange(value as ResourceStatus | "ALL")
+                  }
+                  options={[
+                    { value: "ALL", label: "Todos" },
+                    { value: "ACTIVE", label: "Ativos" },
+                    { value: "INACTIVE", label: "Inativos" },
+                  ]}
+                />
 
                 {/* Filtro por autor */}
-                <div>
-                  <label
-                    htmlFor="author"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Autor
-                  </label>
-                  <select
-                    id="author"
-                    value={authorFilter}
-                    onChange={(e) => handleAuthorFilterChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-christian-blue focus:border-transparent"
-                  >
-                    <option value="ALL">Todos os autores</option>
-                    {authorsData?.content.map((author) => (
-                      <option key={author.id} value={author.id}>
-                        {author.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <CustomSelect
+                  label="Autor"
+                  value={authorFilter}
+                  onChange={handleAuthorFilterChange}
+                  options={[
+                    { value: "ALL", label: "Todos os autores" },
+                    ...(authorsData?.content.map((author) => ({
+                      value: author.id,
+                      label: author.name,
+                    })) || []),
+                  ]}
+                />
 
                 {/* Filtro estoque baixo */}
                 <div className="flex items-end">
@@ -613,7 +594,7 @@ export default function BooksPage() {
             </div>
 
             {/* Cards Mobile */}
-            <div className="lg:hidden space-y-4 w-full overflow-hidden">
+            <div className="lg:hidden space-y-4">
               {isLoading ? (
                 Array.from({ length: pageSize }).map((_, index) => (
                   <div
@@ -643,7 +624,7 @@ export default function BooksPage() {
                 books.map((book) => (
                   <div
                     key={book.id}
-                    className={`bg-white rounded-lg shadow-sm p-3 border border-gray-200 w-full max-w-full overflow-hidden ${
+                    className={`bg-white rounded-lg shadow-sm p-3 border border-gray-200 ${
                       book.status === "INACTIVE" ? "opacity-60" : ""
                     }`}
                   >
@@ -803,20 +784,18 @@ export default function BooksPage() {
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between bg-white px-4 py-3 rounded-lg shadow-sm mt-4">
                 <div className="flex items-center space-x-2 mb-3 sm:mb-0">
-                  <label className="text-sm text-gray-700">
-                    Itens por página:
-                  </label>
-                  <select
-                    value={pageSize}
-                    onChange={(e) =>
-                      handlePageSizeChange(Number(e.target.value))
-                    }
-                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-christian-blue"
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
+                  <span className="text-sm text-gray-700">Itens por página:</span>
+                  <div className="w-20">
+                    <CustomSelect
+                      value={String(pageSize)}
+                      onChange={(value) => handlePageSizeChange(Number(value))}
+                      options={[
+                        { value: "10", label: "10" },
+                        { value: "25", label: "25" },
+                        { value: "50", label: "50" },
+                      ]}
+                    />
+                  </div>
                   <span className="text-sm text-gray-700">
                     {currentPage * pageSize + 1}-
                     {Math.min((currentPage + 1) * pageSize, totalElements)} de{" "}
@@ -878,7 +857,6 @@ export default function BooksPage() {
                 </div>
               </div>
             )}
-            </div>
           </div>
         </div>
       </div>
