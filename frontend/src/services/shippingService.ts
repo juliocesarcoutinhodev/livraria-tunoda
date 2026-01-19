@@ -30,7 +30,10 @@ import type {
 const createQuote = async (
   data: CreateShippingQuoteRequest
 ): Promise<ShippingQuote> => {
-  const response = await apiClient.post<ShippingQuote>("/shipping/quotes", data);
+  const response = await apiClient.post<ShippingQuote>(
+    "/shipping/quotes",
+    data
+  );
   return response.data;
 };
 

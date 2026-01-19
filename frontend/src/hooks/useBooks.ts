@@ -437,8 +437,13 @@ export function useAdjustBookStock() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, adjustment }: { id: string; adjustment: StockAdjustment }) =>
-      bookService.adjustStock(id, adjustment),
+    mutationFn: ({
+      id,
+      adjustment,
+    }: {
+      id: string;
+      adjustment: StockAdjustment;
+    }) => bookService.adjustStock(id, adjustment),
     onSuccess: (updatedBook) => {
       // Atualiza cache imediatamente
       queryClient.setQueryData(

@@ -302,7 +302,8 @@ export const useUIStore = create<UIStore>()(
         // Ações - Sidebar
         openSidebar: () => set({ isSidebarOpen: true }, false, "openSidebar"),
 
-        closeSidebar: () => set({ isSidebarOpen: false }, false, "closeSidebar"),
+        closeSidebar: () =>
+          set({ isSidebarOpen: false }, false, "closeSidebar"),
 
         toggleSidebar: () =>
           set(
@@ -316,11 +317,7 @@ export const useUIStore = create<UIStore>()(
           set({ currentModal: modal, modalData: data }, false, "openModal"),
 
         closeModal: () =>
-          set(
-            { currentModal: null, modalData: null },
-            false,
-            "closeModal"
-          ),
+          set({ currentModal: null, modalData: null }, false, "closeModal"),
 
         // Ações - Notificações
         addNotification: (notification) => {
@@ -345,9 +342,7 @@ export const useUIStore = create<UIStore>()(
             setTimeout(() => {
               set(
                 (state) => ({
-                  notifications: state.notifications.filter(
-                    (n) => n.id !== id
-                  ),
+                  notifications: state.notifications.filter((n) => n.id !== id),
                 }),
                 false,
                 "removeNotification(auto)"
@@ -372,11 +367,7 @@ export const useUIStore = create<UIStore>()(
 
         // Ações - Loading
         setLoading: (isLoading, message) =>
-          set(
-            { isLoading, loadingMessage: message },
-            false,
-            "setLoading"
-          ),
+          set({ isLoading, loadingMessage: message }, false, "setLoading"),
       }),
       "UIStore"
     ),

@@ -64,3 +64,6 @@ export { useOrder, useOrdersAdmin } from "./useOrders";
 
 // Payments hooks
 export { usePayment, useCreatePayment } from "./usePayments";
+
+// Utility hooks
+export { useRateLimit } from "./useRateLimit";

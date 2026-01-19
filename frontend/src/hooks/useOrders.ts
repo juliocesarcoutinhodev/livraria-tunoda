@@ -6,10 +6,7 @@
  * @module hooks/useOrders
  */
 
-import {
-  useQuery,
-  type UseQueryOptions,
-} from "@tanstack/react-query";
+import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { orderService } from "@/services/orderService";
 import { queryKeys } from "@/lib/react-query";
 import type { Order, OrderFilterParams } from "@/types/order";

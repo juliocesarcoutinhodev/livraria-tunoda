@@ -14,11 +14,7 @@ import {
 } from "@tanstack/react-query";
 import { cartService } from "@/services/cartService";
 import { queryKeys, invalidateQueries } from "@/lib/react-query";
-import type {
-  Cart,
-  AddItemToCartRequest,
-  CheckoutRequest,
-} from "@/types/cart";
+import type { Cart, AddItemToCartRequest, CheckoutRequest } from "@/types/cart";
 
 // ============================================================================
 // QUERIES
@@ -136,8 +132,13 @@ export function useAddItemToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ cartId, data }: { cartId: string; data: AddItemToCartRequest }) =>
-      cartService.addItem(cartId, data),
+    mutationFn: ({
+      cartId,
+      data,
+    }: {
+      cartId: string;
+      data: AddItemToCartRequest;
+    }) => cartService.addItem(cartId, data),
     onSuccess: (updatedCart) => {
       // Atualiza cache imediatamente
       queryClient.setQueryData(
@@ -267,13 +268,8 @@ export function useCheckout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      cartId,
-      data,
-    }: {
-      cartId: string;
-      data: CheckoutRequest;
-    }) => cartService.checkout(cartId, data),
+    mutationFn: ({ cartId, data }: { cartId: string; data: CheckoutRequest }) =>
+      cartService.checkout(cartId, data),
     onSuccess: (_order, variables) => {
       // Invalida carrinho após checkout
       invalidateQueries.cart(queryClient, variables.cartId);

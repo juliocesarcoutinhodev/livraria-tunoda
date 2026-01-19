@@ -81,8 +81,7 @@ export const queryKeys = {
     all: ["books"] as const,
 
     /** Lista de livros com filtros */
-    list: (filters?: unknown) =>
-      [...queryKeys.books.all, filters] as const,
+    list: (filters?: unknown) => [...queryKeys.books.all, filters] as const,
 
     /** Detalhe de um livro específico */
     detail: (id: string) => [...queryKeys.books.all, id] as const,
@@ -123,8 +122,7 @@ export const queryKeys = {
     all: ["authors"] as const,
 
     /** Lista de autores com filtros */
-    list: (filters?: unknown) =>
-      [...queryKeys.authors.all, filters] as const,
+    list: (filters?: unknown) => [...queryKeys.authors.all, filters] as const,
 
     /** Detalhe de um autor específico */
     detail: (id: string) => [...queryKeys.authors.all, id] as const,
@@ -162,8 +160,7 @@ export const queryKeys = {
     all: ["orders"] as const,
 
     /** Lista de pedidos com filtros */
-    list: (filters?: unknown) =>
-      [...queryKeys.orders.all, filters] as const,
+    list: (filters?: unknown) => [...queryKeys.orders.all, filters] as const,
 
     /** Detalhe de um pedido específico */
     detail: (id: string) => [...queryKeys.orders.all, id] as const,

@@ -19,7 +19,7 @@ export default function About({ className = "" }: AboutProps) {
           }
         });
       },
-      { threshold: 0.3 }
+      { threshold: 0.1, rootMargin: "50px" }
     );
 
     const section = document.getElementById("sobre");

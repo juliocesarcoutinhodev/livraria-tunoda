@@ -120,7 +120,10 @@ type CartStore = CartState & CartActions;
  * Função auxiliar para calcular totais
  */
 const calculateTotals = (items: CartItem[]) => {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   return { total, itemCount };
 };
@@ -192,59 +195,75 @@ export const useCartStore = create<CartStore>()(
 
         // Ações
         addItem: (item) =>
-          set((state) => {
-            const existingItem = state.items.find((i) => i.id === item.id);
-            let newItems: CartItem[];
+          set(
+            (state) => {
+              const existingItem = state.items.find((i) => i.id === item.id);
+              let newItems: CartItem[];
 
-            if (existingItem) {
-              // Item já existe: incrementa quantidade
-              newItems = state.items.map((i) =>
-                i.id === item.id
-                  ? { ...i, quantity: i.quantity + (item.quantity || 1) }
-                  : i
-              );
-            } else {
-              // Item novo: adiciona ao carrinho
-              newItems = [
-                ...state.items,
-                { ...item, quantity: item.quantity || 1 },
-              ];
-            }
+              if (existingItem) {
+                // Item já existe: incrementa quantidade
+                newItems = state.items.map((i) =>
+                  i.id === item.id
+                    ? { ...i, quantity: i.quantity + (item.quantity || 1) }
+                    : i
+                );
+              } else {
+                // Item novo: adiciona ao carrinho
+                newItems = [
+                  ...state.items,
+                  { ...item, quantity: item.quantity || 1 },
+                ];
+              }
 
-            const { total, itemCount } = calculateTotals(newItems);
-            return { items: newItems, total, itemCount };
-          }, false, "addItem"),
+              const { total, itemCount } = calculateTotals(newItems);
+              return { items: newItems, total, itemCount };
+            },
+            false,
+            "addItem"
+          ),
 
         removeItem: (id) =>
-          set((state) => {
-            const newItems = state.items.filter((item) => item.id !== id);
-            const { total, itemCount } = calculateTotals(newItems);
-            return { items: newItems, total, itemCount };
-          }, false, "removeItem"),
+          set(
+            (state) => {
+              const newItems = state.items.filter((item) => item.id !== id);
+              const { total, itemCount } = calculateTotals(newItems);
+              return { items: newItems, total, itemCount };
+            },
+            false,
+            "removeItem"
+          ),
 
         updateQuantity: (id, quantity) =>
-          set((state) => {
-            if (quantity <= 0) {
-              // Se quantidade é 0, remove o item
-              return get().removeItem(id), state;
-            }
+          set(
+            (state) => {
+              if (quantity <= 0) {
+                // Se quantidade é 0, remove o item
+                return (get().removeItem(id), state);
+              }
 
-            const newItems = state.items.map((item) =>
-              item.id === id ? { ...item, quantity } : item
-            );
+              const newItems = state.items.map((item) =>
+                item.id === id ? { ...item, quantity } : item
+              );
 
-            const { total, itemCount } = calculateTotals(newItems);
-            return { items: newItems, total, itemCount };
-          }, false, "updateQuantity"),
+              const { total, itemCount } = calculateTotals(newItems);
+              return { items: newItems, total, itemCount };
+            },
+            false,
+            "updateQuantity"
+          ),
 
         clearCart: () =>
           set({ items: [], total: 0, itemCount: 0 }, false, "clearCart"),
 
         calculateTotal: () =>
-          set((state) => {
-            const { total, itemCount } = calculateTotals(state.items);
-            return { total, itemCount };
-          }, false, "calculateTotal"),
+          set(
+            (state) => {
+              const { total, itemCount } = calculateTotals(state.items);
+              return { total, itemCount };
+            },
+            false,
+            "calculateTotal"
+          ),
       }),
       "CartStore"
     ),

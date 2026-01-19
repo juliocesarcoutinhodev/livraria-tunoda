@@ -5,7 +5,7 @@ import About from "@/components/features/About";
 
 export default function Home() {
   return (
-    <div className="relative">
+    <div className="relative overflow-x-hidden">
       <Navigation />
 
       <main>
@@ -82,6 +82,14 @@ export default function Home() {
             <div className="mt-8 pt-8 border-t border-white/20 text-center">
               <p className="font-inter text-white/60 text-sm">
                 © 2026 Pastor Iraquitan Tunoda. Todos os direitos reservados.
+                <span className="mx-2 text-white/30">•</span>
+                <a
+                  href="/login"
+                  className="text-white/40 hover:text-white/70 transition-colors duration-200 text-xs"
+                  aria-label="Acesso administrativo"
+                >
+                  Acesso Restrito
+                </a>
               </p>
             </div>
           </div>

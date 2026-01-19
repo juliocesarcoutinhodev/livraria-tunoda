@@ -196,8 +196,11 @@ npm run lint && npm run type-check && npm run format:check
 ```
 src/
 ├── app/                      # Next.js 16 App Router
-│   ├── layout.tsx            # Layout raiz + Providers
+│   ├── layout.tsx            # Layout raiz + Providers (ReactQuery, Cart)
 │   ├── page.tsx              # Página principal
+│   ├── login/page.tsx        # ✨ Página de autenticação (NOVO)
+│   ├── admin/
+│   │   └── dashboard/page.tsx  # ✨ Dashboard admin (NOVO)
 │   ├── cart/page.tsx         # Página do carrinho
 │   ├── checkout/page.tsx     # Página de checkout
 │   └── globals.css           # Estilos globais + Tailwind
@@ -278,6 +281,184 @@ src/
 - **next/image** - Otimização automática de imagens
 - **Turbopack** - Bundler ultra-rápido
 - **Fontes Google** - Otimizadas com `display: 'swap'`
+
+## 🔐 Autenticação e Painel Administrativo
+
+Sistema completo de login e dashboard para administradores com segurança reforçada.
+
+### **Página de Login** (`/login`)
+
+Interface de autenticação com design moderno e paleta cristã.
+
+#### **Features:**
+
+**Validação Frontend (apenas campos obrigatórios):**
+- ✅ Email obrigatório (não vazio)
+- ✅ Senha obrigatória (não vazio)
+- ✅ Limpeza de erros em tempo real ao digitar
+
+**Validação Backend (formato e regras de negócio):**
+- ✅ Formato de email válido
+- ✅ Regras de senha (comprimento, complexidade, etc.)
+- ✅ Credenciais corretas
+- ✅ Status do usuário (ativo/inativo)
+- ✅ Erros retornados em formato estruturado
+- ✅ Mensagens específicas por campo
+
+**Segurança:**
+- ✅ **Rate Limiting**: Máximo 5 tentativas por minuto
+- ✅ **Password Toggle**: Botão para mostrar/ocultar senha
+- ✅ **Input type password** por padrão
+- ✅ **JWT Storage**: Token armazenado via Zustand + localStorage
+- ✅ **HTTPS obrigatório** em produção
+
+**Experiência do Usuário:**
+- ✅ **Loading state** durante autenticação
+- ✅ **Spinner animado** no botão "Entrar"
+- ✅ **Contador de tentativas** restantes
+- ✅ **Timer de reset** quando limite atingido
+- ✅ **Redirect automático** para `/admin/dashboard` após sucesso
+- ✅ **Responsivo** (mobile-first)
+- ✅ **Acessibilidade** (aria-labels, role="alert", etc.)
+
+**Tratamento de Erros do Backend:**
+
+O backend retorna erros no formato:
+```json
+{
+  "timestamp": "2026-01-19T08:35:10.229763802",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Erro de validação",
+  "path": "/api/auth/login",
+  "correlationId": "a548d09c-186a-4a89-9223-815d9f53404d",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Email invalido"
+    }
+  ]
+}
+```
+
+**O frontend:**
+- ✅ Exibe erros de campo abaixo de cada input correspondente
+- ✅ Exibe erros gerais no topo do formulário
+- ✅ Mensagens vêm direto do backend (i18n centralizado)
+- ✅ Suporta múltiplos erros simultâneos
+- ✅ Trata erros de rede com mensagens amigáveis
+
+**Estratégia de Validação:**
+
+Frontend valida **apenas campos obrigatórios** (não vazios).  
+Backend valida **formato, regras de negócio e segurança**.
+
+**Benefícios:**
+- 🔒 **Segurança**: Validação JS pode ser bypassada no browser
+- 🎯 **Fonte única**: Regras centralizadas no backend
+- 🌐 **Consistência**: Mesmas regras para web, mobile, API
+- 🗣️ **i18n**: Mensagens centralizadas
+
+**Credenciais de Teste (Development):**
+```
+Email: admin@livraria.com
+Senha: admin123
+```
+
+---
+
+### **Dashboard Administrativo** (`/admin/dashboard`)
+
+Painel centralizado para gerenciamento da livraria (em construção).
+
+**Features Implementadas:**
+- ✅ **Autenticação requerida** (redirect se não autenticado)
+- ✅ **Informações do usuário** no header
+- ✅ **Botão de logout** com redirect para `/login`
+- ✅ **Layout responsivo** com Tailwind CSS
+- ✅ **Paleta cristã** consistente
+
+**Métricas Planejadas** (placeholders criados):
+
+| Card | Métrica | Status |
+|------|---------|--------|
+| 📚 | Total de Livros | Aguardando backend |
+| 💰 | Total de Vendas | Aguardando backend |
+| ⭐ | Livros Mais Clicados | Aguardando backend |
+| 👁️ | Livros Mais Visualizados | Aguardando backend |
+
+---
+
+### **🔧 Correções Implementadas**
+
+#### **1. Botão "Entrar" Invisível**
+**Problema:** Botão estava funcionalmente presente mas visualmente invisível (classes Tailwind não aplicadas).
+
+**Solução:** Substituídas classes CSS por estilos inline com cores hex diretas:
+```tsx
+style={{
+  backgroundColor: disabled ? "#9CA3AF" : "#2F5D8C",  // Azul ou cinza
+}}
+```
+
+#### **2. Redirect Após Login**
+**Problema:** Login bem-sucedido mas não redirecionava para dashboard (Zustand não era atualizado).
+
+**Solução:** `authService` agora atualiza **AMBOS** localStorage E Zustand:
+```typescript
+// Salva no localStorage
+saveAuthData(accessToken, refreshToken, user);
+
+// TAMBÉM atualiza o Zustand!
+useAuthStore.getState().setAuth(accessToken, refreshToken, user);
+```
+
+#### **3. Scroll Horizontal no Desktop**
+**Problema:** Elementos decorativos causavam overflow horizontal.
+
+**Solução:**
+- Removidos elementos decorativos problemáticos
+- Adicionado `overflow-x: hidden` no CSS global
+
+#### **4. Conteúdo Oculto no Mobile**
+**Problema:** Seção "Sobre o Autor" ficava invisível no mobile.
+
+**Solução:**
+- IntersectionObserver threshold reduzido (0.3 → 0.1)
+- Adicionado `rootMargin: "50px"` para detecção antecipada
+
+---
+
+### **Hook: useRateLimit**
+
+Hook customizado para controle de tentativas (rate limiting).
+
+```typescript
+const rateLimit = useRateLimit({
+  maxAttempts: 5,
+  windowMs: 60 * 1000, // 1 minuto
+});
+
+// Propriedades disponíveis:
+- canAttempt: boolean           // Pode fazer nova tentativa?
+- recordAttempt: () => void     // Registra uma tentativa
+- remainingAttempts: number     // Tentativas restantes
+- resetTimeSeconds: number      // Segundos até poder tentar novamente
+- reset: () => void             // Reseta o contador
+```
+
+**Uso no Login:**
+```typescript
+if (!rateLimit.canAttempt) {
+  setErrorMessage(`Aguarde ${rateLimit.resetTimeSeconds}s`);
+  return;
+}
+
+rateLimit.recordAttempt();
+// ... fazer login
+```
+
+---
 
 ## 🗄️ Zustand State Management
 
@@ -652,6 +833,8 @@ Todos os services possuem tipos completos:
 - ✅ **React Query** (cache, mutations, optimistic updates)
 - ✅ **Zustand Stores** (Auth, Cart, UI com persistência)
 - ✅ **TypeScript Types** (50+ interfaces, zero `any`, barrel export)
+- ✅ **Autenticação** (login funcional, dashboard, rate limiting, JWT storage)
+- ✅ **Correções** (botão invisível, redirect, scroll, conteúdo mobile)
 
 ### 🚀 **Próximas Implementações:**
 

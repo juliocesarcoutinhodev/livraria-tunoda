@@ -12,6 +12,7 @@
 
 import { apiClient } from "@/lib/api-client";
 import { saveAuthData, clearAuthData } from "@/lib/auth-storage";
+import { useAuthStore } from "@/store/useAuthStore";
 import type {
   LoginRequest,
   AuthenticationResponse,
@@ -42,16 +43,50 @@ const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
 
   const authData = response.data;
 
-  // Busca dados do usuário após login
-  const user = await getCurrentUser();
-
-  // Salva tokens e dados do usuário
+  // PRIMEIRO: Salva os tokens com dados básicos no localStorage
+  // Isso permite que próximas requisições tenham autenticação
   saveAuthData(authData.accessToken, authData.refreshToken, {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    id: "",
+    name: "",
+    email: data.email,
+    role: "USER",
   });
+
+  // DEPOIS: Busca dados completos do usuário
+  // Agora a requisição terá o token no header
+  try {
+    const user = await getCurrentUser();
+
+    // Atualiza com dados completos do usuário no localStorage
+    saveAuthData(authData.accessToken, authData.refreshToken, {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+
+    // IMPORTANTE: Atualiza o Zustand store também!
+    useAuthStore
+      .getState()
+      .setAuth(authData.accessToken, authData.refreshToken, {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+  } catch (error) {
+    // Se falhar (ex: backend não está rodando /user/me),
+    // ainda assim atualiza o Zustand com dados básicos
+
+    useAuthStore
+      .getState()
+      .setAuth(authData.accessToken, authData.refreshToken, {
+        id: "",
+        name: "",
+        email: data.email,
+        role: "USER",
+      });
+  }
 
   return authData;
 };

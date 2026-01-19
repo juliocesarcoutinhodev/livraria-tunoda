@@ -14,10 +14,7 @@ import {
 } from "@tanstack/react-query";
 import { paymentService } from "@/services/paymentService";
 import { queryKeys } from "@/lib/react-query";
-import type {
-  Payment,
-  CreatePaymentRequest,
-} from "@/types/payment";
+import type { Payment, CreatePaymentRequest } from "@/types/payment";
 
 // ============================================================================
 // QUERIES

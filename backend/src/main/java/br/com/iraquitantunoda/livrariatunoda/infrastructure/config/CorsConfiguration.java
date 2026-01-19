@@ -4,11 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Configuracao global de CORS (Cross-Origin Resource Sharing).
  * Centraliza todas as regras de acesso cross-origin em um unico ponto.
+ *
+ * IMPORTANTE: A partir de 2026-01-19, CORS e processado pelo CorsFilter customizado
+ * que roda ANTES do Spring Security. Isso garante que respostas 401/403 tambem
+ * tenham headers CORS corretos.
+ *
+ * Este WebMvcConfigurer foi DESABILITADO para evitar conflito com o CorsFilter.
+ * Se precisar reverter, basta descomentar o implements e o metodo.
  *
  * Estrategia de seguranca:
  * - Deny by default: apenas origens explicitamente configuradas sao permitidas
@@ -26,12 +32,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class CorsConfiguration implements WebMvcConfigurer {
+public class CorsConfiguration /* implements WebMvcConfigurer */ {
 
     private final CorsProperties corsProperties;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    // DESABILITADO: CORS agora e processado pelo CorsFilter
+    // @Override
+    public void addCorsMappings_DISABLED(CorsRegistry registry) {
         log.info("Configurando CORS para origens: {}", corsProperties.getAllowedOrigins());
 
         registry.addMapping("/api/**")

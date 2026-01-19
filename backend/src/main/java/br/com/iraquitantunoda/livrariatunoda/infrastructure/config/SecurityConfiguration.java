@@ -45,7 +45,11 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable) // Desabilita CORS do Spring Security (usamos CorsFilter)
             .authorizeHttpRequests(auth -> auth
+                // OPTIONS sempre permitido (CORS preflight)
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                 // Endpoints publicos - sem autenticacao necessaria
                 .requestMatchers("/api/auth/**").permitAll()              // Login, refresh token
                 .requestMatchers("/api/public/**").permitAll()            // Catalogo publico

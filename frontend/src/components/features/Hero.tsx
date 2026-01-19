@@ -96,10 +96,6 @@ export default function Hero({ className = "" }: HeroProps) {
               <div className="absolute inset-0 bg-gradient-to-r from-[#C9A44C] to-[#B8934A] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           </div>
-
-          {/* Elementos decorativos */}
-          <div className="hidden lg:block absolute -top-4 -right-4 w-24 h-24 border-2 border-[#C9A44C] border-opacity-20 rounded-full"></div>
-          <div className="hidden lg:block absolute -bottom-6 -left-6 w-16 h-16 border-2 border-[#3A7D44] border-opacity-20 rounded-full"></div>
         </div>
       </div>
     </section>

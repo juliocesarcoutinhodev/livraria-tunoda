@@ -12,7 +12,7 @@ import { StateCreator, StoreMutatorIdentifier } from "zustand";
 type Logger = <
   T,
   Mps extends [StoreMutatorIdentifier, unknown][] = [],
-  Mcs extends [StoreMutatorIdentifier, unknown][] = []
+  Mcs extends [StoreMutatorIdentifier, unknown][] = [],
 >(
   f: StateCreator<T, Mps, Mcs>,
   name?: string
@@ -62,8 +62,16 @@ const loggerImpl: LoggerImpl = (f, name) => (set, get, store) => {
         `%c🔄 ${name || "Store"} Update`,
         "color: #3b82f6; font-weight: bold;"
       );
-      console.log("%cPrevious State:", "color: #ef4444; font-weight: bold;", prevState);
-      console.log("%cNext State:", "color: #10b981; font-weight: bold;", nextState);
+      console.log(
+        "%cPrevious State:",
+        "color: #ef4444; font-weight: bold;",
+        prevState
+      );
+      console.log(
+        "%cNext State:",
+        "color: #10b981; font-weight: bold;",
+        nextState
+      );
       console.log("%cAction:", "color: #f59e0b; font-weight: bold;", partial);
       console.groupEnd();
     } else {

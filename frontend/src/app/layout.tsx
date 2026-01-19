@@ -35,7 +35,7 @@ export default function RootLayout({
         className={`${inter.variable} ${playfair.variable} font-inter antialiased`}
       >
         <ReactQueryProvider>
-        <CartProvider>{children}</CartProvider>
+          <CartProvider>{children}</CartProvider>
         </ReactQueryProvider>
       </body>
     </html>

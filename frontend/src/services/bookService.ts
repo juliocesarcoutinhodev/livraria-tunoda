@@ -9,7 +9,11 @@
  */
 
 import { apiClient } from "@/lib/api-client";
-import type { PaginatedResponse, StockAdjustment, MetricRequest } from "@/types/api";
+import type {
+  PaginatedResponse,
+  StockAdjustment,
+  MetricRequest,
+} from "@/types/api";
 import type {
   Book,
   CreateBookRequest,
@@ -96,9 +100,12 @@ const getMostViewed = async (limit: number = 10): Promise<TopBook[]> => {
  * ```
  */
 const getMostClicked = async (limit: number = 10): Promise<TopBook[]> => {
-  const response = await apiClient.get<TopBook[]>("/public/books/most-clicked", {
-    params: { limit },
-  });
+  const response = await apiClient.get<TopBook[]>(
+    "/public/books/most-clicked",
+    {
+      params: { limit },
+    }
+  );
   return response.data;
 };
 
