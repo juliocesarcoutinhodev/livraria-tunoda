@@ -18,11 +18,65 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Livros Cristãos - Fortalecendo a Fé e Renovando a Esperança",
+  title:
+    "Pastor Iraquitan Tunoda - 25 Anos Transformando Vidas | Livros Cristãos",
   description:
-    "Descubra uma coleção inspiradora de livros cristãos que trazem paz, confiança e alegria para sua jornada espiritual. Mensagens transformadoras para renovar seu coração.",
+    "Pastor e missionário no Japão há 25 anos. Descubra livros cristãos inspiradores que fortalecem a fé, renovam a esperança e trazem paz ao coração. Mensagens transformadoras para sua jornada espiritual.",
   keywords:
-    "livros cristãos, fé, esperança, paz, pastor, espiritualidade, renovação",
+    "livros cristãos, Pastor Iraquitan Tunoda, missionário Japão, fé, esperança, paz, espiritualidade, renovação espiritual, mensagens cristãs, livros religiosos",
+  authors: [{ name: "Pastor Iraquitan Tunoda" }],
+  creator: "Pastor Iraquitan Tunoda",
+  publisher: "Livraria Tunoda",
+
+  // Open Graph (Facebook, LinkedIn)
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://livrariatunoda.com.br",
+    siteName: "Livraria Tunoda - Livros Cristãos",
+    title: "Pastor Iraquitan Tunoda - 25 Anos Transformando Vidas",
+    description:
+      "Pastor e missionário no Japão. Livros cristãos que fortalecem a fé e renovam a esperança.",
+    images: [
+      {
+        url: "/img/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Pastor Iraquitan Tunoda - Livros Cristãos",
+      },
+    ],
+  },
+
+  // Twitter Card
+  twitter: {
+    card: "summary_large_image",
+    title: "Pastor Iraquitan Tunoda - 25 Anos Transformando Vidas",
+    description:
+      "Livros cristãos inspiradores que fortalecem a fé e renovam a esperança.",
+    images: ["/img/twitter-image.jpg"],
+    creator: "@pastortunoda",
+  },
+
+  // App Links
+  alternates: {
+    canonical: "https://livrariatunoda.com.br",
+  },
+
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // Other meta tags
+  category: "religion",
 };
 
 export default function RootLayout({

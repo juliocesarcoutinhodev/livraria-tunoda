@@ -31,9 +31,9 @@ export default function Hero({ className = "" }: HeroProps) {
         <div className="order-2 lg:order-2 text-center lg:text-left space-y-8">
           {/* Headline Principal */}
           <h1 className="font-playfair text-4xl sm:text-5xl lg:text-6xl font-bold text-[#2E2E2E] leading-tight animate-slide-up [animation-delay:300ms]">
-            Uma palavra que{" "}
+            <span className="text-[#C9A44C]">25 anos</span>{" "}
             <span className="text-[#2F5D8C] relative inline-block">
-              fortalece
+              transformando vidas
               <svg
                 className="absolute -bottom-2 left-0 w-full h-3 text-[#C9A44C] opacity-60"
                 viewBox="0 0 200 12"
@@ -47,18 +47,20 @@ export default function Hero({ className = "" }: HeroProps) {
                 />
               </svg>
             </span>{" "}
-            sua fé e renova sua{" "}
-            <span className="text-[#3A7D44]">esperança</span>
+            através da <span className="text-[#3A7D44]">palavra</span>
           </h1>
 
-          {/* Subtítulo */}
+          {/* Subtítulo com história */}
           <p className="font-inter text-xl sm:text-2xl text-[#2E2E2E] opacity-80 leading-relaxed max-w-xl mx-auto lg:mx-0 animate-slide-up [animation-delay:500ms]">
-            Descubra mensagens de{" "}
-            <span className="font-semibold text-[#2F5D8C]">paz</span>,{" "}
-            <span className="font-semibold text-[#3A7D44]">confiança</span> e{" "}
-            <span className="font-semibold text-[#C9A44C]">alegria</span> que
-            transformarão sua jornada espiritual e trarão renovação para seu
-            coração.
+            Pastor e{" "}
+            <span className="font-semibold text-[#2F5D8C]">
+              missionário no Japão
+            </span>
+            , dedicado a levar{" "}
+            <span className="font-semibold text-[#3A7D44]">esperança</span>,{" "}
+            <span className="font-semibold text-[#C9A44C]">fé</span> e{" "}
+            <span className="font-semibold text-[#2F5D8C]">renovação</span>{" "}
+            através de mensagens que tocam o coração e transformam vidas.
           </p>
 
           {/* Botão CTA */}
@@ -75,10 +77,10 @@ export default function Hero({ className = "" }: HeroProps) {
                 }
               }}
               className="group relative inline-flex items-center justify-center px-8 py-4 sm:px-10 sm:py-5 text-lg sm:text-xl font-inter font-semibold text-white bg-[#C9A44C] rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-[#C9A44C] focus:ring-opacity-30"
-              aria-label="Adquirir os livros cristãos - Clique para comprar"
+              aria-label="Ver livros - Scroll para o catálogo de livros cristãos"
             >
               <span className="relative z-10 flex items-center">
-                Adquirir os livros
+                Ver Livros
                 <svg
                   className="ml-3 w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-300"
                   fill="none"
