@@ -36,12 +36,12 @@ export interface Book {
   /** Quantidade em estoque */
   stock: number;
   /** Status (ACTIVE | INACTIVE) */
-  status: ResourceStatus;
+  status: "ACTIVE" | "INACTIVE";
   /** Lista de autores (resumida) */
   authors: AuthorSummary[];
-  /** Data de criação */
-  createdAt: string;
-  /** Data da última atualização */
+  /** Data de criação (opcional para resposta pública) */
+  createdAt?: string;
+  /** Data da última atualização (opcional para resposta pública) */
   updatedAt?: string;
 }
 

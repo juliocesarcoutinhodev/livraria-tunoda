@@ -32,6 +32,10 @@ public interface BookDTOMapper {
     @Mapping(target = "isbn", expression = "java(book.getIsbn() != null ? book.getIsbn().getValue() : null)")
     @Mapping(target = "price", source = "book.price.amount")
     @Mapping(target = "currency", source = "book.price.currency")
+    @Mapping(target = "weight", source = "book.weight.value")
+    @Mapping(target = "weightUnit", source = "book.weight.unit")
+    @Mapping(target = "stock", source = "book.stock")
+    @Mapping(target = "status", source = "book.status")
     @Mapping(target = "authors", source = "authors")
     BookDetailResponse toDetailResponse(Book book, List<AuthorDetailDTO> authors);
 
@@ -44,6 +48,8 @@ public interface BookDTOMapper {
     @Mapping(target = "stock", source = "book.stock")
     @Mapping(target = "status", expression = "java(book.getStatus().name())")
     @Mapping(target = "authors", source = "authors")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     BookResponse toResponse(Book book, List<AuthorSummaryDTO> authors);
 
     @Mapping(target = "id", source = "entity.id")
