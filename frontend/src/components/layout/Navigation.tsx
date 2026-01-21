@@ -49,9 +49,10 @@ export default function Navigation({ className = "" }: NavigationProps) {
   };
 
   const navItems = [
-    { id: "inicio", label: "Início" },
-    { id: "livros", label: "Livros" },
-    { id: "sobre", label: "Sobre" },
+    { id: "inicio", label: "Início", type: "scroll" as const },
+    { id: "livros", label: "Livros", type: "scroll" as const },
+    { id: "sobre", label: "Sobre", type: "scroll" as const },
+    { id: "/livros", label: "Catálogo", type: "link" as const },
   ];
 
   return (
@@ -73,19 +74,29 @@ export default function Navigation({ className = "" }: NavigationProps) {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-8">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`font-inter font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 ${
-                    activeSection === item.id
-                      ? "text-[#2F5D8C] bg-[#2F5D8C]/10"
-                      : "text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2]"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              {navItems.map((item) =>
+                item.type === "link" ? (
+                  <Link
+                    key={item.id}
+                    href={item.id}
+                    className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className={`font-inter font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 ${
+                      activeSection === item.id
+                        ? "text-[#2F5D8C] bg-[#2F5D8C]/10"
+                        : "text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2]"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -166,19 +177,30 @@ export default function Navigation({ className = "" }: NavigationProps) {
         } overflow-hidden bg-white border-t border-[#2F5D8C]/10`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => scrollToSection(item.id)}
-              className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                activeSection === item.id
-                  ? "text-[#2F5D8C] bg-[#2F5D8C]/10"
-                  : "text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2]"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          {navItems.map((item) =>
+            item.type === "link" ? (
+              <Link
+                key={item.id}
+                href={item.id}
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                  activeSection === item.id
+                    ? "text-[#2F5D8C] bg-[#2F5D8C]/10"
+                    : "text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2]"
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          )}
         </div>
       </div>
     </nav>

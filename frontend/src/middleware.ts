@@ -18,7 +18,7 @@ import { isValidToken, hasRole } from "@/lib/jwt-utils";
 /**
  * Rotas públicas que não requerem autenticação
  */
-const PUBLIC_ROUTES = ["/", "/login", "/403"];
+const PUBLIC_ROUTES = ["/", "/login", "/403", "/livros", "/cart", "/checkout"];
 
 /**
  * Rotas que requerem autenticação
@@ -75,21 +75,35 @@ function isAdminRoute(pathname: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Permite acesso às rotas públicas
+  console.log("[Middleware] Checking route:", pathname);
+
+  // Permite acesso às rotas públicas (exato match)
   if (PUBLIC_ROUTES.includes(pathname)) {
+    console.log("[Middleware] Public route - allowing access");
+    return NextResponse.next();
+  }
+
+  // Permite acesso às rotas públicas com padrões (startsWith)
+  const publicPatterns = ["/livros/", "/cart/", "/checkout/"];
+  if (publicPatterns.some((pattern) => pathname.startsWith(pattern))) {
+    console.log("[Middleware] Public pattern route - allowing access");
     return NextResponse.next();
   }
 
   // Verifica se a rota requer proteção
   if (!isProtectedRoute(pathname)) {
+    console.log("[Middleware] Not a protected route - allowing access");
     return NextResponse.next();
   }
+
+  console.log("[Middleware] Protected route - checking authentication");
 
   // Obtém o access token
   const accessToken = getAccessToken(request);
 
   // Se não há token, redireciona para login com query param
   if (!accessToken) {
+    console.log("[Middleware] No token - redirecting to login");
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
@@ -97,6 +111,7 @@ export function middleware(request: NextRequest) {
 
   // Valida o token
   if (!isValidToken(accessToken)) {
+    console.log("[Middleware] Invalid token - redirecting to login");
     // Token inválido ou expirado
     // TODO: Implementar tentativa de refresh token automático
     const loginUrl = new URL("/login", request.url);
@@ -107,11 +122,13 @@ export function middleware(request: NextRequest) {
   // Verifica se a rota requer role ADMIN
   if (isAdminRoute(pathname)) {
     if (!hasRole(accessToken, "ADMIN")) {
+      console.log("[Middleware] Missing ADMIN role - redirecting to 403");
       // Usuário autenticado mas sem role ADMIN
       return NextResponse.redirect(new URL("/403", request.url));
     }
   }
 
+  console.log("[Middleware] All checks passed - allowing access");
   // Tudo OK, permite acesso
   return NextResponse.next();
 }
