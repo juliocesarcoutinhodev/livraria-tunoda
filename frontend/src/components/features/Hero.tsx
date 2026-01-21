@@ -14,16 +14,18 @@ export default function Hero({ className = "" }: HeroProps) {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center animate-fade-in">
         {/* Mobile: Imagem primeiro */}
         <div className="order-1 lg:order-1 flex justify-center lg:justify-start">
-          <div className="relative group">
+          <div className="relative group w-full max-w-sm lg:max-w-md">
             <div className="absolute -inset-4 bg-gradient-to-r from-[#2F5D8C] to-[#3A7D44] rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
-            <Image
-              src="/img/img1.jpeg"
-              alt="Pastor Iraquitan Tunoda - Missionário e autor dos livros cristãos, transmitindo paz e serenidade"
-              width={512}
-              height={512}
-              priority
-              className="relative w-80 h-96 sm:w-96 sm:h-[28rem] lg:w-full lg:h-[32rem] object-cover rounded-2xl shadow-2xl"
-            />
+            <div className="relative aspect-[3/4] w-full">
+              <Image
+                src="/img/img1.jpeg"
+                alt="Pastor Iraquitan Tunoda - Missionário e autor dos livros cristãos, transmitindo paz e serenidade"
+                fill
+                priority
+                className="object-cover rounded-2xl shadow-2xl"
+                sizes="(max-width: 768px) 80vw, (max-width: 1024px) 40vw, 28vw"
+              />
+            </div>
           </div>
         </div>
 

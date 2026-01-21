@@ -62,16 +62,6 @@ export default function Books({ className = "" }: BooksProps) {
     }).format(price);
   };
 
-  // Registra view quando livros carregam
-  useEffect(() => {
-    if (books && books.length > 0) {
-      books.forEach((book) => {
-        trackMetric.mutate({ bookId: book.id, eventType: "VIEW" });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [books]);
-
   if (error) {
     return (
       <section id="livros" className={`py-16 md:py-24 bg-white ${className}`}>
