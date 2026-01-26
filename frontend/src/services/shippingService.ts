@@ -89,7 +89,7 @@ const selectOption = async (
   serviceCode: string
 ): Promise<ShippingQuote> => {
   const data: SelectShippingOptionRequest = { serviceCode };
-  const response = await apiClient.post<ShippingQuote>(
+  const response = await apiClient.put<ShippingQuote>(
     `/shipping/quotes/${id}/select`,
     data
   );
