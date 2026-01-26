@@ -62,6 +62,12 @@ mercado-pago:
   create-preference-endpoint: ${MERCADO_PAGO_CREATE_PREFERENCE_ENDPOINT:/checkout/preferences}
   get-payment-endpoint: ${MERCADO_PAGO_GET_PAYMENT_ENDPOINT:/v1/payments/{id}}
 
+cnpja:
+  base-url: ${CNPJA_API_URL:https://api.cnpja.com}
+  token: ${CNPJA_API_TOKEN}
+  timeout-seconds: ${CNPJA_TIMEOUT_SECONDS:10}
+  zip-endpoint: ${CNPJA_ZIP_ENDPOINT:/zip/{code}}
+
 app:
   security:
     jwt:
@@ -76,4 +82,3 @@ app:
     exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
     allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
     max-age: ${CORS_MAX_AGE:3600}
-

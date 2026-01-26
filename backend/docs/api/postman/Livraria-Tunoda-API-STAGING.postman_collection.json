@@ -190,6 +190,59 @@
       "description": "Endpoints públicos para registro de métricas de interação"
     },
     {
+      "name": "Public - CEP",
+      "item": [
+        {
+          "name": "Consultar Endereço por CEP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/cep/{{cep}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "cep",
+                "{{cep}}"
+              ]
+            },
+            "description": "Consulta endereço por CEP via CNPJá e retorna campos em português."
+          },
+          "response": [
+            {
+              "name": "Exemplo - Endereço encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/public/cep/{{cep}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "public",
+                    "cep",
+                    "{{cep}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"atualizadoEm\": \"2026-01-09T03:00:00.000Z\",\n  \"cep\": \"03195000\",\n  \"codigoMunicipio\": 3550308,\n  \"logradouro\": \"Rua do Oratório\",\n  \"numero\": null,\n  \"bairro\": \"Alto da Mooca\",\n  \"cidade\": \"São Paulo\",\n  \"uf\": \"SP\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints públicos para consulta de CEP"
+    },
+    {
       "name": "Admin - Autores",
       "item": [
         {
