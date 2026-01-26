@@ -40,7 +40,7 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - **Início** → Hero Section
 - **Livros** → Seção de produtos
 - **Sobre** → História do pastor
-- Carrinho com contador de itens
+- Carrinho com contador de itens + mini-cart no hover (desktop)
 - Design responsivo com menu mobile
 
 ### ✅ **Seção Hero Refinada**
@@ -74,12 +74,11 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 
 ### ✅ **Sistema de Carrinho Completo**
 
-- **Context API** para gerenciamento global de estado
-- Adição/remoção de itens
-- Controle de quantidade
-- Cálculo automático de totais
-- Persistência durante navegação
-- Validação de estoque via backend antes do checkout
+- **Context API** com sincronização híbrida (localStorage + backend)
+- Persistência entre sessões via `cartId` + snapshot local (`cartSnapshot`)
+- Adição/remoção/atualização com UI otimista
+- Cálculo automático de totais + contador global
+- Validação de estoque via backend (carrinho e checkout)
 
 ### ✅ **Página do Carrinho (/carrinho)**
 
@@ -88,15 +87,18 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Resumo financeiro detalhado
 - Benefícios destacados (frete grátis, etc.)
 - Estado vazio com CTA para compras
+- Validação de estoque em tempo real
 - Bloqueio de checkout quando estoque inválido
 
 ### ✅ **Página de Checkout (/checkout)**
 
-- Formulário completo de dados pessoais
-- Informações de entrega
-- Resumo do pedido
-- Indicadores de segurança
-- Estrutura preparada para integração de pagamento
+- Fluxo multi-step (Identificação, Endereço, Revisão, Pagamento)
+- Validação por etapa + estoque antes de avançar
+- Busca de endereço por CEP (consulta automática)
+- Cálculo e seleção de frete (Melhor Envio) com recálculo
+- Resumo do pedido com subtotal, frete e total
+- Breadcrumb de progresso + botão voltar funcional
+- Checkout cria pedido (POST `/carts/{cartId}/checkout`) e prepara integração de pagamento
 
 ### ✅ **Seção Sobre o Autor**
 
@@ -203,7 +205,7 @@ npm run lint && npm run type-check && npm run format:check
 1. **Navegação** → Usuário explora a página
 2. **Seleção** → Adiciona livros ao carrinho
 3. **Carrinho** → Revisa itens e quantidades
-4. **Checkout** → Preenche dados de entrega
+4. **Checkout** → Identificação, endereço e frete
 5. **Pagamento** → [Preparado para integração]
 
 ## 📂 Estrutura do Projeto (Enterprise Pattern)
@@ -216,7 +218,8 @@ src/
 │   ├── login/page.tsx        # ✨ Página de autenticação (NOVO)
 │   ├── admin/
 │   │   └── dashboard/page.tsx  # ✨ Dashboard admin (NOVO)
-│   ├── cart/page.tsx         # Página do carrinho
+│   ├── cart/page.tsx         # Página do carrinho (base)
+│   ├── carrinho/page.tsx     # Alias pt-BR para /carrinho
 │   ├── checkout/page.tsx     # Página de checkout
 │   └── globals.css           # Estilos globais + Tailwind
 ├── components/
@@ -229,8 +232,8 @@ src/
 │       ├── Hero.tsx          # Seção hero
 │       ├── Books.tsx         # Catálogo de livros
 │       └── About.tsx         # Sobre o autor
-├── contexts/                 # React Context API (legado)
-│   └── CartContext.tsx       # Estado do carrinho (migrar para Zustand)
+├── contexts/                 # React Context API
+│   └── CartContext.tsx       # Carrinho híbrido (localStorage + backend)
 ├── services/                 # ✨ API Services (NOVO)
 │   ├── authService.ts        # Autenticação (login, refresh, logout)
 │   ├── authorService.ts      # CRUD autores (ADMIN)
@@ -277,8 +280,8 @@ src/
 - **@tailwindcss/postcss** - Integração PostCSS
 
 ### Estado e Dados
-- **React Context API** - Gerenciamento de estado do carrinho (legado)
-- **Zustand 5.0.10** - Estado global com 3 stores (Auth, Cart, UI)
+- **React Context API** - Carrinho sincronizado (localStorage + backend)
+- **Zustand 5.0.10** - Estado global (Auth, UI, cart store experimental)
 - **Persist Middleware** - Persistência automática no localStorage
 - **React Query (TanStack Query)** - Cache de servidor, mutations, invalidações
 
@@ -1985,11 +1988,16 @@ O projeto possui uma camada completa de serviços para comunicação com o backe
 | `authorService` | `/admin/authors/*` | CRUD de autores (ADMIN) |
 | `bookService` | `/public/books/*`, `/admin/books/*` | Livros (público + ADMIN) |
 | `cartService` | `/carts/*` | Carrinho de compras (inclui validação de estoque) |
+| `cepService` | `/public/cep/{cep}` | Consulta de endereço por CEP |
 | `shippingService` | `/shipping/quotes/*` | Cálculo de frete |
 | `orderService` | `/orders/*`, `/admin/orders/*` | Pedidos |
 | `paymentService` | `/payments/*` | Pagamentos (Mercado Pago) |
 
 **Carrinho - validação de estoque:** `POST /carts/{cartId}/validate`
+**Carrinho - checkout:** `POST /carts/{cartId}/checkout`
+**Carrinho - limpar:** `DELETE /carts/{cartId}/clear`
+
+**Frete:** `POST /shipping/quotes`, `POST /shipping/quotes/{id}/calculate`, `PUT /shipping/quotes/{id}/select`
 
 #### **Exemplo de Uso:**
 
@@ -2205,12 +2213,11 @@ Todos os services possuem tipos completos:
 
 ### 🚀 **Próximas Implementações:**
 
-- [ ] **UI de autenticação** (páginas de login/registro)
-- [ ] **Integração frontend ↔ backend** (conectar CartContext com cartService)
-- [ ] **Painel administrativo** (CRUD de livros/autores)
-- [ ] **Finalização de checkout** (integração com paymentService)
-- [ ] **Cálculo de frete real** (integração com shippingService)
-- [ ] **Dashboard de métricas** (views/clicks dos livros)
+- [ ] **Pagamento (Mercado Pago)** na etapa 4 do checkout
+- [ ] **Proteção de /checkout** (auth opcional + dados do cliente persistidos)
+- [ ] **CRUD de livros (ADMIN)** completo
+- [ ] **Página de confirmação de pedido** (detalhes pós-checkout)
+- [ ] **Testes E2E de carrinho/checkout**
 - [ ] Newsletter/email marketing
 - [ ] Blog integrado
 - [ ] Sistema de avaliações
