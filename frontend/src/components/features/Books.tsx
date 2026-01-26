@@ -146,7 +146,7 @@ export default function Books({ className = "" }: BooksProps) {
                 <div className="relative mb-6 overflow-hidden rounded-xl bg-white">
                   <div className="aspect-[2/3] relative">
                     <Image
-                      src={book.photoUrl || "/img/book-placeholder.jpg"}
+                      src={book.photoUrl || "/img/book-placeholder.svg"}
                       alt={`Capa do livro ${book.title}`}
                       fill
                       className="object-contain group-hover:scale-105 transition-transform duration-300"

@@ -336,7 +336,7 @@ export default function LivrosPage() {
                   {/* Imagem da capa */}
                   <div className="relative aspect-[3/4] bg-gray-50 overflow-hidden">
                     <Image
-                      src={book.photoUrl ?? "/img/book-placeholder.jpg"}
+                      src={book.photoUrl ?? "/img/book-placeholder.svg"}
                       alt={book.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

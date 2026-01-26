@@ -289,7 +289,7 @@ export default function BookDetailPage() {
               <div className="lg:sticky lg:top-24">
                 <div className="group relative aspect-[3/4] bg-gray-50 rounded-2xl overflow-hidden shadow-2xl cursor-zoom-in">
                   <Image
-                    src={book.photoUrl ?? "/img/book-placeholder.jpg"}
+                    src={book.photoUrl ?? "/img/book-placeholder.svg"}
                     alt={book.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -551,7 +551,7 @@ export default function BookDetailPage() {
                     className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50"
                   >
                     <Image
-                      src={related.photoUrl ?? "/img/book-placeholder.jpg"}
+                      src={related.photoUrl ?? "/img/book-placeholder.svg"}
                       alt={related.title}
                       fill
                       className="object-cover hover:scale-105 transition-transform duration-300"

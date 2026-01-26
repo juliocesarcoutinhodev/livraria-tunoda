@@ -15,6 +15,13 @@ export default function Navigation({ className = "" }: NavigationProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== "development") {
+      return;
+    }
+    console.info("[CartDebug] navigation itemCount", { itemCount });
+  }, [itemCount]);
+
+  useEffect(() => {
     const handleScroll = () => {
       const sections = ["inicio", "livros", "sobre"];
       const scrollPosition = window.scrollY + 100;
@@ -116,24 +123,26 @@ export default function Navigation({ className = "" }: NavigationProps) {
                   itemCount === 1 ? "item" : "itens"
                 }`}
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
-                  />
-                </svg>
-                {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#C9A44C] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                    {itemCount}
-                  </span>
-                )}
+                <span className="relative inline-flex">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                    />
+                  </svg>
+                  {itemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 z-10 bg-[#C9A44C] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse ring-2 ring-white">
+                      {itemCount}
+                    </span>
+                  )}
+                </span>
               </Link>
 
               {isCartOpen && (
@@ -168,7 +177,7 @@ export default function Navigation({ className = "" }: NavigationProps) {
                         >
                           <div className="h-12 w-10 rounded-lg bg-[#F7F6F2] overflow-hidden flex-shrink-0">
                             <img
-                              src={item.photoUrl || "/img/book-placeholder.jpg"}
+                              src={item.photoUrl || "/img/book-placeholder.svg"}
                               alt={item.title}
                               className="h-full w-full object-cover"
                             />
@@ -214,24 +223,26 @@ export default function Navigation({ className = "" }: NavigationProps) {
                 itemCount === 1 ? "item" : "itens"
               }`}
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
-                />
-              </svg>
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#C9A44C] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                  {itemCount}
-                </span>
-              )}
+              <span className="relative inline-flex">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 0 013 0z"
+                  />
+                </svg>
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 z-10 bg-[#C9A44C] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse ring-2 ring-white">
+                    {itemCount}
+                  </span>
+                )}
+              </span>
             </Link>
 
             {/* Mobile Menu Button */}

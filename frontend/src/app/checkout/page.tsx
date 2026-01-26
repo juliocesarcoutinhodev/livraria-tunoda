@@ -183,7 +183,7 @@ export default function CheckoutPage() {
                       className="flex items-center space-x-4 py-4 border-b border-[#2F5D8C]/10 last:border-b-0"
                     >
                       <Image
-                        src={item.photoUrl || "/img/book-placeholder.jpg"}
+                        src={item.photoUrl || "/img/book-placeholder.svg"}
                         alt={`Capa do livro ${item.title}`}
                         width={64}
                         height={80}

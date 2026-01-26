@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Navigation from "@/components/layout/Navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { bookService } from "@/services/bookService";
 
 export default function CartPage() {
   const {
@@ -16,6 +18,46 @@ export default function CartPage() {
     updateQuantity,
     clearCart,
   } = useCart();
+  const [covers, setCovers] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    const missingIds = items
+      .filter((item) => !item.photoUrl && !covers[item.bookId])
+      .map((item) => item.bookId);
+
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    const fetchCovers = async () => {
+      try {
+        const responses = await Promise.all(
+          missingIds.map((id) => bookService.getByIdPublic(id))
+        );
+        if (!isMounted) {
+          return;
+        }
+        setCovers((prev) => {
+          const next = { ...prev };
+          responses.forEach((book) => {
+            if (book.photoUrl) {
+              next[book.id] = book.photoUrl;
+            }
+          });
+          return next;
+        });
+      } catch {
+        // Silencioso: mantém placeholder quando a capa não puder ser carregada.
+      }
+    };
+
+    fetchCovers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [items, covers]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -118,11 +160,15 @@ export default function CartPage() {
                       {/* Book Image */}
                       <div className="flex-shrink-0">
                         <Image
-                          src={item.photoUrl || "/img/book-placeholder.jpg"}
+                          src={
+                            item.photoUrl ||
+                            covers[item.bookId] ||
+                            "/img/book-placeholder.svg"
+                          }
                           alt={`Capa do livro ${item.title}`}
-                          width={128}
-                          height={160}
-                          className="w-24 h-32 sm:w-32 sm:h-40 object-cover rounded-xl"
+                          width={96}
+                          height={128}
+                          className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded-xl"
                         />
                       </div>
 
