@@ -38,6 +38,7 @@ interface CartContextType extends CartState {
   removeItem: (bookId: string) => Promise<void>;
   updateQuantity: (bookId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  resetCart: () => void;
   refreshCart: () => Promise<void>;
 }
 
@@ -523,6 +524,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetCart = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("cartId");
+      localStorage.removeItem("cartSnapshot");
+    }
+    cartRef.current = { ...emptyCartState, isLoading: false };
+    setState({ ...emptyCartState, isLoading: false });
+  };
+
   const value = useMemo(
     () => ({
       ...state,
@@ -530,6 +540,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       updateQuantity,
       clearCart,
+      resetCart,
       refreshCart,
     }),
     [state]
