@@ -381,7 +381,7 @@ export default function CartPage() {
 
                   {/* Continue Shopping */}
                   <Link
-                    href="/#livros"
+                    href="/livros"
                     className="w-full mt-4 bg-transparent border-2 border-[#2F5D8C] text-[#2F5D8C] hover:bg-[#2F5D8C] hover:text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
                   >
                     Continuar Comprando
