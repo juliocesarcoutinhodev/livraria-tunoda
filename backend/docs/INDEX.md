@@ -1,6 +1,6 @@
 # 📚 Índice Completo da Documentação - v1.1.0
 
-**Última Atualização:** 19/01/2026
+**Última Atualização:** 26/01/2026
 
 ---
 
@@ -40,6 +40,7 @@
 ### **4. API** ⭐ ATUALIZADO
 - [Visão Geral](api/README.md) - Introdução aos endpoints
 - [Endpoints Completos](api/endpoints.md) - Documentação de rotas
+- [Limpar Carrinho](api/CLEAR_CART.md) ⭐ NOVO - Endpoint para limpar todos os itens
 - [Filtros de Busca](api/SEARCH_FILTERS.md) ⭐ NOVO - Busca por nome/título
 - [Ordenação (Sort)](api/SORT_IMPLEMENTATION.md) ⭐ NOVO - Ordenação dinâmica
 - [Error Handling](api/error-handling.md) - Tratamento de erros

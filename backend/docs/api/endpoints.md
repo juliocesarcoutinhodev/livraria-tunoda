@@ -366,13 +366,31 @@ Response: 200 OK
 ### Remover Item
 ```
 DELETE /api/carts/{cartId}/items/{bookId}
-Response: 204 No Content
+Response: 200 OK + carrinho atualizado
 ```
 
 ### Limpar Carrinho
 ```
-DELETE /api/carts/{id}/clear
-Response: 204 No Content
+DELETE /api/carts/{cartId}/clear
+Response: 200 OK + carrinho vazio
+```
+**Descrição:** Remove todos os itens do carrinho, mantendo o carrinho ativo.
+
+**Validações:**
+- Carrinho deve existir
+- Carrinho deve estar com status ACTIVE
+
+**Response:**
+```json
+{
+  "id": "cart-uuid",
+  "items": [],
+  "subtotal": 0.00,
+  "itemCount": 0,
+  "status": "ACTIVE",
+  "createdAt": "2026-01-26T10:00:00",
+  "updatedAt": "2026-01-26T10:30:00"
+}
 ```
 
 ## Frete
