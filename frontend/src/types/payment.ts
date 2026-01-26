@@ -11,11 +11,12 @@
  * Status do pagamento
  */
 export type PaymentStatus =
+  | "CREATED"
   | "PENDING"
   | "APPROVED"
   | "REJECTED"
   | "CANCELLED"
-  | "REFUNDED";
+  | "EXPIRED";
 
 /**
  * Método de pagamento
@@ -25,61 +26,48 @@ export type PaymentMethod =
   | "DEBIT_CARD"
   | "PIX"
   | "BOLETO"
-  | "OTHER";
+  | "BANK_TRANSFER";
 
 /**
  * Pagamento
  */
 export interface Payment {
   /** ID único do pagamento */
-  id: string;
+  paymentId: string;
   /** ID do pedido associado */
   orderId: string;
   /** Valor do pagamento */
   amount: number;
+  /** Moeda */
+  currency: string;
   /** Status do pagamento */
   status: PaymentStatus;
   /** Método de pagamento */
-  method?: PaymentMethod;
-  /** ID externo (Mercado Pago) */
-  externalId?: string;
-  /** URL para aprovação (caso necessário) */
-  approvalUrl?: string;
-  /** Código QR para PIX */
-  qrCode?: string;
-  /** Texto do QR Code PIX */
-  qrCodeText?: string;
-  /** URL do boleto */
-  boletoUrl?: string;
+  method: PaymentMethod;
+  /** Gateway utilizado (ex: MERCADO_PAGO) */
+  gateway: string;
+  /** Referência externa no gateway */
+  externalReference?: string | null;
+  /** Motivo de rejeição, quando aplicável */
+  rejectionReason?: string | null;
   /** Data de criação */
   createdAt: string;
   /** Data da última atualização */
-  updatedAt?: string;
-  /** Data de aprovação */
-  approvedAt?: string;
+  updatedAt?: string | null;
 }
 
 /**
  * Requisição para criar pagamento
- * POST /api/payments
+ * POST /api/orders/{orderId}/payments
  */
 export interface CreatePaymentRequest {
-  /** ID do pedido */
-  orderId: string;
+  /** Método de pagamento */
+  paymentMethod: PaymentMethod;
 }
 
-/**
- * Resposta da criação de pagamento
- */
-export interface CreatePaymentResponse {
-  /** ID do pagamento */
-  id: string;
-  /** Status inicial */
-  status: PaymentStatus;
-  /** URL para aprovação (redirect) */
-  approvalUrl?: string;
-  /** Código QR PIX */
-  qrCode?: string;
-  /** Texto do QR Code PIX */
-  qrCodeText?: string;
+export interface ProcessPaymentResponse {
+  /** Dados do pagamento atualizado */
+  payment: Payment;
+  /** URL de pagamento (Mercado Pago) */
+  paymentUrl: string;
 }

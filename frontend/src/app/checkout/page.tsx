@@ -3,14 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import Navigation from "@/components/layout/Navigation";
 import { useCart } from "@/contexts/CartContext";
 import { cartService } from "@/services/cartService";
 import { cepService } from "@/services/cepService";
+import { paymentService } from "@/services/paymentService";
 import { shippingService } from "@/services/shippingService";
 import type { CartValidationResponse } from "@/types/cart";
 import type { ShippingOption, ShippingQuote } from "@/types/shipping";
+import type { CheckoutResponse } from "@/types/cart";
+import type { Payment, PaymentMethod } from "@/types/payment";
 
 const steps = [
   { id: 1, title: "Identificacao" },
@@ -38,13 +43,23 @@ type AddressInfo = {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items, subtotal, itemCount, isLoading, cartId, resetCart } = useCart();
   const [step, setStep] = useState(1);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [validation, setValidation] = useState<CartValidationResponse | null>(
     null
   );
   const [isValidating, setIsValidating] = useState(false);
+  const [order, setOrder] = useState<CheckoutResponse | null>(null);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [paymentUrl, setPaymentUrl] = useState<string>("");
+  const [paymentPreferenceId, setPaymentPreferenceId] = useState<string | null>(
+    null
+  );
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState<string>("");
 
   const [customer, setCustomer] = useState<CustomerInfo>({
     fullName: "",
@@ -66,12 +81,21 @@ export default function CheckoutPage() {
   const [isShippingSelecting, setIsShippingSelecting] = useState(false);
   const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
   const [selectedService, setSelectedService] = useState<string>("");
+  const mercadoPagoPublicKey =
+    process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY || "";
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(price);
+
+  useEffect(() => {
+    if (!mercadoPagoPublicKey) {
+      return;
+    }
+    initMercadoPago(mercadoPagoPublicKey, { locale: "pt-BR" });
+  }, [mercadoPagoPublicKey]);
 
   const selectedOption = useMemo<ShippingOption | null>(() => {
     if (!shippingQuote) {
@@ -92,6 +116,34 @@ export default function CheckoutPage() {
     const shippingCost = selectedOption?.price || 0;
     return subtotal + shippingCost;
   }, [subtotal, selectedOption]);
+
+  const paymentStatusLabel = (status?: Payment["status"]) => {
+    switch (status) {
+      case "CREATED":
+        return "Criado";
+      case "PENDING":
+        return "Em processamento";
+      case "APPROVED":
+        return "Aprovado";
+      case "REJECTED":
+        return "Recusado";
+      case "CANCELLED":
+        return "Cancelado";
+      case "EXPIRED":
+        return "Expirado";
+      default:
+        return "Aguardando";
+    }
+  };
+
+  const extractPreferenceId = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.searchParams.get("pref_id");
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -248,9 +300,71 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const handleNext = () => {
+  const createOrder = async (): Promise<CheckoutResponse | null> => {
+    if (!cartId || !shippingQuote) {
+      toast.error("Finalize o frete antes de concluir.");
+      return null;
+    }
+    if (validation && !validation.valid) {
+      toast.error(validation.message || "Revise o estoque dos itens.");
+      return null;
+    }
+
+    setIsCreatingOrder(true);
+    try {
+      const created = await cartService.checkout(cartId, {
+        shippingQuoteId: shippingQuote.id,
+        customerEmail: customer.email,
+      });
+      setOrder(created);
+      toast.success(`Pedido criado: ${created.orderId}`);
+      return created;
+    } catch {
+      toast.error("Nao foi possivel criar o pedido.");
+      return null;
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  };
+
+  const handleCreatePayment = async () => {
+    if (!order?.orderId) {
+      toast.error("Crie o pedido antes de pagar.");
+      return;
+    }
+    if (!paymentMethod) {
+      setPaymentError("Selecione a forma de pagamento.");
+      toast.error("Selecione a forma de pagamento.");
+      return;
+    }
+
+    setPaymentError("");
+    setIsPaymentProcessing(true);
+
+    try {
+      const createdPayment = await paymentService.create(order.orderId, {
+        paymentMethod,
+      });
+      const processed = await paymentService.process(createdPayment.paymentId);
+      setPayment(processed.payment);
+      setPaymentUrl(processed.paymentUrl);
+      setPaymentPreferenceId(extractPreferenceId(processed.paymentUrl));
+    } catch {
+      toast.error("Nao foi possivel iniciar o pagamento.");
+    } finally {
+      setIsPaymentProcessing(false);
+    }
+  };
+
+  const handleNext = async () => {
     if (!validateStep(step)) {
       return;
+    }
+    if (step === 3 && !order?.orderId) {
+      const created = await createOrder();
+      if (!created) {
+        return;
+      }
     }
     setStep((prev) => Math.min(prev + 1, steps.length));
   };
@@ -259,29 +373,36 @@ export default function CheckoutPage() {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleFinalize = async () => {
-    if (!cartId || !shippingQuote) {
-      toast.error("Finalize o frete antes de concluir.");
+  useEffect(() => {
+    if (!payment?.paymentId) {
       return;
     }
-    if (validation && !validation.valid) {
-      toast.error(validation.message || "Revise o estoque dos itens.");
+    if (
+      payment.status === "APPROVED" ||
+      payment.status === "REJECTED" ||
+      payment.status === "CANCELLED" ||
+      payment.status === "EXPIRED"
+    ) {
       return;
     }
-    setIsProcessing(true);
-    try {
-      const order = await cartService.checkout(cartId, {
-        shippingQuoteId: shippingQuote.id,
-        customerEmail: customer.email,
-      });
+
+    const interval = window.setInterval(async () => {
+      try {
+        const updated = await paymentService.getById(payment.paymentId);
+        setPayment(updated);
+      } catch {
+        // Mantem o ultimo status quando a consulta falhar.
+      }
+    }, 15000);
+
+    return () => window.clearInterval(interval);
+  }, [payment?.paymentId, payment?.status]);
+
+  useEffect(() => {
+    if (payment?.status === "APPROVED") {
       resetCart();
-      toast.success(`Pedido criado: ${order.orderId}`);
-    } catch {
-      toast.error("Nao foi possivel finalizar a compra.");
-    } finally {
-      setIsProcessing(false);
     }
-  };
+  }, [payment?.status, resetCart]);
 
   if (isLoading) {
     return (
@@ -843,9 +964,141 @@ export default function CheckoutPage() {
                     Pagamento
                   </h2>
                   <p className="text-sm text-[#2E2E2E] opacity-70 font-inter">
-                    A integracao com Mercado Pago sera implementada na proxima
-                    sprint. Finalize para criar o pedido.
+                    Escolha a forma de pagamento e conclua pelo Mercado Pago.
                   </p>
+
+                  {order?.orderId ? (
+                    <div className="rounded-xl border border-[#2F5D8C]/10 bg-[#F7F6F2] px-4 py-3 text-sm font-inter text-[#2E2E2E]">
+                      Pedido criado: <strong>{order.orderId}</strong>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-inter text-amber-700">
+                      Confirme o pedido para liberar o pagamento.
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-[#2E2E2E] font-inter">
+                      Forma de pagamento
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { value: "CREDIT_CARD" as const, label: "Cartao de credito" },
+                        { value: "PIX" as const, label: "PIX" },
+                      ].map((method) => (
+                        <label
+                          key={method.value}
+                          className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-inter transition-colors ${
+                            paymentMethod === method.value
+                              ? "border-[#2F5D8C] bg-white"
+                              : "border-transparent bg-white/70"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={method.value}
+                            checked={paymentMethod === method.value}
+                            onChange={() => setPaymentMethod(method.value)}
+                            disabled={!!paymentUrl}
+                            className="accent-[#2F5D8C]"
+                          />
+                          <span className="font-semibold text-[#2E2E2E]">
+                            {method.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    {paymentError && (
+                      <p className="text-xs text-red-500">{paymentError}</p>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-[#2F5D8C]/10 bg-[#F7F6F2] p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-[#2E2E2E] font-inter">
+                        Status do pagamento
+                      </span>
+                      <span className="text-sm font-semibold text-[#2F5D8C]">
+                        {paymentStatusLabel(payment?.status)}
+                      </span>
+                    </div>
+                    {payment?.rejectionReason && (
+                      <p className="text-xs text-red-600 font-inter">
+                        {payment.rejectionReason}
+                      </p>
+                    )}
+                  </div>
+
+                  {paymentUrl ? (
+                    <div className="space-y-4">
+                      {paymentPreferenceId && mercadoPagoPublicKey ? (
+                        <Wallet
+                          key={paymentPreferenceId}
+                          initialization={{ preferenceId: paymentPreferenceId }}
+                          customization={{ texts: { valueProp: "security_details" } }}
+                        />
+                      ) : (
+                        <div className="rounded-2xl border border-[#2F5D8C]/10 bg-white p-5 text-sm font-inter text-[#2E2E2E]">
+                          <p>
+                            Abra o Mercado Pago para concluir o pagamento e gerar
+                            o QR Code do PIX.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => window.open(paymentUrl, "_blank")}
+                            className="mt-4 inline-flex items-center rounded-xl bg-[#2F5D8C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#274A6F] transition-colors"
+                          >
+                            Abrir Mercado Pago
+                          </button>
+                        </div>
+                      )}
+
+                      {paymentMethod === "PIX" && (
+                        <p className="text-xs text-[#2E2E2E] opacity-70 font-inter">
+                          O QR Code e o Pix Copia e Cola aparecem na tela do
+                          Mercado Pago apos abrir o pagamento.
+                        </p>
+                      )}
+
+                      {order?.orderId && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            router.push(`/pedido/${order.orderId}/confirmacao`)
+                          }
+                          className="w-full border border-[#2F5D8C] text-[#2F5D8C] hover:bg-[#2F5D8C] hover:text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all"
+                        >
+                          Acompanhar pedido
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleCreatePayment}
+                      disabled={isPaymentProcessing || !order?.orderId}
+                      className={`w-full font-inter font-semibold py-3 px-6 rounded-xl transition-all ${
+                        isPaymentProcessing || !order?.orderId
+                          ? "bg-gray-300 text-gray-500"
+                          : "bg-[#2F5D8C] hover:bg-[#274A6F] text-white"
+                      }`}
+                    >
+                      {isPaymentProcessing ? "Processando..." : "Gerar pagamento"}
+                    </button>
+                  )}
+
+                  {payment?.status === "APPROVED" && order?.orderId && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/pedido/${order.orderId}/confirmacao`)
+                      }
+                      className="w-full bg-[#C9A44C] hover:bg-[#B8934A] text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all"
+                    >
+                      Ver confirmacao do pedido
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -859,26 +1112,14 @@ export default function CheckoutPage() {
                     Voltar
                   </button>
                 )}
-                {step < 4 ? (
+                {step < 4 && (
                   <button
                     type="button"
                     onClick={handleNext}
+                    disabled={isCreatingOrder}
                     className="flex-1 bg-[#C9A44C] hover:bg-[#B8934A] text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all"
                   >
-                    Continuar
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleFinalize}
-                    disabled={isProcessing || isValidating}
-                    className={`flex-1 font-inter font-semibold py-3 px-6 rounded-xl transition-all ${
-                      isProcessing || isValidating
-                        ? "bg-gray-300 text-gray-500"
-                        : "bg-[#C9A44C] hover:bg-[#B8934A] text-white"
-                    }`}
-                  >
-                    {isProcessing ? "Processando..." : "Finalizar Pedido"}
+                    {isCreatingOrder ? "Criando pedido..." : "Continuar"}
                   </button>
                 )}
               </div>

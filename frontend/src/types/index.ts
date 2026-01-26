@@ -107,5 +107,5 @@ export type {
   PaymentMethod,
   Payment,
   CreatePaymentRequest,
-  CreatePaymentResponse,
+  ProcessPaymentResponse,
 } from "./payment";

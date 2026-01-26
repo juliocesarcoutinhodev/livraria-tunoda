@@ -14,7 +14,11 @@ import {
 } from "@tanstack/react-query";
 import { paymentService } from "@/services/paymentService";
 import { queryKeys } from "@/lib/react-query";
-import type { Payment, CreatePaymentRequest } from "@/types/payment";
+import type {
+  Payment,
+  CreatePaymentRequest,
+  ProcessPaymentResponse,
+} from "@/types/payment";
 
 // ============================================================================
 // QUERIES
@@ -77,7 +81,10 @@ export function usePayment(
  *   const createPayment = useCreatePayment();
  *
  *   const handlePay = () => {
- *     createPayment.mutate({ orderId }, {
+ *     createPayment.mutate({
+ *       orderId,
+ *       data: { paymentMethod: "PIX" }
+ *     }, {
  *       onSuccess: (payment) => {
  *         if (payment.approvalUrl) {
  *           // Redireciona para Mercado Pago
@@ -99,9 +106,37 @@ export function useCreatePayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePaymentRequest) => paymentService.create(data),
+    mutationFn: ({
+      orderId,
+      data,
+    }: {
+      orderId: string;
+      data: CreatePaymentRequest;
+    }) => paymentService.create(orderId, data),
     onSuccess: (payment) => {
-      queryClient.setQueryData(queryKeys.payments.detail(payment.id), payment);
+      queryClient.setQueryData(
+        queryKeys.payments.detail(payment.paymentId),
+        payment
+      );
+    },
+  });
+}
+
+/**
+ * Hook para processar pagamento (gerar URL Mercado Pago)
+ *
+ * @returns Mutation para processar pagamento
+ */
+export function useProcessPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (paymentId: string) => paymentService.process(paymentId),
+    onSuccess: (result: ProcessPaymentResponse) => {
+      queryClient.setQueryData(
+        queryKeys.payments.detail(result.payment.paymentId),
+        result.payment
+      );
     },
   });
 }
