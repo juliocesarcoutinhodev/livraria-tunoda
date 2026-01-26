@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 
 interface NavigationProps {
@@ -13,6 +14,8 @@ export default function Navigation({ className = "" }: NavigationProps) {
   const [activeSection, setActiveSection] = useState("inicio");
   const { itemCount, items, subtotal, isLoading } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") {
@@ -43,6 +46,30 @@ export default function Navigation({ className = "" }: NavigationProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isHome) {
+      return;
+    }
+
+    const handleHashScroll = () => {
+      const hash = window.location.hash;
+      if (!hash || hash === "#inicio") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      const target = document.getElementById(hash.slice(1));
+      if (target) {
+        const offsetTop = target.offsetTop - 80;
+        window.scrollTo({ top: offsetTop, behavior: "smooth" });
+      }
+    };
+
+    handleHashScroll();
+    window.addEventListener("hashchange", handleHashScroll);
+    return () => window.removeEventListener("hashchange", handleHashScroll);
+  }, [isHome]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -82,16 +109,34 @@ export default function Navigation({ className = "" }: NavigationProps) {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="flex items-center space-x-8">
-              {navItems.map((item) =>
-                item.type === "link" ? (
-                  <Link
-                    key={item.id}
-                    href={item.id}
-                    className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
+              {navItems.map((item) => {
+                if (item.type === "link") {
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.id}
+                      scroll={false}
+                      className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+
+                if (!isHome) {
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/#${item.id}`}
+                      scroll={false}
+                      className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+
+                return (
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
@@ -103,8 +148,8 @@ export default function Navigation({ className = "" }: NavigationProps) {
                   >
                     {item.label}
                   </button>
-                )
-              )}
+                );
+              })}
             </div>
           </div>
 
@@ -292,17 +337,36 @@ export default function Navigation({ className = "" }: NavigationProps) {
         } overflow-hidden bg-white border-t border-[#2F5D8C]/10`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {navItems.map((item) =>
-            item.type === "link" ? (
-              <Link
-                key={item.id}
-                href={item.id}
-                onClick={() => setIsMenuOpen(false)}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
-              >
-                {item.label}
-              </Link>
-            ) : (
+          {navItems.map((item) => {
+            if (item.type === "link") {
+              return (
+                <Link
+                  key={item.id}
+                  href={item.id}
+                  scroll={false}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+                >
+                  {item.label}
+                </Link>
+              );
+            }
+
+            if (!isHome) {
+              return (
+                <Link
+                  key={item.id}
+                  href={`/#${item.id}`}
+                  scroll={false}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
+                >
+                  {item.label}
+                </Link>
+              );
+            }
+
+            return (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
@@ -314,8 +378,8 @@ export default function Navigation({ className = "" }: NavigationProps) {
               >
                 {item.label}
               </button>
-            )
-          )}
+            );
+          })}
         </div>
       </div>
     </nav>
