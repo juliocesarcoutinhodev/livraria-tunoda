@@ -98,7 +98,10 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Cálculo e seleção de frete (Melhor Envio) com recálculo
 - Resumo do pedido com subtotal, frete e total
 - Breadcrumb de progresso + botão voltar funcional
-- Checkout cria pedido (POST `/carts/{cartId}/checkout`) e prepara integração de pagamento
+- Checkout cria pedido (POST `/carts/checkout`) com frete selecionado
+- Pagamento via Mercado Pago (Cartão/PIX) no Step 4
+- Status do pagamento em tempo real + webhook atualizado
+- Página de confirmação `/pedido/[id]/confirmacao`
 
 ### ✅ **Seção Sobre o Autor**
 
@@ -220,7 +223,8 @@ src/
 │   │   └── dashboard/page.tsx  # ✨ Dashboard admin (NOVO)
 │   ├── cart/page.tsx         # Página do carrinho (base)
 │   ├── carrinho/page.tsx     # Alias pt-BR para /carrinho
-│   ├── checkout/page.tsx     # Página de checkout
+│   ├── checkout/page.tsx     # Página de checkout (pagamento MP)
+│   ├── pedido/[id]/confirmacao/page.tsx # Confirmação do pedido
 │   └── globals.css           # Estilos globais + Tailwind
 ├── components/
 │   ├── ui/                   # Componentes UI genéricos
@@ -1991,11 +1995,13 @@ O projeto possui uma camada completa de serviços para comunicação com o backe
 | `cepService` | `/public/cep/{cep}` | Consulta de endereço por CEP |
 | `shippingService` | `/shipping/quotes/*` | Cálculo de frete |
 | `orderService` | `/orders/*`, `/admin/orders/*` | Pedidos |
-| `paymentService` | `/payments/*` | Pagamentos (Mercado Pago) |
+| `paymentService` | `/payments/*`, `/orders/{id}/payments` | Pagamentos (Mercado Pago) |
 
 **Carrinho - validação de estoque:** `POST /carts/{cartId}/validate`
-**Carrinho - checkout:** `POST /carts/{cartId}/checkout`
+**Carrinho - checkout:** `POST /carts/checkout`
 **Carrinho - limpar:** `DELETE /carts/{cartId}/clear`
+
+**Pagamentos:** `POST /orders/{id}/payments`, `POST /payments/{id}/process`, `GET /payments/{id}`
 
 **Frete:** `POST /shipping/quotes`, `POST /shipping/quotes/{id}/calculate`, `PUT /shipping/quotes/{id}/select`
 
@@ -2213,10 +2219,8 @@ Todos os services possuem tipos completos:
 
 ### 🚀 **Próximas Implementações:**
 
-- [ ] **Pagamento (Mercado Pago)** na etapa 4 do checkout
 - [ ] **Proteção de /checkout** (auth opcional + dados do cliente persistidos)
 - [ ] **CRUD de livros (ADMIN)** completo
-- [ ] **Página de confirmação de pedido** (detalhes pós-checkout)
 - [ ] **Testes E2E de carrinho/checkout**
 - [ ] Newsletter/email marketing
 - [ ] Blog integrado
