@@ -31,13 +31,6 @@ export default function LivrosPage() {
   const authorFilter = searchParams.get("autor") || "";
   const authorFilterNormalized = authorFilter.trim().toLowerCase();
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
