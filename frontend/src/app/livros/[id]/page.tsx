@@ -10,7 +10,7 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { useBookDetail, useBooks, useTrackBookMetric } from "@/hooks/useBooks";
-import { useAddItemToCart, useCreateCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Navigation from "@/components/layout/Navigation";
@@ -20,19 +20,12 @@ export default function BookDetailPage() {
   const router = useRouter();
   const params = useParams();
   const bookId = params.id as string;
-  const addItem = useAddItemToCart();
-  const createCart = useCreateCart();
+  const { addItem, isUpdating } = useCart();
   const trackMetric = useTrackBookMetric();
   const hasTrackedView = useRef(false);
-  const [cartId, setCartId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
-
-  useEffect(() => {
-    const id = localStorage.getItem("cartId") || "";
-    setCartId(id);
-  }, []);
 
   const { data: book, isLoading, error } = useBookDetail(bookId);
   const { data: relatedResponse, isLoading: isLoadingRelated } = useBooks(
@@ -86,52 +79,24 @@ export default function BookDetailPage() {
     }).format(price);
   };
 
-  const ensureCartId = async () => {
-    if (cartId) {
-      return cartId;
-    }
-
-    try {
-      const cart = await createCart.mutateAsync();
-      localStorage.setItem("cartId", cart.id);
-      setCartId(cart.id);
-      return cart.id;
-    } catch (err) {
-      toast.error("Não foi possível criar o carrinho. Tente novamente.");
-      return "";
-    }
-  };
-
   const handleAddToCart = async () => {
     if (!book) {
       return;
     }
-
-    const resolvedCartId = await ensureCartId();
-    if (!resolvedCartId) {
+    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
+    const added = await addItem({
+      bookId: book.id,
+      quantity,
+      title: book.title,
+      price: book.price,
+      photoUrl: book.photoUrl ?? undefined,
+    });
+    if (!added) {
       return;
     }
-
-    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
-    addItem.mutate(
-      {
-        cartId: resolvedCartId,
-        data: {
-          bookId: book.id,
-          quantity,
-        },
-      },
-      {
-        onSuccess: () => {
-          setIsAdded(true);
-          toast.success("Livro adicionado ao carrinho");
-          setTimeout(() => setIsAdded(false), 2000);
-        },
-        onError: () => {
-          toast.error("Não foi possível adicionar ao carrinho.");
-        },
-      }
-    );
+    setIsAdded(true);
+    toast.success("Livro adicionado ao carrinho");
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   const handleBuyNow = async () => {
@@ -140,32 +105,20 @@ export default function BookDetailPage() {
     }
 
     setIsBuyingNow(true);
-    const resolvedCartId = await ensureCartId();
-    if (!resolvedCartId) {
+    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
+    const added = await addItem({
+      bookId: book.id,
+      quantity,
+      title: book.title,
+      price: book.price,
+      photoUrl: book.photoUrl ?? undefined,
+    });
+    if (!added) {
       setIsBuyingNow(false);
       return;
     }
-
-    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
-    addItem.mutate(
-      {
-        cartId: resolvedCartId,
-        data: {
-          bookId: book.id,
-          quantity,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast.success("Livro adicionado ao carrinho");
-          router.push("/checkout");
-        },
-        onError: () => {
-          toast.error("Não foi possível iniciar a compra.");
-          setIsBuyingNow(false);
-        },
-      }
-    );
+    toast.success("Livro adicionado ao carrinho");
+    router.push("/checkout");
   };
 
   const siteUrl =
@@ -208,7 +161,7 @@ export default function BookDetailPage() {
           : undefined,
     };
   }, [book, pageUrl]);
-  const isActionPending = addItem.isPending || createCart.isPending;
+  const isActionPending = isUpdating;
 
   if (isLoading) {
     return (

@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function CheckoutPage() {
-  const { items, total, itemCount } = useCart();
+  const { items, subtotal, itemCount, isLoading } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -28,6 +28,24 @@ export default function CheckoutPage() {
   };
 
   // Redirect to cart if empty
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F6F2]">
+        <Navigation />
+
+        <main className="pt-20 pb-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center py-16">
+              <p className="font-inter text-[#2E2E2E] opacity-70">
+                Carregando checkout...
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-[#F7F6F2]">
@@ -116,7 +134,7 @@ export default function CheckoutPage() {
                 </li>
                 <li>
                   <Link
-                    href="/cart"
+                    href="/carrinho"
                     className="hover:text-[#2F5D8C] transition-colors duration-200"
                   >
                     Carrinho
@@ -161,11 +179,11 @@ export default function CheckoutPage() {
                 <div className="space-y-6">
                   {items.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.bookId}
                       className="flex items-center space-x-4 py-4 border-b border-[#2F5D8C]/10 last:border-b-0"
                     >
                       <Image
-                        src={item.image}
+                        src={item.photoUrl || "/img/book-placeholder.jpg"}
                         alt={`Capa do livro ${item.title}`}
                         width={64}
                         height={80}
@@ -175,15 +193,12 @@ export default function CheckoutPage() {
                         <h3 className="font-playfair text-lg font-bold text-[#2E2E2E] mb-1">
                           {item.title}
                         </h3>
-                        <p className="font-inter text-sm text-[#2E2E2E] opacity-60 mb-2">
-                          Por {item.author}
-                        </p>
                         <div className="flex items-center justify-between">
                           <span className="font-inter text-sm text-[#2E2E2E] opacity-80">
                             Qty: {item.quantity}
                           </span>
                           <span className="font-inter font-semibold text-[#2F5D8C]">
-                            {formatPrice(item.price * item.quantity)}
+                            {formatPrice(item.subtotal)}
                           </span>
                         </div>
                       </div>
@@ -362,7 +377,7 @@ export default function CheckoutPage() {
                       )
                     </span>
                     <span className="font-inter font-semibold text-[#2E2E2E]">
-                      {formatPrice(total)}
+                      {formatPrice(subtotal)}
                     </span>
                   </div>
 
@@ -381,7 +396,7 @@ export default function CheckoutPage() {
                         Total
                       </span>
                       <span className="font-playfair text-3xl font-bold text-[#2F5D8C]">
-                        {formatPrice(total)}
+                        {formatPrice(subtotal)}
                       </span>
                     </div>
                   </div>
@@ -513,8 +528,8 @@ export default function CheckoutPage() {
                 </button>
 
                 {/* Back to Cart */}
-                <Link
-                  href="/cart"
+                  <Link
+                    href="/carrinho"
                   className="w-full mt-4 bg-transparent border-2 border-[#2F5D8C] text-[#2F5D8C] hover:bg-[#2F5D8C] hover:text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
                 >
                   Voltar ao Carrinho

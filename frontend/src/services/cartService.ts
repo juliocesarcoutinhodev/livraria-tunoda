@@ -13,11 +13,81 @@
 import { apiClient } from "@/lib/api-client";
 import type {
   Cart,
+  CartItem,
   AddItemToCartRequest,
   UpdateCartItemRequest,
   CheckoutRequest,
   CheckoutResponse,
 } from "@/types/cart";
+
+type CartApiItem = {
+  bookId?: string;
+  book_id?: string;
+  title?: string;
+  bookTitle?: string;
+  book_title?: string;
+  quantity?: number;
+  price?: number;
+  unitPrice?: number;
+  unitPriceAmount?: number;
+  unit_price_amount?: number;
+  subtotal?: number;
+  total?: number;
+  photoUrl?: string;
+  photo_url?: string;
+};
+
+type CartApiResponse = {
+  id?: string;
+  cartId?: string;
+  cart_id?: string;
+  items?: CartApiItem[];
+  subtotal?: number;
+  total?: number;
+  itemCount?: number;
+  totalItems?: number;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+};
+
+const normalizeCartItem = (item: CartApiItem): CartItem => {
+  const price =
+    item.price ??
+    item.unitPrice ??
+    item.unitPriceAmount ??
+    item.unit_price_amount ??
+    0;
+  const quantity = item.quantity ?? 0;
+  const subtotal = item.subtotal ?? item.total ?? price * quantity;
+
+  return {
+    bookId: item.bookId ?? item.book_id ?? "",
+    title: item.title ?? item.bookTitle ?? item.book_title ?? "Livro",
+    price,
+    quantity,
+    subtotal,
+    photoUrl: item.photoUrl ?? item.photo_url,
+  };
+};
+
+const normalizeCart = (data: CartApiResponse): Cart => {
+  const items = (data.items || []).map(normalizeCartItem);
+  const subtotal =
+    data.subtotal ?? data.total ?? items.reduce((sum, item) => sum + item.subtotal, 0);
+  const itemCount =
+    data.itemCount ?? data.totalItems ?? items.reduce((sum, item) => sum + item.quantity, 0);
+
+  return {
+    id: data.id ?? data.cartId ?? data.cart_id ?? "",
+    items,
+    subtotal,
+    itemCount,
+    createdAt: data.createdAt ?? data.created_at ?? new Date().toISOString(),
+    updatedAt: data.updatedAt ?? data.updated_at,
+  };
+};
 
 /**
  * Cria um novo carrinho
@@ -31,8 +101,8 @@ import type {
  * ```
  */
 const create = async (): Promise<Cart> => {
-  const response = await apiClient.post<Cart>("/carts");
-  return response.data;
+  const response = await apiClient.post<CartApiResponse>("/carts");
+  return normalizeCart(response.data);
 };
 
 /**
@@ -47,8 +117,8 @@ const create = async (): Promise<Cart> => {
  * ```
  */
 const getById = async (id: string): Promise<Cart> => {
-  const response = await apiClient.get<Cart>(`/carts/${id}`);
-  return response.data;
+  const response = await apiClient.get<CartApiResponse>(`/carts/${id}`);
+  return normalizeCart(response.data);
 };
 
 /**
@@ -70,8 +140,11 @@ const addItem = async (
   cartId: string,
   data: AddItemToCartRequest
 ): Promise<Cart> => {
-  const response = await apiClient.post<Cart>(`/carts/${cartId}/items`, data);
-  return response.data;
+  const response = await apiClient.post<CartApiResponse>(
+    `/carts/${cartId}/items`,
+    data
+  );
+  return normalizeCart(response.data);
 };
 
 /**
@@ -93,11 +166,11 @@ const updateItem = async (
   quantity: number
 ): Promise<Cart> => {
   const data: UpdateCartItemRequest = { quantity };
-  const response = await apiClient.put<Cart>(
+  const response = await apiClient.put<CartApiResponse>(
     `/carts/${cartId}/items/${bookId}`,
     data
   );
-  return response.data;
+  return normalizeCart(response.data);
 };
 
 /**

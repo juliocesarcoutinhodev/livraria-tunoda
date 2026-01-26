@@ -11,7 +11,8 @@ interface NavigationProps {
 export default function Navigation({ className = "" }: NavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
-  const { itemCount } = useCart();
+  const { itemCount, items, subtotal, isLoading } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,9 +104,112 @@ export default function Navigation({ className = "" }: NavigationProps) {
           {/* Cart and Mobile Menu */}
           <div className="flex items-center space-x-4">
             {/* Cart Icon */}
+            <div
+              className="relative hidden md:block"
+              onMouseEnter={() => setIsCartOpen(true)}
+              onMouseLeave={() => setIsCartOpen(false)}
+            >
+              <Link
+                href="/carrinho"
+                className="relative p-2 text-[#2E2E2E] hover:text-[#2F5D8C] transition-colors duration-200 group"
+                aria-label={`Carrinho de compras - ${itemCount} ${
+                  itemCount === 1 ? "item" : "itens"
+                }`}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                  />
+                </svg>
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#C9A44C] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+
+              {isCartOpen && (
+                <div className="absolute right-0 mt-3 w-80 rounded-2xl bg-white shadow-2xl border border-[#2F5D8C]/10 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[#2F5D8C]/10">
+                    <p className="font-playfair text-lg font-bold text-[#2E2E2E]">
+                      Meu Carrinho
+                    </p>
+                    <p className="text-xs text-[#2E2E2E] opacity-60 font-inter">
+                      {itemCount === 0
+                        ? "Nenhum item adicionado"
+                        : `${itemCount} ${
+                            itemCount === 1 ? "item" : "itens"
+                          }`}
+                    </p>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto">
+                    {isLoading ? (
+                      <div className="px-4 py-6 text-sm text-[#2E2E2E] opacity-60 font-inter">
+                        Carregando carrinho...
+                      </div>
+                    ) : items.length === 0 ? (
+                      <div className="px-4 py-6 text-sm text-[#2E2E2E] opacity-60 font-inter">
+                        Seu carrinho está vazio.
+                      </div>
+                    ) : (
+                      items.slice(0, 3).map((item) => (
+                        <div
+                          key={item.bookId}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-[#2F5D8C]/10 last:border-b-0"
+                        >
+                          <div className="h-12 w-10 rounded-lg bg-[#F7F6F2] overflow-hidden flex-shrink-0">
+                            <img
+                              src={item.photoUrl || "/img/book-placeholder.jpg"}
+                              alt={item.title}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-[#2E2E2E] font-inter line-clamp-1">
+                              {item.title}
+                            </p>
+                            <p className="text-xs text-[#2E2E2E] opacity-60 font-inter">
+                              {item.quantity}x • R${" "}
+                              {item.price.toFixed(2).replace(".", ",")}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="px-4 py-4 border-t border-[#2F5D8C]/10 bg-[#F7F6F2]">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-inter text-[#2E2E2E] opacity-80">
+                        Subtotal
+                      </span>
+                      <span className="text-sm font-bold text-[#2F5D8C] font-inter">
+                        R$ {subtotal.toFixed(2).replace(".", ",")}
+                      </span>
+                    </div>
+                    <Link
+                      href="/carrinho"
+                      className="w-full inline-flex items-center justify-center rounded-xl bg-[#C9A44C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#B8934A] transition-colors"
+                    >
+                      Ver carrinho
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Link
-              href="/cart"
-              className="relative p-2 text-[#2E2E2E] hover:text-[#2F5D8C] transition-colors duration-200 group"
+              href="/carrinho"
+              className="relative p-2 text-[#2E2E2E] hover:text-[#2F5D8C] transition-colors duration-200 group md:hidden"
               aria-label={`Carrinho de compras - ${itemCount} ${
                 itemCount === 1 ? "item" : "itens"
               }`}

@@ -31,12 +31,11 @@ export default function Books({ className = "" }: BooksProps) {
 
   const handleAddToCart = (book: Book) => {
     addItem({
-      id: book.id,
+      bookId: book.id,
       title: book.title,
       price: book.price,
       quantity: 1,
-      image: book.photoUrl ?? undefined,
-      author: book.authors.map((a) => a.name).join(", "),
+      photoUrl: book.photoUrl ?? undefined,
     });
 
     // Feedback visual

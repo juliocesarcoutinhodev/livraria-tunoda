@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useCart, Book } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/CartContext";
 
-const booksData: Book[] = [
+interface FeaturedBook {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  author: string;
+}
+
+const booksData: FeaturedBook[] = [
   {
     id: "1",
     title: "Caminho da Esperança",
@@ -69,8 +78,14 @@ export default function Books({ className = "" }: BooksProps) {
   const { addItem } = useCart();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
 
-  const handleAddToCart = (book: Book) => {
-    addItem(book);
+  const handleAddToCart = (book: FeaturedBook) => {
+    addItem({
+      bookId: book.id,
+      title: book.title,
+      price: book.price,
+      quantity: 1,
+      photoUrl: book.image,
+    });
     setAddedItems((prev) => new Set(prev).add(book.id));
 
     // Remove visual feedback after 2 seconds

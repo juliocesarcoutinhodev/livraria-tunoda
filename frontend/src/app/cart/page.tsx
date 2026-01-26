@@ -6,7 +6,16 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function CartPage() {
-  const { items, total, itemCount, removeItem, updateQuantity } = useCart();
+  const {
+    items,
+    subtotal,
+    itemCount,
+    isLoading,
+    isUpdating,
+    removeItem,
+    updateQuantity,
+    clearCart,
+  } = useCart();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -17,9 +26,9 @@ export default function CartPage() {
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeItem(id);
+      void removeItem(id);
     } else {
-      updateQuantity(id, newQuantity);
+      void updateQuantity(id, newQuantity);
     }
   };
 
@@ -45,7 +54,13 @@ export default function CartPage() {
             </p>
           </div>
 
-          {items.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <p className="font-inter text-[#2E2E2E] opacity-70">
+                Carregando carrinho...
+              </p>
+            </div>
+          ) : items.length === 0 ? (
             /* Empty Cart */
             <div className="text-center py-16">
               <div className="mb-8">
@@ -96,14 +111,14 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-6">
                 {items.map((item) => (
                   <div
-                    key={item.id}
+                    key={item.bookId}
                     className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
                   >
                     <div className="flex flex-col sm:flex-row gap-6">
                       {/* Book Image */}
                       <div className="flex-shrink-0">
                         <Image
-                          src={item.image}
+                          src={item.photoUrl || "/img/book-placeholder.jpg"}
                           alt={`Capa do livro ${item.title}`}
                           width={128}
                           height={160}
@@ -117,14 +132,7 @@ export default function CartPage() {
                           <h3 className="font-playfair text-xl font-bold text-[#2E2E2E] mb-1">
                             {item.title}
                           </h3>
-                          <p className="font-inter text-sm text-[#2E2E2E] opacity-60">
-                            Por {item.author}
-                          </p>
                         </div>
-
-                        <p className="font-inter text-[#2E2E2E] opacity-80 text-sm line-clamp-2">
-                          {item.description}
-                        </p>
 
                         {/* Quantity and Price Controls */}
                         <div className="flex items-center justify-between pt-4 border-t border-[#2F5D8C]/10">
@@ -136,10 +144,11 @@ export default function CartPage() {
                               <button
                                 onClick={() =>
                                   handleQuantityChange(
-                                    item.id,
+                                    item.bookId,
                                     item.quantity - 1
                                   )
                                 }
+                                disabled={isUpdating}
                                 className="px-3 py-2 text-[#2F5D8C] hover:bg-[#2F5D8C]/10 transition-colors duration-200 rounded-l-lg"
                                 aria-label="Diminuir quantidade"
                               >
@@ -151,10 +160,11 @@ export default function CartPage() {
                               <button
                                 onClick={() =>
                                   handleQuantityChange(
-                                    item.id,
+                                    item.bookId,
                                     item.quantity + 1
                                   )
                                 }
+                                disabled={isUpdating}
                                 className="px-3 py-2 text-[#2F5D8C] hover:bg-[#2F5D8C]/10 transition-colors duration-200 rounded-r-lg"
                                 aria-label="Aumentar quantidade"
                               >
@@ -168,7 +178,7 @@ export default function CartPage() {
                               {formatPrice(item.price)} cada
                             </p>
                             <p className="font-playfair text-xl font-bold text-[#2F5D8C]">
-                              {formatPrice(item.price * item.quantity)}
+                              {formatPrice(item.subtotal)}
                             </p>
                           </div>
                         </div>
@@ -176,7 +186,8 @@ export default function CartPage() {
                         {/* Remove Button */}
                         <div className="pt-2">
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => void removeItem(item.bookId)}
+                            disabled={isUpdating}
                             className="inline-flex items-center text-red-600 hover:text-red-700 font-inter text-sm transition-colors duration-200"
                             aria-label={`Remover ${item.title} do carrinho`}
                           >
@@ -216,7 +227,7 @@ export default function CartPage() {
                         {itemCount === 1 ? "item" : "itens"})
                       </span>
                       <span className="font-inter font-semibold text-[#2E2E2E]">
-                        {formatPrice(total)}
+                        {formatPrice(subtotal)}
                       </span>
                     </div>
 
@@ -235,11 +246,19 @@ export default function CartPage() {
                           Total
                         </span>
                         <span className="font-playfair text-2xl font-bold text-[#2F5D8C]">
-                          {formatPrice(total)}
+                          {formatPrice(subtotal)}
                         </span>
                       </div>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => void clearCart()}
+                    disabled={isUpdating}
+                    className="w-full mt-4 border border-[#2F5D8C]/30 text-[#2F5D8C] hover:text-white hover:bg-[#2F5D8C] font-inter font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center"
+                  >
+                    Limpar carrinho
+                  </button>
 
                   {/* Benefits */}
                   <div className="space-y-3 mb-8 p-4 bg-[#F7F6F2] rounded-xl">

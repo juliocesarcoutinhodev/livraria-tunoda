@@ -15,7 +15,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useBooks } from "@/hooks/useBooks";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useAddItemToCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import type { PublicBookFilterParams } from "@/types/book";
@@ -25,17 +25,10 @@ import type { PublicBookFilterParams } from "@/types/book";
  */
 export default function LivrosPage() {
   const router = useRouter();
-  const addItem = useAddItemToCart();
-  const [cartId, setCartId] = useState<string>("");
+  const { addItem, isUpdating } = useCart();
   const searchParams = useSearchParams();
   const authorFilter = searchParams.get("autor") || "";
   const authorFilterNormalized = authorFilter.trim().toLowerCase();
-
-  // Carregar cartId do localStorage
-  useEffect(() => {
-    const id = localStorage.getItem("cartId") || "";
-    setCartId(id);
-  }, []);
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState("");
@@ -391,23 +384,19 @@ export default function LivrosPage() {
                       {book.stock > 0 && (
                         <Button
                           onClick={() => {
-                            if (cartId) {
-                              addItem.mutate({
-                                cartId,
-                                data: {
-                                  bookId: book.id,
-                                  quantity: 1,
-                                },
-                              });
-                            }
+                            void addItem({
+                              bookId: book.id,
+                              quantity: 1,
+                              title: book.title,
+                              price: book.price,
+                              photoUrl: book.photoUrl ?? undefined,
+                            });
                           }}
-                          disabled={addItem.isPending}
+                          disabled={isUpdating}
                           variant="secondary"
                           className="w-full"
                         >
-                          {addItem.isPending
-                            ? "Adicionando..."
-                            : "➕ Adicionar"}
+                          {isUpdating ? "Adicionando..." : "➕ Adicionar"}
                         </Button>
                       )}
                     </div>
