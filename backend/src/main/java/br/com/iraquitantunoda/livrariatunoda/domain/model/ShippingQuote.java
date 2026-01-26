@@ -74,10 +74,9 @@ public class ShippingQuote {
         if (isExpired()) {
             throw new BusinessException("Cotação expirada não pode ter opção selecionada");
         }
-        if (status == ShippingQuoteStatus.SELECTED) {
-            throw new BusinessException("Cotação já possui opção selecionada e não pode ser alterada");
-        }
-        if (status != ShippingQuoteStatus.CALCULATED && status != ShippingQuoteStatus.CREATED) {
+        if (status != ShippingQuoteStatus.CALCULATED
+            && status != ShippingQuoteStatus.CREATED
+            && status != ShippingQuoteStatus.SELECTED) {
             throw new BusinessException("Cotação deve estar calculada para selecionar opção");
         }
         if (!hasOption(serviceCode)) {
@@ -209,4 +208,3 @@ public class ShippingQuote {
         return Collections.unmodifiableList(options);
     }
 }
-
