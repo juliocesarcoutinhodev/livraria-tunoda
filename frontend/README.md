@@ -53,12 +53,24 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 
 ### ✅ **Catálogo de Livros**
 
-- **6 livros** com layout em grid responsivo
+- **3 livros em destaque** na home (limitado)
+- Catálogo completo com paginação
 - Fotos reais das capas
 - Descrições inspiradoras
 - Preços formatados em R$
 - Botão "Adicionar ao carrinho" com feedback visual
 - Hover effects e animações elegantes
+
+### ✅ **Detalhes do Livro (/livros/[id])**
+
+- Breadcrumbs: Home > Livros > Título
+- Imagem com zoom no hover
+- Autores com biografia resumida e link para filtro
+- Descrição completa + especificações (ISBN, peso, páginas)
+- Botões “Adicionar ao Carrinho” e “Comprar Agora”
+- Seção expansível “Sobre o(s) Autor(es)”
+- “Livros Relacionados” pelo mesmo autor
+- Métricas: VIEW ao entrar na página; CLICK nos botões de compra
 
 ### ✅ **Sistema de Carrinho Completo**
 
@@ -178,8 +190,9 @@ npm run lint && npm run type-check && npm run format:check
 ### **SEO Otimizado**
 
 - Meta tags completas
+- Open Graph e Twitter Cards na página de detalhes
 - HTML semântico
-- Structured data ready
+- Structured data (Schema.org/Book) na página de detalhes
 - Lang="pt-BR"
 - URLs amigáveis
 
