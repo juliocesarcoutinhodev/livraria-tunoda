@@ -66,6 +66,7 @@ export default function CheckoutPage() {
   const [isShippingSelecting, setIsShippingSelecting] = useState(false);
   const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
   const [selectedService, setSelectedService] = useState<string>("");
+  const isShippingLocked = !!shippingQuote?.selectedServiceCode;
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("pt-BR", {
@@ -77,9 +78,13 @@ export default function CheckoutPage() {
     if (!shippingQuote) {
       return null;
     }
+    const selectedCode = selectedService || shippingQuote.selectedServiceCode;
+    if (!selectedCode) {
+      return null;
+    }
     return (
       shippingQuote.options.find(
-        (option) => option.serviceCode === selectedService
+        (option) => option.serviceCode === selectedCode
       ) || null
     );
   }, [shippingQuote, selectedService]);
@@ -165,11 +170,7 @@ export default function CheckoutPage() {
       });
       const calculated = await shippingService.calculate(quote.id);
       setShippingQuote(calculated);
-      if (calculated.options.length > 0) {
-        const firstOption = calculated.options[0];
-        setSelectedService(firstOption.serviceCode);
-        await shippingService.selectOption(quote.id, firstOption.serviceCode);
-      }
+      setSelectedService("");
     } catch {
       toast.error("Nao foi possivel calcular o frete.");
     } finally {
@@ -179,6 +180,13 @@ export default function CheckoutPage() {
 
   const handleSelectShipping = async (serviceCode: string) => {
     if (!shippingQuote) {
+      return;
+    }
+    if (
+      shippingQuote.selectedServiceCode &&
+      shippingQuote.selectedServiceCode !== serviceCode
+    ) {
+      toast.error("Para trocar o frete, clique em Recalcular.");
       return;
     }
     setIsShippingSelecting(true);
@@ -750,39 +758,76 @@ export default function CheckoutPage() {
                     )}
                     <div className="mt-4 space-y-3">
                       {shippingQuote?.options?.length ? (
-                        shippingQuote.options.map((option) => (
-                          <label
-                            key={option.serviceCode}
-                            className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-inter transition-colors ${
-                              selectedService === option.serviceCode
-                                ? "border-[#2F5D8C] bg-white"
-                                : "border-transparent bg-white/70"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="shipping"
-                              value={option.serviceCode}
-                              checked={selectedService === option.serviceCode}
-                              onChange={() =>
-                                handleSelectShipping(option.serviceCode)
-                              }
-                              disabled={isShippingSelecting}
-                              className="accent-[#2F5D8C]"
-                            />
-                            <div className="flex-1">
-                              <p className="font-semibold text-[#2E2E2E]">
-                                {option.carrier} - {option.serviceName}
-                              </p>
-                              <p className="text-xs text-[#2E2E2E] opacity-70">
-                                Entrega em {option.deliveryDays} dias
-                              </p>
+                        isShippingLocked && selectedOption ? (
+                          <div className="rounded-xl border border-[#2F5D8C]/30 bg-white px-4 py-4">
+                            <p className="text-xs font-inter uppercase tracking-wide text-[#2F5D8C] mb-2">
+                              Frete selecionado
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-[#2E2E2E]">
+                                  {selectedOption.carrier} -{" "}
+                                  {selectedOption.serviceName}
+                                </p>
+                                <p className="text-xs text-[#2E2E2E] opacity-70">
+                                  Entrega em {selectedOption.deliveryDays} dias
+                                </p>
+                              </div>
+                              <span className="font-semibold text-[#2F5D8C]">
+                                {formatPrice(selectedOption.price)}
+                              </span>
                             </div>
-                            <span className="font-semibold text-[#2F5D8C]">
-                              {formatPrice(option.price)}
-                            </span>
-                          </label>
-                        ))
+                            <button
+                              type="button"
+                              onClick={() =>
+                                fetchShippingQuote(
+                                  address.cep.replace(/\D/g, "")
+                                )
+                              }
+                              className="mt-3 text-xs font-semibold text-[#2F5D8C] hover:text-[#274A6F]"
+                            >
+                              Trocar frete
+                            </button>
+                          </div>
+                        ) : (
+                          shippingQuote.options.map((option) => (
+                            <label
+                              key={option.serviceCode}
+                              className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-inter transition-colors ${
+                                selectedService === option.serviceCode
+                                  ? "border-[#2F5D8C] bg-white"
+                                  : "border-transparent bg-white/70"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="shipping"
+                                value={option.serviceCode}
+                                checked={
+                                  (selectedService ||
+                                    shippingQuote.selectedServiceCode) ===
+                                  option.serviceCode
+                                }
+                                onChange={() =>
+                                  handleSelectShipping(option.serviceCode)
+                                }
+                                disabled={isShippingSelecting}
+                                className="accent-[#2F5D8C]"
+                              />
+                              <div className="flex-1">
+                                <p className="font-semibold text-[#2E2E2E]">
+                                  {option.carrier} - {option.serviceName}
+                                </p>
+                                <p className="text-xs text-[#2E2E2E] opacity-70">
+                                  Entrega em {option.deliveryDays} dias
+                                </p>
+                              </div>
+                              <span className="font-semibold text-[#2F5D8C]">
+                                {formatPrice(option.price)}
+                              </span>
+                            </label>
+                          ))
+                        )
                       ) : (
                         <p className="text-sm text-[#2E2E2E] opacity-70 font-inter">
                           {isShippingLoading
