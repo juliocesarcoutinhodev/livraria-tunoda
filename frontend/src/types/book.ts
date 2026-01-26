@@ -39,6 +39,8 @@ export interface Book {
   status: "ACTIVE" | "INACTIVE";
   /** Lista de autores (resumida) */
   authors: AuthorSummary[];
+  /** Número de páginas (opcional) */
+  pages?: number | null;
   /** Data de criação (opcional para resposta pública) */
   createdAt?: string;
   /** Data da última atualização (opcional para resposta pública) */
@@ -201,4 +203,8 @@ export interface PublicBookFilterParams {
   size?: number;
   /** Ordenação */
   sort?: string;
+  /** Buscar por título */
+  title?: string;
+  /** Filtrar por autor (opcional, se suportado pelo backend) */
+  authorId?: string;
 }

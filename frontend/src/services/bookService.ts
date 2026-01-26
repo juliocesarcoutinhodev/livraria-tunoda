@@ -9,11 +9,7 @@
  */
 
 import { apiClient } from "@/lib/api-client";
-import type {
-  PaginatedResponse,
-  StockAdjustment,
-  MetricRequest,
-} from "@/types/api";
+import type { PaginatedResponse, StockAdjustment } from "@/types/api";
 import type {
   Book,
   CreateBookRequest,
@@ -128,8 +124,8 @@ const trackMetric = async (
   id: string,
   eventType: "VIEW" | "CLICK"
 ): Promise<void> => {
-  const data: MetricRequest = { eventType };
-  await apiClient.post(`/public/books/${id}/metrics`, data);
+  const metricPath = eventType === "VIEW" ? "view" : "click";
+  await apiClient.post(`/public/books/${id}/metrics/${metricPath}`);
 };
 
 // ============================================================================

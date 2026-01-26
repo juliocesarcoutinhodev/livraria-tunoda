@@ -5,9 +5,9 @@ import { createContext, useContext, useReducer, ReactNode } from "react";
 export interface Book {
   id: string;
   title: string;
-  description: string;
   price: number;
-  image: string;
+  description?: string;
+  image?: string;
   author: string;
 }
 
@@ -22,7 +22,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: "ADD_ITEM"; payload: Book }
+  | { type: "ADD_ITEM"; payload: Book & { quantity?: number } }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" };
@@ -36,6 +36,7 @@ const initialState: CartState = {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
+      const quantityToAdd = Math.max(1, action.payload.quantity ?? 1);
       const existingItem = state.items.find(
         (item) => item.id === action.payload.id
       );
@@ -44,11 +45,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       if (existingItem) {
         newItems = state.items.map((item) =>
           item.id === action.payload.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       } else {
-        newItems = [...state.items, { ...action.payload, quantity: 1 }];
+        newItems = [
+          ...state.items,
+          { ...action.payload, quantity: quantityToAdd },
+        ];
       }
 
       const total = newItems.reduce(
@@ -98,7 +102,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 interface CartContextType extends CartState {
-  addItem: (book: Book) => void;
+  addItem: (book: Book & { quantity?: number }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -109,7 +113,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  const addItem = (book: Book) => {
+  const addItem = (book: Book & { quantity?: number }) => {
     dispatch({ type: "ADD_ITEM", payload: book });
   };
 

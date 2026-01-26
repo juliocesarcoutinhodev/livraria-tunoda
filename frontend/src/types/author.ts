@@ -41,6 +41,8 @@ export interface AuthorSummary {
   name: string;
   /** URL da foto do autor */
   photoUrl: string | null;
+  /** Biografia resumida (opcional para público) */
+  biography?: string | null;
 }
 
 /**

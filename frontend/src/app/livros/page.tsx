@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useBooks } from "@/hooks/useBooks";
@@ -27,6 +27,9 @@ export default function LivrosPage() {
   const router = useRouter();
   const addItem = useAddItemToCart();
   const [cartId, setCartId] = useState<string>("");
+  const searchParams = useSearchParams();
+  const authorFilter = searchParams.get("autor") || "";
+  const authorFilterNormalized = authorFilter.trim().toLowerCase();
 
   // Carregar cartId do localStorage
   useEffect(() => {
@@ -63,18 +66,28 @@ export default function LivrosPage() {
   const filteredBooks = useMemo(() => {
     let result = books;
 
+    if (authorFilterNormalized) {
+      result = result.filter((book) =>
+        book.authors.some(
+          (author) =>
+            author.id === authorFilter ||
+            author.name.toLowerCase() === authorFilterNormalized
+        )
+      );
+    }
+
     // Filtro por preço
     result = result.filter(
       (book) => book.price >= priceRange[0] && book.price <= priceRange[1]
     );
 
     return result;
-  }, [books, priceRange]);
+  }, [books, priceRange, authorFilter, authorFilterNormalized]);
 
   // Resetar página ao mudar filtros
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, sortBy]);
+  }, [debouncedSearch, sortBy, authorFilter]);
 
   // Formatar preço
   const formatPrice = (price: number) => {
@@ -162,6 +175,22 @@ export default function LivrosPage() {
                 placeholder="Digite o nome do livro..."
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all font-inter"
               />
+              {authorFilter && (
+                <div className="mt-3 inline-flex items-center gap-3 rounded-full bg-[#2F5D8C]/10 px-4 py-1.5 text-sm font-inter text-[#2F5D8C]">
+                  <span className="font-semibold">Autor:</span>
+                  <span className="truncate max-w-[180px]">
+                    {authorFilter}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/livros")}
+                    className="text-xs font-semibold uppercase tracking-wide text-[#2F5D8C] hover:text-[#274A6F]"
+                    aria-label="Limpar filtro de autor"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Ordenação */}
