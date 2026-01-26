@@ -79,14 +79,16 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Controle de quantidade
 - Cálculo automático de totais
 - Persistência durante navegação
+- Validação de estoque via backend antes do checkout
 
-### ✅ **Página do Carrinho (/cart)**
+### ✅ **Página do Carrinho (/carrinho)**
 
 - Lista completa dos itens
 - Gerenciamento de quantidades
 - Resumo financeiro detalhado
 - Benefícios destacados (frete grátis, etc.)
 - Estado vazio com CTA para compras
+- Bloqueio de checkout quando estoque inválido
 
 ### ✅ **Página de Checkout (/checkout)**
 
@@ -1982,10 +1984,12 @@ O projeto possui uma camada completa de serviços para comunicação com o backe
 | `authService` | `/auth/login`, `/auth/refresh`, `/user/me` | Autenticação e usuário |
 | `authorService` | `/admin/authors/*` | CRUD de autores (ADMIN) |
 | `bookService` | `/public/books/*`, `/admin/books/*` | Livros (público + ADMIN) |
-| `cartService` | `/carts/*` | Carrinho de compras |
+| `cartService` | `/carts/*` | Carrinho de compras (inclui validação de estoque) |
 | `shippingService` | `/shipping/quotes/*` | Cálculo de frete |
 | `orderService` | `/orders/*`, `/admin/orders/*` | Pedidos |
 | `paymentService` | `/payments/*` | Pagamentos (Mercado Pago) |
+
+**Carrinho - validação de estoque:** `POST /carts/{cartId}/validate`
 
 #### **Exemplo de Uso:**
 
