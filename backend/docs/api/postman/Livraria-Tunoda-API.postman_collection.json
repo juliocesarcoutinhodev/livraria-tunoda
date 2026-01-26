@@ -8,8 +8,7 @@
   },
   "item": [
     {
-      "name": "Public - Catálogo",
-      "item": [
+      "name": "Public - Catálogo",      "item": [
         {
           "name": "Listar Livros (Paginado)",
           "request": {
@@ -795,6 +794,27 @@
               ]
             },
             "description": "Remove completamente um item do carrinho. Carrinho deve estar ativo e o item deve existir."
+          },
+          "response": []
+        },
+        {
+          "name": "Limpar Carrinho",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/carts/{{cart_id}}/clear",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "carts",
+                "{{cart_id}}",
+                "clear"
+              ]
+            },
+            "description": "Remove todos os itens do carrinho, mantendo o carrinho ativo. Retorna o carrinho vazio após a operação. Carrinho deve estar ativo."
           },
           "response": []
         }

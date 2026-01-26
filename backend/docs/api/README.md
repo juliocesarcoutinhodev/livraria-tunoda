@@ -15,6 +15,10 @@ Documentação dos endpoints REST da API.
 
 Lista completa de todos os endpoints da API com exemplos.
 
+### [Limpar Carrinho](CLEAR_CART.md) ⭐ NOVO
+
+Endpoint para remover todos os itens do carrinho de compras.
+
 ### [Filtros de Busca](SEARCH_FILTERS.md) ⭐ NOVO
 
 Guia completo sobre busca por nome/título com LIKE case-insensitive.

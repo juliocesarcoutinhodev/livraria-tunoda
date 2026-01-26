@@ -7,6 +7,7 @@ import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.UpdateCartItemRequest;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.ValidateCartResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.AddItemToCartUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.ClearCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ConvertCartToOrderUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.CreateCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetCartUseCase;
@@ -29,6 +30,7 @@ public class CartController {
     private final AddItemToCartUseCase addItemToCartUseCase;
     private final UpdateCartItemUseCase updateCartItemUseCase;
     private final RemoveCartItemUseCase removeCartItemUseCase;
+    private final ClearCartUseCase clearCartUseCase;
     private final ValidateCartUseCase validateCartUseCase;
     private final ConvertCartToOrderUseCase convertCartToOrderUseCase;
 
@@ -88,6 +90,12 @@ public class CartController {
         @PathVariable String bookId
     ) {
         var response = removeCartItemUseCase.execute(cartId, bookId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{cartId}/clear")
+    public ResponseEntity<CartResponse> clearCart(@PathVariable String cartId) {
+        var response = clearCartUseCase.execute(cartId);
         return ResponseEntity.ok(response);
     }
 }

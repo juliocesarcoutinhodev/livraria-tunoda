@@ -109,6 +109,41 @@ class CartTest {
     }
 
     @Test
+    @DisplayName("Deve limpar todos os itens do carrinho")
+    void shouldClearAllItemsFromCart() {
+        var cart = Cart.create();
+        var bookId1 = BookId.generate();
+        var bookId2 = BookId.generate();
+        var item1 = CartItem.create(bookId1, "Livro 1", 2, Money.brl(BigDecimal.valueOf(49.90)));
+        var item2 = CartItem.create(bookId2, "Livro 2", 1, Money.brl(BigDecimal.valueOf(29.90)));
+
+        cart.addItem(item1);
+        cart.addItem(item2);
+        assertEquals(2, cart.getItems().size());
+
+        cart.clear();
+
+        assertTrue(cart.getItems().isEmpty());
+        assertEquals(CartStatus.ACTIVE, cart.getStatus());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao limpar carrinho não ativo")
+    void shouldThrowExceptionWhenClearingInactiveCart() {
+        var cart = Cart.create();
+        var bookId = BookId.generate();
+        var item = CartItem.create(bookId, "Livro de Teste", 2, Money.brl(BigDecimal.valueOf(49.90)));
+        cart.addItem(item);
+        cart.markAsConverted();
+
+        var exception = assertThrows(BusinessException.class, () -> {
+            cart.clear();
+        });
+
+        assertEquals("Carrinho não pode ser modificado no status CONVERTED", exception.getMessage());
+    }
+
+    @Test
     @DisplayName("Deve calcular subtotal corretamente")
     void shouldCalculateSubtotalCorrectly() {
         var cart = Cart.create();

@@ -120,9 +120,22 @@ Busca carrinho com todos os itens.
 
 ### ClearCartUseCase
 
-Remove todos os itens do carrinho.
+Remove todos os itens do carrinho, mantendo o carrinho ativo.
 
 **Input:** `cartId: String`
+
+**Output:** `CartResponse` com carrinho vazio
+
+**Regras:**
+- Carrinho deve existir
+- Carrinho deve estar com status ACTIVE
+- Remove todos os itens da lista
+- Atualiza timestamp do carrinho
+- Não deleta o carrinho (apenas limpa itens)
+
+**Exceções:**
+- `ResourceNotFoundException` - Carrinho não encontrado
+- `BusinessException` - Carrinho não está ativo
 
 ## Persistência
 
@@ -168,7 +181,9 @@ CREATE INDEX idx_cart_items_cart_id ON tb_cart_items(cart_id);
 - `POST /api/carts/{id}/items` - Adicionar item
 - `PUT /api/carts/{cartId}/items/{bookId}` - Atualizar quantidade
 - `DELETE /api/carts/{cartId}/items/{bookId}` - Remover item
-- `DELETE /api/carts/{id}/clear` - Limpar carrinho
+- `DELETE /api/carts/{cartId}/clear` - Limpar carrinho (remove todos os itens)
+- `POST /api/carts/{id}/validate` - Validar carrinho para checkout
+- `POST /api/carts/checkout` - Realizar checkout
 
 ## Fluxo de Uso
 
@@ -187,6 +202,10 @@ CREATE INDEX idx_cart_items_cart_id ON tb_cart_items(cart_id);
 
 4. Cliente remove itens
    DELETE /api/carts/{cartId}/items/{bookId}
+
+4.1. Cliente pode limpar todo o carrinho (opcional)
+     DELETE /api/carts/{cartId}/clear
+     → Remove todos os itens, mantém carrinho ativo
 
 5. Cliente visualiza carrinho
    GET /api/carts/{cartId}

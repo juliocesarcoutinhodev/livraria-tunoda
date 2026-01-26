@@ -102,6 +102,12 @@ public class Cart {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void clear() {
+        ensureCanBeModified();
+        items.clear();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Money calculateSubtotal() {
         if (items.isEmpty()) {
             return Money.brl(BigDecimal.ZERO);
