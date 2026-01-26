@@ -201,8 +201,10 @@ export interface PublicBookFilterParams {
   page?: number;
   /** Tamanho da página */
   size?: number;
-  /** Ordenação */
-  sort?: string;
+  /** Campo para ordenação (ex: title, createdAt) */
+  sortBy?: string;
+  /** Direção da ordenação (asc ou desc) */
+  sortDirection?: "asc" | "desc";
   /** Buscar por título */
   title?: string;
   /** Filtrar por autor (opcional, se suportado pelo backend) */

@@ -33,8 +33,8 @@ export default function LivrosPage() {
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
-  const [sortBy, setSortBy] = useState<string>("createdAt,desc");
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
 
   // Debounce na busca (500ms)
@@ -46,9 +46,10 @@ export default function LivrosPage() {
       page,
       size: 12,
       title: debouncedSearch || undefined,
-      sort: sortBy,
+      sortBy,
+      sortDirection,
     };
-  }, [page, debouncedSearch, sortBy]);
+  }, [page, debouncedSearch, sortBy, sortDirection]);
 
   // Query de livros
   const { data: booksResponse, isLoading: isLoadingBooks } = useBooks(filters);
@@ -56,7 +57,7 @@ export default function LivrosPage() {
   const totalPages = booksResponse?.totalPages || 0;
   const totalElements = booksResponse?.totalElements || 0;
 
-  // Filtrar livros por preço (client-side)
+  // Filtrar livros por autor (client-side)
   const filteredBooks = useMemo(() => {
     let result = books;
 
@@ -70,18 +71,13 @@ export default function LivrosPage() {
       );
     }
 
-    // Filtro por preço
-    result = result.filter(
-      (book) => book.price >= priceRange[0] && book.price <= priceRange[1]
-    );
-
     return result;
-  }, [books, priceRange, authorFilter, authorFilterNormalized]);
+  }, [books, authorFilter, authorFilterNormalized]);
 
   // Resetar página ao mudar filtros
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearch, sortBy, authorFilter]);
+  }, [debouncedSearch, sortBy, sortDirection, authorFilter]);
 
   // Formatar preço
   const formatPrice = (price: number) => {
@@ -171,15 +167,17 @@ export default function LivrosPage() {
               </label>
               <select
                 id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                value={`${sortBy}:${sortDirection}`}
+                onChange={(e) => {
+                  const [nextSortBy, nextDirection] = e.target.value.split(":");
+                  setSortBy(nextSortBy);
+                  setSortDirection(nextDirection as "asc" | "desc");
+                }}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all font-inter"
               >
-                <option value="createdAt,desc">Mais recentes</option>
-                <option value="price,asc">Menor preço</option>
-                <option value="price,desc">Maior preço</option>
-                <option value="title,asc">A-Z</option>
-                <option value="title,desc">Z-A</option>
+                <option value="createdAt:desc">Mais recentes</option>
+                <option value="title:asc">A-Z</option>
+                <option value="title:desc">Z-A</option>
               </select>
             </div>
 
@@ -188,8 +186,8 @@ export default function LivrosPage() {
               <Button
                 onClick={() => {
                   setSearchTerm("");
-                  setPriceRange([0, 500]);
-                  setSortBy("createdAt,desc");
+                  setSortBy("createdAt");
+                  setSortDirection("desc");
                 }}
                 variant="outline"
                 size="sm"
@@ -197,46 +195,6 @@ export default function LivrosPage() {
               >
                 Limpar
               </Button>
-            </div>
-          </div>
-
-          {/* Filtro de Preço - Linha separada */}
-          <div className="mt-5 pt-5 border-t border-gray-100">
-            <label className="block text-sm font-semibold text-gray-700 mb-3 font-inter">
-              💰 Faixa de preço:{" "}
-              <span className="text-[#D4AF37] font-bold">
-                {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
-              </span>
-            </label>
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-gray-500 font-inter">R$ 0</span>
-              <input
-                type="range"
-                min="0"
-                max="500"
-                value={priceRange[0]}
-                onChange={(e) =>
-                  setPriceRange([
-                    Number(e.target.value),
-                    Math.max(Number(e.target.value), priceRange[1]),
-                  ])
-                }
-                className="flex-1 accent-[#3B82F6]"
-              />
-              <input
-                type="range"
-                min="0"
-                max="500"
-                value={priceRange[1]}
-                onChange={(e) =>
-                  setPriceRange([
-                    Math.min(priceRange[0], Number(e.target.value)),
-                    Number(e.target.value),
-                  ])
-                }
-                className="flex-1 accent-[#3B82F6]"
-              />
-              <span className="text-xs text-gray-500 font-inter">R$ 500</span>
             </div>
           </div>
 
@@ -291,8 +249,8 @@ export default function LivrosPage() {
             <Button
               onClick={() => {
                 setSearchTerm("");
-                setPriceRange([0, 500]);
-                setSortBy("createdAt,desc");
+                setSortBy("createdAt");
+                setSortDirection("desc");
               }}
               variant="outline"
             >
