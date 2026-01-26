@@ -15,19 +15,19 @@ export default function Books({ className = "" }: BooksProps) {
   const { addItem } = useCart();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
 
-  // Busca todos os livros disponíveis (paginado - primeiros 6)
+  // Busca os livros disponíveis em destaque (máximo 3 por enquanto)
   const {
     data: booksResponse,
     isLoading,
     error,
   } = useBooks({
     page: 0,
-    size: 6,
+    size: 3,
     sort: "createdAt,desc", // Mais recentes primeiro
   });
   const trackMetric = useTrackBookMetric();
 
-  const books = booksResponse?.content || [];
+  const books = (booksResponse?.content || []).slice(0, 3);
 
   const handleAddToCart = (book: Book) => {
     addItem({
@@ -120,7 +120,7 @@ export default function Books({ className = "" }: BooksProps) {
         >
           {isLoading ? (
             // Loading skeletons
-            Array.from({ length: 6 }).map((_, index) => (
+            Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
                 className="bg-[#F7F6F2] rounded-2xl p-6 shadow-sm"
