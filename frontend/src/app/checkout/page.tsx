@@ -60,6 +60,12 @@ export default function CheckoutPage() {
   );
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string>("");
+  const [orderSummary, setOrderSummary] = useState<{
+    subtotal: number;
+    itemCount: number;
+    shippingCost: number;
+    total: number;
+  } | null>(null);
 
   const [customer, setCustomer] = useState<CustomerInfo>({
     fullName: "",
@@ -116,6 +122,11 @@ export default function CheckoutPage() {
     const shippingCost = selectedOption?.price || 0;
     return subtotal + shippingCost;
   }, [subtotal, selectedOption]);
+  const summarySubtotal = orderSummary?.subtotal ?? subtotal;
+  const summaryItemCount = orderSummary?.itemCount ?? itemCount;
+  const summaryShipping =
+    orderSummary?.shippingCost ?? (selectedOption?.price ?? 0);
+  const summaryTotal = orderSummary?.total ?? totalWithShipping;
 
   const paymentStatusLabel = (status?: Payment["status"]) => {
     switch (status) {
@@ -312,11 +323,18 @@ export default function CheckoutPage() {
 
     setIsCreatingOrder(true);
     try {
-      const created = await cartService.checkout(cartId, {
+      const created = await cartService.checkout({
+        cartId,
         shippingQuoteId: shippingQuote.id,
-        customerEmail: customer.email,
+      });
+      setOrderSummary({
+        subtotal,
+        itemCount,
+        shippingCost: selectedOption?.price || 0,
+        total: subtotal + (selectedOption?.price || 0),
       });
       setOrder(created);
+      resetCart();
       toast.success(`Pedido criado: ${created.orderId}`);
       return created;
     } catch {
@@ -421,7 +439,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !order?.orderId) {
     return (
       <div className="min-h-screen bg-[#F7F6F2]">
         <Navigation />
@@ -1132,21 +1150,23 @@ export default function CheckoutPage() {
                 </h3>
                 <div className="space-y-3 text-sm font-inter text-[#2E2E2E]">
                   <div className="flex justify-between">
-                    <span>Subtotal ({itemCount} itens)</span>
-                    <span className="font-semibold">{formatPrice(subtotal)}</span>
+                    <span>Subtotal ({summaryItemCount} itens)</span>
+                    <span className="font-semibold">
+                      {formatPrice(summarySubtotal)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Frete</span>
                     <span className="font-semibold text-[#2F5D8C]">
-                      {selectedOption
-                        ? formatPrice(selectedOption.price)
+                      {orderSummary || selectedOption
+                        ? formatPrice(summaryShipping)
                         : "Calcular"}
                     </span>
                   </div>
                   <div className="border-t border-[#2F5D8C]/10 pt-3 flex justify-between">
                     <span className="font-semibold">Total</span>
                     <span className="font-semibold text-[#2F5D8C]">
-                      {formatPrice(totalWithShipping)}
+                      {formatPrice(summaryTotal)}
                     </span>
                   </div>
                 </div>

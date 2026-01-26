@@ -64,13 +64,13 @@ export interface UpdateCartItemRequest {
 
 /**
  * Requisição de checkout
- * POST /api/carts/{cartId}/checkout
+ * POST /api/carts/checkout
  */
 export interface CheckoutRequest {
+  /** ID do carrinho */
+  cartId: string;
   /** ID da cotação de frete selecionada */
-  shippingQuoteId: string;
-  /** Email do cliente */
-  customerEmail: string;
+  shippingQuoteId?: string | null;
 }
 
 /**

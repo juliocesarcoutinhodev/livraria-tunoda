@@ -219,25 +219,21 @@ const validate = async (cartId: string): Promise<CartValidationResponse> => {
 /**
  * Realiza checkout do carrinho (cria pedido)
  *
- * @param cartId - ID do carrinho
- * @param data - Dados do checkout (shippingQuoteId, customerEmail)
+ * @param data - Dados do checkout (cartId, shippingQuoteId)
  * @returns Dados do pedido criado
  *
  * @example
  * ```ts
- * const order = await cartService.checkout("cart-123", {
- *   shippingQuoteId: "quote-789",
- *   customerEmail: "cliente@email.com"
+ * const order = await cartService.checkout({
+ *   cartId: "cart-123",
+ *   shippingQuoteId: "quote-789"
  * });
  * console.log("Pedido criado:", order.orderId);
  * ```
  */
-const checkout = async (
-  cartId: string,
-  data: CheckoutRequest
-): Promise<CheckoutResponse> => {
+const checkout = async (data: CheckoutRequest): Promise<CheckoutResponse> => {
   const response = await apiClient.post<CheckoutResponse>(
-    `/carts/${cartId}/checkout`,
+    "/carts/checkout",
     data
   );
   return response.data;

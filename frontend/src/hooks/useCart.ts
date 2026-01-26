@@ -249,10 +249,7 @@ export function useClearCart() {
  *   const handleCheckout = () => {
  *     checkout.mutate({
  *       cartId,
- *       data: {
- *         shippingQuoteId: "quote-123",
- *         customerEmail: "cliente@email.com"
- *       }
+ *       shippingQuoteId: "quote-123"
  *     }, {
  *       onSuccess: (order) => {
  *         router.push(`/orders/${order.orderId}`);
@@ -268,8 +265,7 @@ export function useCheckout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ cartId, data }: { cartId: string; data: CheckoutRequest }) =>
-      cartService.checkout(cartId, data),
+    mutationFn: (data: CheckoutRequest) => cartService.checkout(data),
     onSuccess: (_order, variables) => {
       // Invalida carrinho após checkout
       invalidateQueries.cart(queryClient, variables.cartId);
