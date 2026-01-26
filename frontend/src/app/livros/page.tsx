@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useBooks } from "@/hooks/useBooks";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCart } from "@/contexts/CartContext";
+import Navigation from "@/components/layout/Navigation";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import type { PublicBookFilterParams } from "@/types/book";
@@ -108,48 +109,22 @@ export default function LivrosPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F6F2]">
-      {/* Breadcrumb / Back Navigation */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#2F5D8C] transition-colors group"
-          >
-            <svg
-              className="w-4 h-4 transition-transform group-hover:-translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para Home
-          </Link>
-        </div>
-      </div>
+      <Navigation />
 
-      {/* Hero Section - Compacto */}
-      <section className="bg-gradient-to-r from-[#2F5D8C] to-[#3A7D44] text-white py-8">
+      {/* Header */}
+      <div className="pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="text-sm text-white/70 mb-3 font-inter">
-            Home <span className="mx-2">›</span> Catálogo de Livros
-          </nav>
-          <h1 className="font-playfair text-3xl md:text-4xl font-bold mb-2">
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold text-[#2E2E2E] mb-3">
             Catálogo de Livros
           </h1>
-          <p className="text-base text-white/90 max-w-2xl font-inter">
+          <p className="font-inter text-lg text-[#2E2E2E] opacity-80 max-w-2xl">
             Explore nossa coleção de livros cristãos
           </p>
         </div>
-      </section>
+      </div>
 
       {/* Filtros e Ordenação */}
-      <section className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+      <section className="bg-white border-b border-gray-200 sticky top-16 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             {/* Busca */}
