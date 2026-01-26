@@ -84,3 +84,44 @@ export interface CheckoutResponse {
   /** Total do pedido */
   total: number;
 }
+
+/**
+ * Validação de carrinho antes do checkout
+ * POST /api/carts/{cartId}/validate
+ */
+export interface CartValidationItem {
+  /** ID do livro */
+  bookId: string;
+  /** Título do livro */
+  title: string;
+  /** Quantidade solicitada */
+  requestedQuantity: number;
+  /** Quantidade disponível em estoque */
+  availableQuantity: number;
+  /** Status do item (ex: OK, OUT_OF_STOCK, INSUFFICIENT_STOCK) */
+  status: string;
+  /** Mensagem opcional do backend */
+  message?: string | null;
+}
+
+export interface CartValidationError {
+  /** Código do erro */
+  code: string;
+  /** Mensagem do erro */
+  message: string;
+  /** ID do livro (opcional) */
+  bookId?: string;
+}
+
+export interface CartValidationResponse {
+  /** ID do carrinho */
+  cartId: string;
+  /** Carrinho válido para checkout */
+  valid: boolean;
+  /** Mensagem geral */
+  message: string;
+  /** Detalhes por item */
+  items: CartValidationItem[];
+  /** Erros globais */
+  errors: CartValidationError[];
+}

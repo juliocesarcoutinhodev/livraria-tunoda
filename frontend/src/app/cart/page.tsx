@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Navigation from "@/components/layout/Navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { bookService } from "@/services/bookService";
+import { cartService } from "@/services/cartService";
+import toast from "react-hot-toast";
+import type { CartValidationResponse } from "@/types/cart";
 
 export default function CartPage() {
   const {
@@ -17,8 +20,13 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
     clearCart,
+    cartId,
   } = useCart();
   const [covers, setCovers] = useState<Record<string, string>>({});
+  const [validation, setValidation] = useState<CartValidationResponse | null>(
+    null
+  );
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,6 +66,55 @@ export default function CartPage() {
       isMounted = false;
     };
   }, [items, covers]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const runValidation = async () => {
+      if (!cartId || isLoading || items.length === 0) {
+        if (isMounted) {
+          setValidation(null);
+        }
+        return;
+      }
+
+      setIsValidating(true);
+      try {
+        const result = await cartService.validate(cartId);
+        if (isMounted) {
+          setValidation(result);
+        }
+      } catch {
+        if (isMounted) {
+          toast.error(
+            "Não foi possível validar o estoque dos itens no carrinho."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsValidating(false);
+        }
+      }
+    };
+
+    if (!isUpdating) {
+      void runValidation();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cartId, items, isLoading, isUpdating]);
+
+  const validationMap = useMemo(() => {
+    const map = new Map<string, CartValidationResponse["items"][number]>();
+    validation?.items?.forEach((item) => {
+      map.set(item.bookId, item);
+    });
+    return map;
+  }, [validation]);
+
+  const isCartValid = validation ? validation.valid : true;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -151,7 +208,19 @@ export default function CartPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-6">
+                {!isCartValid && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 font-inter">
+                    {validation?.message ||
+                      "Revise os itens com estoque indisponível."}
+                  </div>
+                )}
                 {items.map((item) => (
+                  (() => {
+                    const validationItem = validationMap.get(item.bookId);
+                    const showValidation =
+                      validationItem && validationItem.status !== "OK";
+
+                    return (
                   <div
                     key={item.bookId}
                     className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
@@ -178,6 +247,12 @@ export default function CartPage() {
                           <h3 className="font-playfair text-xl font-bold text-[#2E2E2E] mb-1">
                             {item.title}
                           </h3>
+                          {showValidation && (
+                            <p className="text-xs text-red-600 font-inter">
+                              {validationItem?.message ||
+                                "Estoque insuficiente para este item."}
+                            </p>
+                          )}
                         </div>
 
                         {/* Quantity and Price Controls */}
@@ -256,6 +331,8 @@ export default function CartPage() {
                       </div>
                     </div>
                   </div>
+                    );
+                  })()
                 ))}
               </div>
 
@@ -361,9 +438,25 @@ export default function CartPage() {
                   {/* Checkout Button */}
                   <Link
                     href="/checkout"
-                    className="w-full bg-[#C9A44C] hover:bg-[#B8934A] text-white font-inter font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+                    onClick={(event) => {
+                      if (!isCartValid || isValidating) {
+                        event.preventDefault();
+                        toast.error(
+                          "Revise o estoque dos itens antes de finalizar."
+                        );
+                      }
+                    }}
+                    className={`w-full bg-[#C9A44C] hover:bg-[#B8934A] text-white font-inter font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 flex items-center justify-center space-x-2 ${
+                      !isCartValid || isValidating
+                        ? "opacity-60 cursor-not-allowed pointer-events-auto hover:shadow-lg"
+                        : "hover:scale-105"
+                    }`}
                   >
-                    <span>Finalizar Compra</span>
+                    <span>
+                      {isValidating
+                        ? "Validando estoque..."
+                        : "Finalizar Compra"}
+                    </span>
                     <svg
                       className="w-5 h-5"
                       fill="none"

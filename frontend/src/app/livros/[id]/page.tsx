@@ -32,7 +32,8 @@ export default function BookDetailPage() {
     {
       page: 0,
       size: 8,
-      sort: "createdAt,desc",
+      sortBy: "createdAt",
+      sortDirection: "desc",
     },
     {
       enabled: !!bookId,

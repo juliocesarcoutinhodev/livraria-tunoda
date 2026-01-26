@@ -18,6 +18,7 @@ import type {
   UpdateCartItemRequest,
   CheckoutRequest,
   CheckoutResponse,
+  CartValidationResponse,
 } from "@/types/cart";
 
 type CartApiItem = {
@@ -203,6 +204,19 @@ const clear = async (cartId: string): Promise<void> => {
 };
 
 /**
+ * Valida carrinho antes do checkout
+ *
+ * @param cartId - ID do carrinho
+ * @returns Resultado da validação
+ */
+const validate = async (cartId: string): Promise<CartValidationResponse> => {
+  const response = await apiClient.post<CartValidationResponse>(
+    `/carts/${cartId}/validate`
+  );
+  return response.data;
+};
+
+/**
  * Realiza checkout do carrinho (cria pedido)
  *
  * @param cartId - ID do carrinho
@@ -241,4 +255,5 @@ export const cartService = {
   removeItem,
   clear,
   checkout,
+  validate,
 };

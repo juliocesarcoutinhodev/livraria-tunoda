@@ -23,7 +23,8 @@ export default function Books({ className = "" }: BooksProps) {
   } = useBooks({
     page: 0,
     size: 3,
-    sort: "createdAt,desc", // Mais recentes primeiro
+    sortBy: "createdAt",
+    sortDirection: "desc", // Mais recentes primeiro
   });
   const trackMetric = useTrackBookMetric();
 

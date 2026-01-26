@@ -711,9 +711,35 @@
                 "validate"
               ]
             },
-            "description": "Valida se o carrinho está pronto para checkout. Verifica status ativo, presença de itens, total maior que zero e se todos os livros estão ativos. Retorna resultado da validação sem alterar o carrinho."
+            "description": "Valida se o carrinho está pronto para checkout. Verifica status ativo, itens, total, disponibilidade do livro e estoque. Retorna status e mensagens por item e erros por código, sem alterar o carrinho."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Exemplo - Carrinho com estoque insuficiente",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/carts/{{cart_id}}/validate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "carts",
+                    "{{cart_id}}",
+                    "validate"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"valid\": false,\n  \"message\": \"Estoque insuficiente para a quantidade solicitada.\",\n  \"items\": [\n    {\n      \"bookId\": \"{{book_id}}\",\n      \"title\": \"Livro de Teste\",\n      \"requestedQuantity\": 3,\n      \"availableQuantity\": 1,\n      \"status\": \"INSUFFICIENT_STOCK\",\n      \"message\": \"Estoque insuficiente para a quantidade solicitada.\"\n    }\n  ],\n  \"errors\": [\n    {\n      \"code\": \"INSUFFICIENT_STOCK\",\n      \"message\": \"Estoque insuficiente para a quantidade solicitada.\",\n      \"bookId\": \"{{book_id}}\"\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "Adicionar Item ao Carrinho",

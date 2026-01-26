@@ -1,14 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Navigation from "@/components/layout/Navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { cartService } from "@/services/cartService";
+import toast from "react-hot-toast";
+import type { CartValidationResponse } from "@/types/cart";
 
 export default function CheckoutPage() {
-  const { items, subtotal, itemCount, isLoading } = useCart();
+  const { items, subtotal, itemCount, isLoading, cartId } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [validation, setValidation] = useState<CartValidationResponse | null>(
+    null
+  );
+  const [isValidating, setIsValidating] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const runValidation = async () => {
+      if (!cartId || items.length === 0 || isLoading) {
+        if (isMounted) {
+          setValidation(null);
+        }
+        return;
+      }
+
+      setIsValidating(true);
+      try {
+        const result = await cartService.validate(cartId);
+        if (isMounted) {
+          setValidation(result);
+        }
+      } catch {
+        if (isMounted) {
+          toast.error(
+            "Não foi possível validar o estoque antes do checkout."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsValidating(false);
+        }
+      }
+    };
+
+    void runValidation();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cartId, items, isLoading]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -18,6 +62,16 @@ export default function CheckoutPage() {
   };
 
   const handleProceedToPayment = () => {
+    if (isValidating) {
+      toast.error("Aguarde a validação de estoque.");
+      return;
+    }
+    if (validation && !validation.valid) {
+      toast.error(
+        validation.message || "Revise o estoque dos itens antes de continuar."
+      );
+      return;
+    }
     setIsProcessing(true);
     // Simulate processing time
     setTimeout(() => {
@@ -170,6 +224,12 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Order Summary */}
             <div className="lg:col-span-2 space-y-8">
+              {!validation?.valid && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 font-inter">
+                  {validation?.message ||
+                    "Revise os itens com estoque indisponível."}
+                </div>
+              )}
               {/* Order Items */}
               <div className="bg-white rounded-2xl p-8 shadow-sm">
                 <h2 className="font-playfair text-2xl font-bold text-[#2E2E2E] mb-6">
@@ -477,9 +537,13 @@ export default function CheckoutPage() {
                 {/* Proceed to Payment Button */}
                 <button
                   onClick={handleProceedToPayment}
-                  disabled={isProcessing}
+                  disabled={
+                    isProcessing || isValidating || (!!validation && !validation.valid)
+                  }
                   className={`w-full py-4 px-6 rounded-xl font-inter font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 flex items-center justify-center space-x-2 ${
-                    isProcessing
+                    isProcessing ||
+                    isValidating ||
+                    (!!validation && !validation.valid)
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-[#C9A44C] hover:bg-[#B8934A] hover:scale-105 text-white"
                   }`}
@@ -509,7 +573,11 @@ export default function CheckoutPage() {
                     </>
                   ) : (
                     <>
-                      <span>Prosseguir para Pagamento</span>
+                      <span>
+                        {isValidating
+                          ? "Validando estoque..."
+                          : "Prosseguir para Pagamento"}
+                      </span>
                       <svg
                         className="w-5 h-5"
                         fill="none"
