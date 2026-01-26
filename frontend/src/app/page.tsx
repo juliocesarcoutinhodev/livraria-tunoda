@@ -1,5 +1,4 @@
 import Navigation from "@/components/layout/Navigation";
-import PageFade from "@/components/PageFade";
 import Hero from "@/components/features/Hero";
 import Books from "@/components/features/Books";
 import About from "@/components/features/About";
@@ -12,12 +11,7 @@ export const metadata: Metadata = {
     "Pastor e missionário no Japão há 25 anos. Descubra livros cristãos inspiradores que fortalecem a fé e renovam a esperança.",
 };
 
-export default function Home({
-  searchParams,
-}: {
-  searchParams?: { from?: string };
-}) {
-  const shouldFade = searchParams?.from === "catalog";
+export default function Home() {
   // Structured Data (JSON-LD) para SEO
   const structuredData = {
     "@context": "https://schema.org",
@@ -55,7 +49,7 @@ export default function Home({
   };
 
   return (
-    <PageFade enabled={shouldFade} className="relative overflow-x-hidden">
+    <div className="relative overflow-x-hidden">
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -232,6 +226,6 @@ export default function Home({
           </div>
         </footer>
       </main>
-    </PageFade>
+    </div>
   );
 }

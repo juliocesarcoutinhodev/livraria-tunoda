@@ -30,7 +30,6 @@ export default function LivrosPage() {
   const searchParams = useSearchParams();
   const authorFilter = searchParams.get("autor") || "";
   const authorFilterNormalized = authorFilter.trim().toLowerCase();
-  const shouldFade = searchParams.get("from") === "home";
 
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,11 +108,7 @@ export default function LivrosPage() {
   );
 
   return (
-    <div
-      className={`min-h-screen bg-[#F7F6F2]${
-        shouldFade ? " page-fade-in" : ""
-      }`}
-    >
+    <div className="min-h-screen bg-[#F7F6F2]">
       <Navigation />
 
       {/* Header */}

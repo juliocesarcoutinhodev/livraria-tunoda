@@ -90,9 +90,8 @@ export default function Navigation({ className = "" }: NavigationProps) {
     { id: "/livros", label: "Catálogo", type: "link" as const },
   ];
 
-  const getCatalogHref = () => (isHome ? "/livros?from=home" : "/livros");
-  const getSectionHref = (sectionId: string) =>
-    sectionId === "inicio" ? "/?from=catalog#inicio" : `/#${sectionId}`;
+  const getCatalogHref = () => "/livros";
+  const getSectionHref = (sectionId: string) => `/#${sectionId}`;
 
   return (
     <nav
@@ -119,7 +118,6 @@ export default function Navigation({ className = "" }: NavigationProps) {
                     <Link
                       key={item.id}
                       href={item.id === "/livros" ? getCatalogHref() : item.id}
-                      scroll={false}
                       className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
                     >
                       {item.label}
@@ -132,7 +130,6 @@ export default function Navigation({ className = "" }: NavigationProps) {
                     <Link
                       key={item.id}
                       href={getSectionHref(item.id)}
-                      scroll={false}
                       className="font-inter font-medium px-3 py-2 rounded-md text-sm text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
                     >
                       {item.label}
@@ -347,7 +344,6 @@ export default function Navigation({ className = "" }: NavigationProps) {
                 <Link
                   key={item.id}
                   href={item.id === "/livros" ? getCatalogHref() : item.id}
-                  scroll={false}
                   onClick={() => setIsMenuOpen(false)}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
                 >
@@ -361,7 +357,6 @@ export default function Navigation({ className = "" }: NavigationProps) {
                 <Link
                   key={item.id}
                   href={getSectionHref(item.id)}
-                  scroll={false}
                   onClick={() => setIsMenuOpen(false)}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2E2E2E] hover:text-[#2F5D8C] hover:bg-[#F7F6F2] transition-colors duration-200"
                 >
