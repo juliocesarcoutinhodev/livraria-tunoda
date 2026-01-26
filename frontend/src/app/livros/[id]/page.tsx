@@ -112,6 +112,7 @@ export default function BookDetailPage() {
       return;
     }
 
+    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
     addItem.mutate(
       {
         cartId: resolvedCartId,
@@ -145,6 +146,7 @@ export default function BookDetailPage() {
       return;
     }
 
+    trackMetric.mutate({ bookId: book.id, eventType: "CLICK" });
     addItem.mutate(
       {
         cartId: resolvedCartId,
