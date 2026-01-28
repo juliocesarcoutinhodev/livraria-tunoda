@@ -25,6 +25,7 @@ public class ProcessMercadoPagoWebhookUseCase {
     private final OrderRepository orderRepository;
     private final MercadoPagoClient mercadoPagoClient;
     private final DeductStockFromOrderUseCase deductStockFromOrderUseCase;
+    private final SendOrderApprovedEmailUseCase sendOrderApprovedEmailUseCase;
 
     /**
      * Processa notificação de webhook do Mercado Pago.
@@ -83,6 +84,7 @@ public class ProcessMercadoPagoWebhookUseCase {
             // Regra: Pagamento APPROVED + Estoque Deduzido -> Order.confirm()
             log.info("Confirmando order: {}", order.getId().getValue());
             order.confirm();
+            sendOrderApprovedEmailUseCase.execute(order);
 
         } else if (paymentDetails.isRejected()) {
             log.info("Rejeitando payment: {}. Motivo: {}", payment.getId().getValue(), paymentDetails.statusDetail());
@@ -118,4 +120,3 @@ public class ProcessMercadoPagoWebhookUseCase {
             payment.getId().getValue(), payment.getStatus(), order.getId().getValue(), order.getStatus());
     }
 }
-

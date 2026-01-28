@@ -58,7 +58,10 @@ class DeductStockFromOrderUseCaseTest {
             Money.brl(BigDecimal.valueOf(180.00)),
             LocalDateTime.now(),
             OrderStatus.CONFIRMED,
-            "payment-ref-123"
+            "payment-ref-123",
+            "Cliente",
+            "cliente@email.com",
+            "11999999999"
         );
 
         // Cria Books reais com estoque suficiente
@@ -217,7 +220,10 @@ class DeductStockFromOrderUseCaseTest {
             Money.brl(BigDecimal.valueOf(50.00)),
             LocalDateTime.now(),
             OrderStatus.CONFIRMED,
-            "payment-ref-789"
+            "payment-ref-789",
+            "Cliente",
+            "cliente@email.com",
+            "11999999999"
         );
 
         when(bookRepository.findById(bookId1)).thenReturn(Optional.of(book1));

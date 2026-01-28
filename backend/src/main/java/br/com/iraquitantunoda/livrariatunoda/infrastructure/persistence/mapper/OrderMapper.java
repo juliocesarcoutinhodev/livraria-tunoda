@@ -36,7 +36,10 @@ public interface OrderMapper {
             total,
             entity.getCreatedAt(),
             entity.getStatus(),
-            entity.getPaymentReference()
+            entity.getPaymentReference(),
+            entity.getCustomerName(),
+            entity.getCustomerEmail(),
+            entity.getCustomerPhone()
         );
     }
 
@@ -66,6 +69,9 @@ public interface OrderMapper {
         entity.setTotalCurrency(order.getTotal().getCurrency());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setPaymentReference(order.getPaymentReference());
+        entity.setCustomerName(order.getCustomerName());
+        entity.setCustomerEmail(order.getCustomerEmail());
+        entity.setCustomerPhone(order.getCustomerPhone());
 
         var itemEntities = new ArrayList<OrderItemEntity>();
         for (var item : order.getItems()) {
@@ -84,4 +90,3 @@ public interface OrderMapper {
         return entity;
     }
 }
-

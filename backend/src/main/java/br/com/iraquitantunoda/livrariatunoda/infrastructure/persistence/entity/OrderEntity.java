@@ -58,7 +58,15 @@ public class OrderEntity {
     @Column(name = "payment_reference", length = 100)
     private String paymentReference;
 
+    @Column(name = "customer_name", length = 120)
+    private String customerName;
+
+    @Column(name = "customer_email", length = 255)
+    private String customerEmail;
+
+    @Column(name = "customer_phone", length = 30)
+    private String customerPhone;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemEntity> items = new ArrayList<>();
 }
-

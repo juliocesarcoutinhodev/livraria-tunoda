@@ -28,6 +28,7 @@ public class ConvertCartToOrderUseCase {
     private final OrderRepository orderRepository;
     private final ShippingQuoteRepository shippingQuoteRepository;
     private final OrderDTOMapper orderDTOMapper;
+    private final SendOrderCreatedEmailUseCase sendOrderCreatedEmailUseCase;
 
     /**
      * Converte carrinho em pedido com frete opcional.
@@ -38,7 +39,8 @@ public class ConvertCartToOrderUseCase {
      * @return OrderResponse com dados do pedido criado
      */
     @Transactional
-    public OrderResponse execute(String cartId, String shippingQuoteId) {
+    public OrderResponse execute(String cartId, String shippingQuoteId,
+                                 String customerName, String customerEmail, String customerPhone) {
         log.info("Iniciando checkout do carrinho {}. Frete: {}", cartId,
                  shippingQuoteId != null ? shippingQuoteId : "sem frete");
 
@@ -70,10 +72,10 @@ public class ConvertCartToOrderUseCase {
             log.debug("Criando pedido com frete. Cotação: {}, Valor: {}",
                       shippingQuoteId, shippingQuote.getSelectedOption().getPrice());
 
-            order = Order.createFromCartWithShipping(cart, shippingQuote);
+            order = Order.createFromCartWithShipping(cart, shippingQuote, customerName, customerEmail, customerPhone);
         } else {
             log.debug("Criando pedido sem frete (frete grátis)");
-            order = Order.createFromCart(cart);
+            order = Order.createFromCart(cart, customerName, customerEmail, customerPhone);
         }
 
         // 6. Marcar carrinho como convertido (impede uso futuro)
@@ -87,6 +89,8 @@ public class ConvertCartToOrderUseCase {
                  savedOrder.getId().getValue(),
                  savedOrder.getTotal().getAmount(),
                  savedOrder.getTotal().getCurrency());
+
+        sendOrderCreatedEmailUseCase.execute(savedOrder);
 
         // 8. Retornar resposta
         return orderDTOMapper.toResponse(savedOrder);

@@ -41,6 +41,9 @@ class ProcessMercadoPagoWebhookUseCaseTest {
     @Mock
     private DeductStockFromOrderUseCase deductStockFromOrderUseCase;
 
+    @Mock
+    private SendOrderApprovedEmailUseCase sendOrderApprovedEmailUseCase;
+
     @InjectMocks
     private ProcessMercadoPagoWebhookUseCase useCase;
 
@@ -56,7 +59,7 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         var bookId = BookId.generate();
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
-        order = Order.createFromCart(cart);
+        order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         // Cria payment
         var amount = Money.brl(BigDecimal.valueOf(49.90));

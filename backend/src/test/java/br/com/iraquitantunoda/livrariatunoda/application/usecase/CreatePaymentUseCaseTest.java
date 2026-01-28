@@ -48,7 +48,7 @@ class CreatePaymentUseCaseTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        order = Order.createFromCart(cart);
+        order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         orderId = order.getId();
     }
 

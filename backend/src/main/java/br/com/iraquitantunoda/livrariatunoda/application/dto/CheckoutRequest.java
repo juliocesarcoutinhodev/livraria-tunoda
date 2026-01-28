@@ -11,7 +11,16 @@ public record CheckoutRequest(
     @NotBlank(message = "ID do carrinho é obrigatório")
     String cartId,
 
-    String shippingQuoteId
+    String shippingQuoteId,
+
+    @NotBlank(message = "Nome do cliente e obrigatorio")
+    String customerName,
+
+    @NotBlank(message = "Email do cliente e obrigatorio")
+    @jakarta.validation.constraints.Email(message = "Email do cliente invalido")
+    String customerEmail,
+
+    @NotBlank(message = "Telefone do cliente e obrigatorio")
+    String customerPhone
 ) {
 }
-

@@ -23,6 +23,11 @@ public final class OrderId {
         if (value == null || value.isBlank()) {
             throw new BusinessException("OrderId não pode ser nulo ou vazio");
         }
+        try {
+            UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException("OrderId deve ser um UUID valido");
+        }
         return new OrderId(value);
     }
 
@@ -30,4 +35,3 @@ public final class OrderId {
         return new OrderId(UUID.randomUUID().toString());
     }
 }
-

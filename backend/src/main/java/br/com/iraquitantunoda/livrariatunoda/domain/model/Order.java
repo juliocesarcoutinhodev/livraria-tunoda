@@ -25,12 +25,16 @@ public class Order {
     private final Money shippingCost;
     private final Money total;
     private final LocalDateTime createdAt;
+    private final String customerName;
+    private final String customerEmail;
+    private final String customerPhone;
     private OrderStatus status;
     private String paymentReference;
 
     private Order(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId, List<OrderItem> items,
                   Money subtotal, Money shippingCost, Money total, LocalDateTime createdAt,
-                  OrderStatus status, String paymentReference) {
+                  OrderStatus status, String paymentReference,
+                  String customerName, String customerEmail, String customerPhone) {
         validateItems(items);
         validateAmounts(subtotal, shippingCost, total);
 
@@ -42,11 +46,14 @@ public class Order {
         this.shippingCost = shippingCost;
         this.total = total;
         this.createdAt = createdAt;
+        this.customerName = customerName;
+        this.customerEmail = customerEmail;
+        this.customerPhone = customerPhone;
         this.status = status;
         this.paymentReference = paymentReference;
     }
 
-    public static Order createFromCart(Cart cart) {
+    public static Order createFromCart(Cart cart, String customerName, String customerEmail, String customerPhone) {
         if (cart == null) {
             throw new BusinessException("Carrinho não pode ser nulo");
         }
@@ -58,6 +65,8 @@ public class Order {
         if (cart.getItems().isEmpty()) {
             throw new BusinessException("Não é possível criar pedido sem itens");
         }
+
+        validateCustomerData(customerName, customerEmail, customerPhone);
 
         var orderItems = cart.getItems().stream()
                 .map(cartItem -> OrderItem.create(
@@ -81,11 +90,15 @@ public class Order {
                 subtotal,
                 LocalDateTime.now(),
                 OrderStatus.PENDING,
-                null
+                null,
+                customerName.trim(),
+                normalizeEmail(customerEmail),
+                customerPhone.trim()
         );
     }
 
-    public static Order createFromCartWithShipping(Cart cart, ShippingQuote shippingQuote) {
+    public static Order createFromCartWithShipping(Cart cart, ShippingQuote shippingQuote,
+                                                   String customerName, String customerEmail, String customerPhone) {
         if (cart == null) {
             throw new BusinessException("Carrinho não pode ser nulo");
         }
@@ -101,6 +114,8 @@ public class Order {
         if (cart.getItems().isEmpty()) {
             throw new BusinessException("Não é possível criar pedido sem itens");
         }
+
+        validateCustomerData(customerName, customerEmail, customerPhone);
 
         // Valida se a cotação pertence ao carrinho
         if (!shippingQuote.getCartId().equals(cart.getId())) {
@@ -137,16 +152,20 @@ public class Order {
                 total,
                 LocalDateTime.now(),
                 OrderStatus.PENDING,
-                null
+                null,
+                customerName.trim(),
+                normalizeEmail(customerEmail),
+                customerPhone.trim()
         );
     }
 
     public static Order reconstitute(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId,
                                      List<OrderItem> items, Money subtotal, Money shippingCost,
                                      Money total, LocalDateTime createdAt, OrderStatus status,
-                                     String paymentReference) {
+                                     String paymentReference, String customerName, String customerEmail,
+                                     String customerPhone) {
         return new Order(id, cartId, shippingQuoteId, items, subtotal, shippingCost, total,
-                        createdAt, status, paymentReference);
+                        createdAt, status, paymentReference, customerName, customerEmail, customerPhone);
     }
 
     public void associatePaymentReference(String reference) {
@@ -287,5 +306,21 @@ public class Order {
             throw new BusinessException("Total do pedido deve ser maior que zero");
         }
     }
-}
 
+    private static void validateCustomerData(String customerName, String customerEmail, String customerPhone) {
+        if (customerName == null || customerName.isBlank()) {
+            throw new BusinessException("Nome do cliente é obrigatório");
+        }
+        if (customerEmail == null || customerEmail.isBlank()) {
+            throw new BusinessException("Email do cliente é obrigatório");
+        }
+        if (customerPhone == null || customerPhone.isBlank()) {
+            throw new BusinessException("Telefone do cliente é obrigatório");
+        }
+        br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Email.of(customerEmail);
+    }
+
+    private static String normalizeEmail(String email) {
+        return br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Email.of(email).getValue();
+    }
+}

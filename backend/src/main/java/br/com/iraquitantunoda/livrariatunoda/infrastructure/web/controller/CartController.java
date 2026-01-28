@@ -14,6 +14,7 @@ import br.com.iraquitantunoda.livrariatunoda.application.usecase.GetCartUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.RemoveCartItemUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.UpdateCartItemUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ValidateCartUseCase;
+import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,13 +56,18 @@ public class CartController {
     @PostMapping("/{cartId}/checkout")
     @Deprecated(since = "V10", forRemoval = true)
     public ResponseEntity<OrderResponse> checkoutCartLegacy(@PathVariable String cartId) {
-        var response = convertCartToOrderUseCase.execute(cartId, null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        throw new BusinessException("Checkout legado nao suporta dados do cliente. Use /api/carts/checkout");
     }
 
     @PostMapping("/checkout")
     public ResponseEntity<OrderResponse> checkout(@Valid @RequestBody CheckoutRequest request) {
-        var response = convertCartToOrderUseCase.execute(request.cartId(), request.shippingQuoteId());
+        var response = convertCartToOrderUseCase.execute(
+            request.cartId(),
+            request.shippingQuoteId(),
+            request.customerName(),
+            request.customerEmail(),
+            request.customerPhone()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -99,4 +105,3 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 }
-

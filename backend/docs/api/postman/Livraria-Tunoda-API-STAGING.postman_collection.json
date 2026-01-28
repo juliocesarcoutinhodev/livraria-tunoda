@@ -916,7 +916,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\"\n}"
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\",\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/carts/checkout",
@@ -945,7 +945,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null\n}"
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null,\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/carts/checkout",
@@ -1000,6 +1000,35 @@
               ]
             },
             "description": "Consulta um pedido específico pelo seu identificador. Retorna todos os detalhes: id, status, itens, subtotal, total e data de criação. Pedidos cancelados podem ser consultados."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Pedido por Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/lookup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "lookup"
+              ]
+            },
+            "description": "Valida orderId + email para liberar o link de acompanhamento. Request: { orderId, email }. Response 200: { valid, orderId, redirectUrl }. Response 403: { valid, message }."
           },
           "response": []
         },

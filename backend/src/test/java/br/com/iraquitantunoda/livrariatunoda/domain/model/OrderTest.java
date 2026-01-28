@@ -21,7 +21,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 2, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         assertNotNull(order);
         assertNotNull(order.getId());
@@ -39,7 +39,7 @@ class OrderTest {
         var cart = Cart.create();
 
         var exception = assertThrows(BusinessException.class, () -> {
-            Order.createFromCart(cart);
+            Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         });
 
         assertEquals("Não é possível criar pedido sem itens", exception.getMessage());
@@ -49,7 +49,7 @@ class OrderTest {
     @DisplayName("Deve lançar exceção ao criar pedido com carrinho nulo")
     void shouldThrowExceptionWhenCreatingOrderWithNullCart() {
         var exception = assertThrows(BusinessException.class, () -> {
-            Order.createFromCart(null);
+            Order.createFromCart(null, "Cliente", "cliente@email.com", "11999999999");
         });
 
         assertEquals("Carrinho não pode ser nulo", exception.getMessage());
@@ -65,7 +65,7 @@ class OrderTest {
         cart.markAsExpired();
 
         var exception = assertThrows(BusinessException.class, () -> {
-            Order.createFromCart(cart);
+            Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         });
 
         assertEquals("Carrinho não está ativo", exception.getMessage());
@@ -79,7 +79,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
@@ -95,7 +95,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
@@ -112,7 +112,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
@@ -130,7 +130,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
@@ -149,7 +149,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.cancel();
 
         assertEquals(OrderStatus.CANCELLED, order.getStatus());
@@ -164,7 +164,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
@@ -181,7 +181,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
         order.startProcessing();
@@ -201,7 +201,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 2, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         var orderItemsSize = order.getItems().size();
         var orderTotal = order.getTotal().getAmount();
@@ -220,7 +220,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         assertThrows(UnsupportedOperationException.class, () -> {
             order.getItems().clear();
@@ -238,7 +238,7 @@ class OrderTest {
         cart.addItem(item1);
         cart.addItem(item2);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         var calculatedSubtotal = order.calculateSubtotal();
 
         assertEquals(0, new BigDecimal("159.70").compareTo(calculatedSubtotal.getAmount()));
@@ -254,7 +254,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 3, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         var calculatedTotal = order.calculateTotal();
 
         assertEquals(0, new BigDecimal("149.70").compareTo(calculatedTotal.getAmount()));
@@ -270,7 +270,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         assertTrue(order.getTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
         assertTrue(order.calculateTotal().getAmount().compareTo(BigDecimal.ZERO) > 0);
@@ -284,7 +284,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.expire();
 
         assertEquals(OrderStatus.EXPIRED, order.getStatus());
@@ -299,7 +299,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-TEST-123");
         order.confirm();
 
@@ -316,7 +316,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.cancel();
 
         var exception = assertThrows(BusinessException.class, order::confirm);
@@ -332,7 +332,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.expire();
 
         var exception = assertThrows(BusinessException.class, order::confirm);
@@ -348,7 +348,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         var paymentReference = "MP-123456789";
 
         order.associatePaymentReference(paymentReference);
@@ -364,7 +364,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference(null));
 
@@ -379,7 +379,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference("   "));
 
@@ -394,7 +394,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-123456789");
 
         var exception = assertThrows(BusinessException.class, () -> order.associatePaymentReference("MP-987654321"));
@@ -410,7 +410,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
         order.associatePaymentReference("MP-123456789");
         order.confirm();
 
@@ -426,7 +426,7 @@ class OrderTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart);
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
 
         var exception = assertThrows(BusinessException.class, order::confirm);
 
