@@ -1,5 +1,6 @@
 package br.com.iraquitantunoda.livrariatunoda.application.usecase;
 
+import br.com.iraquitantunoda.livrariatunoda.domain.exception.BusinessException;
 import br.com.iraquitantunoda.livrariatunoda.domain.exception.ResourceNotFoundException;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.OrderRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.PaymentRepository;
@@ -23,6 +24,7 @@ public class ProcessMercadoPagoWebhookUseCase {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final MercadoPagoClient mercadoPagoClient;
+    private final DeductStockFromOrderUseCase deductStockFromOrderUseCase;
 
     /**
      * Processa notificação de webhook do Mercado Pago.
@@ -65,7 +67,20 @@ public class ProcessMercadoPagoWebhookUseCase {
             log.info("Aprovando payment: {}", payment.getId().getValue());
             payment.approve();
 
-            // Regra: Pagamento APPROVED -> Order.confirm()
+            // Deduz estoque dos livros ANTES de confirmar o pedido
+            // Se falhar, o pedido continua PENDING e pode ser expirado
+            try {
+                log.info("Iniciando deducao de estoque para order: {}", order.getId().getValue());
+                deductStockFromOrderUseCase.execute(order);
+            } catch (Exception e) {
+                log.error("Erro ao deduzir estoque para order: {}. Erro: {}",
+                    order.getId().getValue(), e.getMessage(), e);
+                // Expira o pedido (ainda está PENDING)
+                order.expire();
+                throw new BusinessException("Erro ao deduzir estoque: " + e.getMessage());
+            }
+
+            // Regra: Pagamento APPROVED + Estoque Deduzido -> Order.confirm()
             log.info("Confirmando order: {}", order.getId().getValue());
             order.confirm();
 

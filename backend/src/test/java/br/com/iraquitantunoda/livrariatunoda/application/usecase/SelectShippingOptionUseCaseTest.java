@@ -102,18 +102,25 @@ class SelectShippingOptionUseCaseTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando cotação já tiver opção selecionada")
-    void shouldThrowExceptionWhenOptionAlreadySelected() {
-        var selectedQuote = createSelectedQuote();
+    @DisplayName("Deve permitir alterar opção já selecionada")
+    void shouldAllowChangingAlreadySelectedOption() {
+        var selectedQuote = createSelectedQuote(); // Já tem PAC selecionado
+        var mockResponse = createMockResponse(ShippingQuoteStatus.SELECTED, "SEDEX");
 
         when(shippingQuoteRepository.findById(quoteId)).thenReturn(Optional.of(selectedQuote));
+        when(shippingQuoteRepository.save(any(ShippingQuote.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toResponse(any(ShippingQuote.class))).thenReturn(mockResponse);
 
-        assertThrows(BusinessException.class,
-            () -> useCase.execute(quoteId.getValue(), "SEDEX"));
+        // Deve permitir trocar de PAC para SEDEX
+        var result = useCase.execute(quoteId.getValue(), "SEDEX");
+
+        assertNotNull(result);
+        assertEquals("SEDEX", result.selectedServiceCode());
+        assertEquals(ShippingQuoteStatus.SELECTED, result.status());
 
         verify(shippingQuoteRepository).findById(quoteId);
-        verify(shippingQuoteRepository, never()).save(any());
-        verify(mapper, never()).toResponse(any());
+        verify(shippingQuoteRepository).save(any(ShippingQuote.class));
+        verify(mapper).toResponse(any(ShippingQuote.class));
     }
 
     @Test

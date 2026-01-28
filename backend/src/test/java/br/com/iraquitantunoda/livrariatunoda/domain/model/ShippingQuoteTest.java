@@ -143,15 +143,22 @@ class ShippingQuoteTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao tentar alterar opção já selecionada")
-    void shouldThrowExceptionWhenChangingSelectedOption() {
+    @DisplayName("Deve permitir alterar opção já selecionada")
+    void shouldAllowChangingSelectedOption() {
         var quote = createValidQuote();
         quote.selectOption("PAC");
 
-        var exception = assertThrows(BusinessException.class,
-            () -> quote.selectOption("SEDEX"));
+        assertEquals(ShippingQuoteStatus.SELECTED, quote.getStatus());
+        assertEquals("PAC", quote.getSelectedServiceCode());
 
-        assertEquals("Cotação já possui opção selecionada e não pode ser alterada", exception.getMessage());
+        // Deve permitir alterar para SEDEX
+        quote.selectOption("SEDEX");
+
+        assertEquals(ShippingQuoteStatus.SELECTED, quote.getStatus());
+        assertEquals("SEDEX", quote.getSelectedServiceCode());
+        assertTrue(quote.isSelected());
+        assertNotNull(quote.getSelectedOption());
+        assertEquals("SEDEX", quote.getSelectedOption().getServiceCode());
     }
 
     @Test

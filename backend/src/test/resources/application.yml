@@ -75,3 +75,9 @@ mercado-pago:
   statement-descriptor: Livraria Tunoda Test
   create-preference-endpoint: /checkout/preferences
   get-payment-endpoint: /v1/payments/{id}
+
+cnpja:
+  base-url: https://api.cnpja.com
+  token: test-token-cnpja
+  timeout-seconds: 10
+  zip-endpoint: /zip/{code}

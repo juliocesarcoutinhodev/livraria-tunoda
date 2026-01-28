@@ -38,6 +38,9 @@ class ProcessMercadoPagoWebhookUseCaseTest {
     @Mock
     private MercadoPagoClient mercadoPagoClient;
 
+    @Mock
+    private DeductStockFromOrderUseCase deductStockFromOrderUseCase;
+
     @InjectMocks
     private ProcessMercadoPagoWebhookUseCase useCase;
 
@@ -88,6 +91,7 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         when(mercadoPagoClient.getPaymentDetails(mercadoPagoPaymentId)).thenReturn(paymentDetails);
         when(paymentRepository.findByExternalReference(externalReference)).thenReturn(Optional.of(payment));
         when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        doNothing().when(deductStockFromOrderUseCase).execute(any(Order.class));
 
         // Act
         useCase.execute(mercadoPagoPaymentId);
@@ -95,6 +99,7 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         // Assert
         assertTrue(payment.isApproved());
         assertTrue(order.isConfirmed());
+        verify(deductStockFromOrderUseCase).execute(order);
         verify(paymentRepository).save(payment);
         verify(orderRepository).save(order);
     }
@@ -275,5 +280,39 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         verify(paymentRepository, never()).save(any());
         verify(orderRepository, never()).save(any());
     }
-}
 
+    @Test
+    @DisplayName("Deve reverter confirmacao do pedido quando deducao de estoque falhar")
+    void shouldRevertOrderConfirmationWhenStockDeductionFails() {
+        // Arrange
+        var paymentDetails = new MercadoPagoPaymentDetails(
+            Long.parseLong(mercadoPagoPaymentId),
+            "approved",
+            "accredited",
+            externalReference,
+            BigDecimal.valueOf(49.90),
+            "BRL",
+            "credit_card",
+            "2026-01-13T15:00:00.000-03:00",
+            "2026-01-13T15:00:00.000-03:00",
+            "2026-01-13T15:00:00.000-03:00"
+        );
+
+        when(mercadoPagoClient.getPaymentDetails(mercadoPagoPaymentId)).thenReturn(paymentDetails);
+        when(paymentRepository.findByExternalReference(externalReference)).thenReturn(Optional.of(payment));
+        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        doThrow(new RuntimeException("Estoque insuficiente"))
+            .when(deductStockFromOrderUseCase).execute(any(Order.class));
+
+        // Act & Assert
+        var exception = assertThrows(Exception.class, () -> useCase.execute(mercadoPagoPaymentId));
+        assertTrue(exception.getMessage().contains("Erro ao deduzir estoque"));
+
+        // Pedido deve ser expirado em caso de falha (estava PENDING antes do webhook)
+        assertTrue(order.isExpired());
+        // Payment foi aprovado antes de tentar deduzir estoque
+        assertTrue(payment.isApproved());
+
+        verify(deductStockFromOrderUseCase).execute(order);
+    }
+}
