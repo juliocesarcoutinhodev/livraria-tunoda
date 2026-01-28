@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import Navigation from "@/components/layout/Navigation";
+import SiteFooter from "@/components/layout/SiteFooter";
 import { useCart } from "@/contexts/CartContext";
 import { cartService } from "@/services/cartService";
 import { cepService } from "@/services/cepService";
@@ -41,6 +42,32 @@ type AddressInfo = {
   city: string;
   state: string;
 };
+
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length === 0) {
+    return "";
+  }
+  if (digits.length < 2) {
+    return digits;
+  }
+  if (digits.length === 2) {
+    return `(${digits})`;
+  }
+
+  const area = digits.slice(0, 2);
+  const rest = digits.slice(2);
+
+  if (digits.length <= 6) {
+    return `(${area}) ${rest}`;
+  }
+  if (digits.length <= 10) {
+    return `(${area}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+  }
+  return `(${area}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+};
+
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -269,7 +296,8 @@ export default function CheckoutPage() {
       if (!customer.email.trim() || !/\S+@\S+\.\S+/.test(customer.email)) {
         nextErrors.email = "Informe um email valido.";
       }
-      if (customer.phone.trim().length < 8) {
+      const phoneDigits = customer.phone.replace(/\D/g, "");
+      if (phoneDigits.length < 10) {
         nextErrors.phone = "Informe um telefone valido.";
       }
     }
@@ -435,6 +463,7 @@ export default function CheckoutPage() {
             </div>
           </div>
         </main>
+        <SiteFooter />
       </div>
     );
   }
@@ -489,6 +518,7 @@ export default function CheckoutPage() {
             </div>
           </div>
         </main>
+        <SiteFooter />
       </div>
     );
   }
@@ -617,9 +647,10 @@ export default function CheckoutPage() {
                         onChange={(event) =>
                           setCustomer((prev) => ({
                             ...prev,
-                            phone: event.target.value,
+                            phone: formatPhone(event.target.value),
                           }))
                         }
+                        inputMode="tel"
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors duration-200 ${
                           errors.phone
                             ? "border-red-300 focus:ring-red-200"
@@ -1185,6 +1216,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
