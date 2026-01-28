@@ -1089,15 +1089,15 @@ export default function CheckoutPage() {
                       ) : (
                         <div className="rounded-2xl border border-[#2F5D8C]/10 bg-white p-5 text-sm font-inter text-[#2E2E2E]">
                           <p>
-                            Abra o Mercado Pago para concluir o pagamento e gerar
-                            o QR Code do PIX.
+                            Clique em "Ir para pagamento" para concluir pagamento
+                            por QR Code do PIX ou Cartão.
                           </p>
                           <button
                             type="button"
                             onClick={() => window.open(paymentUrl, "_blank")}
                             className="mt-4 inline-flex items-center rounded-xl bg-[#2F5D8C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#274A6F] transition-colors"
                           >
-                            Abrir Mercado Pago
+                            Ir para pagamento
                           </button>
                         </div>
                       )}
