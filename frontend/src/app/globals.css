@@ -6,6 +6,8 @@
   --christian-blue: #2f5d8c;
   --christian-green: #3a7d44;
   --christian-gold: #c9a44c;
+  --font-inter: "Inter", sans-serif;
+  --font-playfair: "Playfair Display", serif;
 }
 
 @theme inline {
@@ -65,4 +67,21 @@ button:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--christian-gold);
   outline-offset: 2px;
+}
+
+/* Remove yellow autofill background on login fields */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  background-color: #ffffff !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
