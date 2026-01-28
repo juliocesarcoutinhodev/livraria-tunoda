@@ -916,7 +916,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\",\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\"\n}"
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": \"{{shipping_quote_id}}\",\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\",\n  \"street\": \"{{shipping_street}}\",\n  \"number\": \"{{shipping_number}}\",\n  \"complement\": \"{{shipping_complement}}\",\n  \"neighborhood\": \"{{shipping_neighborhood}}\",\n  \"city\": \"{{shipping_city}}\",\n  \"state\": \"{{shipping_state}}\",\n  \"postalCode\": \"{{shipping_postal_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/carts/checkout",
@@ -945,7 +945,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null,\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\"\n}"
+              "raw": "{\n  \"cartId\": \"{{cart_id}}\",\n  \"shippingQuoteId\": null,\n  \"customerName\": \"{{customer_name}}\",\n  \"customerEmail\": \"{{customer_email}}\",\n  \"customerPhone\": \"{{customer_phone}}\",\n  \"street\": \"{{shipping_street}}\",\n  \"number\": \"{{shipping_number}}\",\n  \"complement\": \"{{shipping_complement}}\",\n  \"neighborhood\": \"{{shipping_neighborhood}}\",\n  \"city\": \"{{shipping_city}}\",\n  \"state\": \"{{shipping_state}}\",\n  \"postalCode\": \"{{shipping_postal_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/carts/checkout",

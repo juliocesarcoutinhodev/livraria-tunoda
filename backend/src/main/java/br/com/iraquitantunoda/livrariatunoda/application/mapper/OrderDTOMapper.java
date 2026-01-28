@@ -2,8 +2,10 @@ package br.com.iraquitantunoda.livrariatunoda.application.mapper;
 
 import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderItemDTO;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
+import br.com.iraquitantunoda.livrariatunoda.application.dto.ShippingAddressResponse;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Order;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.OrderItem;
+import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.OrderEntity;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.persistence.entity.OrderItemEntity;
 import org.mapstruct.Mapper;
@@ -27,6 +29,8 @@ public interface OrderDTOMapper {
     @Mapping(target = "shippingCost", source = "shippingCost.amount")
     @Mapping(target = "currency", source = "subtotal.currency")
     @Mapping(target = "total", source = "total.amount")
+    @Mapping(target = "customerName", source = "customerName")
+    @Mapping(target = "shippingAddress", source = "shippingAddress")
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "formatDate")
     @Mapping(target = "paidAt", source = "paidAt", qualifiedByName = "formatDate")
     @Mapping(target = "processingAt", source = "processingAt", qualifiedByName = "formatDate")
@@ -46,6 +50,8 @@ public interface OrderDTOMapper {
     @Mapping(target = "currency", source = "entity.subtotalCurrency")
     @Mapping(target = "total", source = "entity.totalAmount")
     @Mapping(target = "paymentReference", source = "entity.paymentReference")
+    @Mapping(target = "customerName", source = "entity.customerName")
+    @Mapping(target = "shippingAddress", expression = "java(mapShippingAddress(entity))")
     @Mapping(target = "createdAt", source = "entity.createdAt", qualifiedByName = "formatDate")
     @Mapping(target = "paidAt", source = "entity.paidAt", qualifiedByName = "formatDate")
     @Mapping(target = "processingAt", source = "entity.processingAt", qualifiedByName = "formatDate")
@@ -76,5 +82,37 @@ public interface OrderDTOMapper {
     @Named("formatDate")
     default String formatDate(LocalDateTime dateTime) {
         return dateTime != null ? dateTime.format(BRAZILIAN_DATE_FORMAT) : null;
+    }
+
+    default ShippingAddressResponse mapShippingAddress(ShippingAddress address) {
+        if (address == null) {
+            return null;
+        }
+        return new ShippingAddressResponse(
+            address.getStreet(),
+            address.getNumber(),
+            address.getComplement(),
+            address.getNeighborhood(),
+            address.getCity(),
+            address.getState(),
+            address.getPostalCode()
+        );
+    }
+
+    default ShippingAddressResponse mapShippingAddress(OrderEntity entity) {
+        if (entity.getShippingStreet() == null && entity.getShippingNumber() == null &&
+            entity.getShippingNeighborhood() == null && entity.getShippingCity() == null &&
+            entity.getShippingState() == null && entity.getShippingPostalCode() == null) {
+            return null;
+        }
+        return new ShippingAddressResponse(
+            entity.getShippingStreet(),
+            entity.getShippingNumber(),
+            entity.getShippingComplement(),
+            entity.getShippingNeighborhood(),
+            entity.getShippingCity(),
+            entity.getShippingState(),
+            entity.getShippingPostalCode()
+        );
     }
 }

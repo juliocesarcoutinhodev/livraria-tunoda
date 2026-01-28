@@ -79,7 +79,14 @@ Content-Type: application/json
   "shippingQuoteId": "SEU_QUOTE_ID",
   "customerName": "Nome do cliente",
   "customerEmail": "cliente@email.com",
-  "customerPhone": "11999999999"
+  "customerPhone": "11999999999",
+  "street": "Rua A",
+  "number": "123",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "postalCode": "01000-000"
 }
 ```
 

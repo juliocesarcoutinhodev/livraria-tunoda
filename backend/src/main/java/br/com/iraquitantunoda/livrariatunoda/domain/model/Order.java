@@ -34,6 +34,7 @@ public class Order {
     private final String customerName;
     private final String customerEmail;
     private final String customerPhone;
+    private final br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress;
     private OrderStatus status;
     private String paymentReference;
 
@@ -42,7 +43,8 @@ public class Order {
                   OrderStatus status, String paymentReference,
                   LocalDateTime paidAt, LocalDateTime processingAt, LocalDateTime shippedAt,
                   LocalDateTime deliveredAt, LocalDateTime cancelledAt, LocalDateTime expiredAt,
-                  String customerName, String customerEmail, String customerPhone) {
+                  String customerName, String customerEmail, String customerPhone,
+                  br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress) {
         validateItems(items);
         validateAmounts(subtotal, shippingCost, total);
 
@@ -63,11 +65,14 @@ public class Order {
         this.customerName = customerName;
         this.customerEmail = customerEmail;
         this.customerPhone = customerPhone;
+        this.shippingAddress = shippingAddress;
         this.status = status;
         this.paymentReference = paymentReference;
     }
 
-    public static Order createFromCart(Cart cart, String customerName, String customerEmail, String customerPhone) {
+    public static Order createFromCart(Cart cart, String customerName, String customerEmail, String customerPhone,
+                                       String street, String number, String complement, String neighborhood,
+                                       String city, String state, String postalCode) {
         if (cart == null) {
             throw new BusinessException("Carrinho não pode ser nulo");
         }
@@ -81,6 +86,7 @@ public class Order {
         }
 
         validateCustomerData(customerName, customerEmail, customerPhone);
+        var shippingAddress = buildShippingAddress(street, number, complement, neighborhood, city, state, postalCode);
 
         var orderItems = cart.getItems().stream()
                 .map(cartItem -> OrderItem.create(
@@ -113,12 +119,15 @@ public class Order {
                 null,
                 customerName.trim(),
                 normalizeEmail(customerEmail),
-                customerPhone.trim()
+                customerPhone.trim(),
+                shippingAddress
         );
     }
 
     public static Order createFromCartWithShipping(Cart cart, ShippingQuote shippingQuote,
-                                                   String customerName, String customerEmail, String customerPhone) {
+                                                   String customerName, String customerEmail, String customerPhone,
+                                                   String street, String number, String complement, String neighborhood,
+                                                   String city, String state, String postalCode) {
         if (cart == null) {
             throw new BusinessException("Carrinho não pode ser nulo");
         }
@@ -136,6 +145,7 @@ public class Order {
         }
 
         validateCustomerData(customerName, customerEmail, customerPhone);
+        var shippingAddress = buildShippingAddress(street, number, complement, neighborhood, city, state, postalCode);
 
         // Valida se a cotação pertence ao carrinho
         if (!shippingQuote.getCartId().equals(cart.getId())) {
@@ -181,7 +191,8 @@ public class Order {
                 null,
                 customerName.trim(),
                 normalizeEmail(customerEmail),
-                customerPhone.trim()
+                customerPhone.trim(),
+                shippingAddress
         );
     }
 
@@ -192,10 +203,12 @@ public class Order {
                                      LocalDateTime processingAt, LocalDateTime shippedAt,
                                      LocalDateTime deliveredAt, LocalDateTime cancelledAt,
                                      LocalDateTime expiredAt, String customerName, String customerEmail,
-                                     String customerPhone) {
+                                     String customerPhone,
+                                     br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress) {
         return new Order(id, cartId, shippingQuoteId, items, subtotal, shippingCost, total,
                         createdAt, status, paymentReference, paidAt, processingAt, shippedAt,
-                        deliveredAt, cancelledAt, expiredAt, customerName, customerEmail, customerPhone);
+                        deliveredAt, cancelledAt, expiredAt, customerName, customerEmail, customerPhone,
+                        shippingAddress);
     }
 
     public void associatePaymentReference(String reference) {
@@ -358,5 +371,14 @@ public class Order {
 
     private static String normalizeEmail(String email) {
         return br.com.iraquitantunoda.livrariatunoda.domain.model.vo.Email.of(email).getValue();
+    }
+
+    private static br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress buildShippingAddress(
+        String street, String number, String complement, String neighborhood, String city,
+        String state, String postalCode
+    ) {
+        return br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress.create(
+            street, number, complement, neighborhood, city, state, postalCode
+        );
     }
 }

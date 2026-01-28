@@ -21,6 +21,26 @@ public record CheckoutRequest(
     String customerEmail,
 
     @NotBlank(message = "Telefone do cliente e obrigatorio")
-    String customerPhone
+    String customerPhone,
+
+    @NotBlank(message = "Rua e obrigatoria")
+    String street,
+
+    @NotBlank(message = "Numero e obrigatorio")
+    String number,
+
+    String complement,
+
+    @NotBlank(message = "Bairro e obrigatorio")
+    String neighborhood,
+
+    @NotBlank(message = "Cidade e obrigatoria")
+    String city,
+
+    @NotBlank(message = "Estado e obrigatorio")
+    String state,
+
+    @NotBlank(message = "CEP e obrigatorio")
+    String postalCode
 ) {
 }

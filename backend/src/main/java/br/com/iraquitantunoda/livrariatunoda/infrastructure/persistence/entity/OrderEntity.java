@@ -85,6 +85,27 @@ public class OrderEntity {
     @Column(name = "customer_phone", length = 30)
     private String customerPhone;
 
+    @Column(name = "shipping_street", length = 150)
+    private String shippingStreet;
+
+    @Column(name = "shipping_number", length = 30)
+    private String shippingNumber;
+
+    @Column(name = "shipping_complement", length = 100)
+    private String shippingComplement;
+
+    @Column(name = "shipping_neighborhood", length = 100)
+    private String shippingNeighborhood;
+
+    @Column(name = "shipping_city", length = 100)
+    private String shippingCity;
+
+    @Column(name = "shipping_state", length = 2)
+    private String shippingState;
+
+    @Column(name = "shipping_postal_code", length = 20)
+    private String shippingPostalCode;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemEntity> items = new ArrayList<>();
 }

@@ -213,7 +213,7 @@ CREATE INDEX idx_cart_items_cart_id ON tb_cart_items(cart_id);
 
 6. Cliente faz checkout
    POST /api/carts/checkout
-   Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone }
+   Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone, street, number, complement, neighborhood, city, state, postalCode }
    → Converte Cart em Order
 ```
 

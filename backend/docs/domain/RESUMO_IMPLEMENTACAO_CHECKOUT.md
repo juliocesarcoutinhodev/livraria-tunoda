@@ -50,7 +50,7 @@ Data: 13 Janeiro 2026
 
 ### Web
 7. **CartController.java**
-   - Novo endpoint: `POST /api/carts/checkout` (body com cartId, shippingQuoteId e dados do cliente)
+   - Novo endpoint: `POST /api/carts/checkout` (body com cartId, shippingQuoteId, dados do cliente e endereco)
    - Deprecated: `POST /api/carts/{cartId}/checkout` (mantido para compatibilidade)
 
 ---
@@ -65,7 +65,14 @@ POST /api/carts/checkout
   "shippingQuoteId": null,
   "customerName": "Nome do cliente",
   "customerEmail": "cliente@email.com",
-  "customerPhone": "11999999999"
+  "customerPhone": "11999999999",
+  "street": "Rua A",
+  "number": "123",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "postalCode": "01000-000"
 }
 
 → Order com shippingCost = 0.00
@@ -80,7 +87,14 @@ POST /api/carts/checkout
   "shippingQuoteId": "uuid",
   "customerName": "Nome do cliente",
   "customerEmail": "cliente@email.com",
-  "customerPhone": "11999999999"
+  "customerPhone": "11999999999",
+  "street": "Rua A",
+  "number": "123",
+  "complement": null,
+  "neighborhood": "Centro",
+  "city": "Sao Paulo",
+  "state": "SP",
+  "postalCode": "01000-000"
 }
 
 → Valida ShippingQuote (SELECTED, não expirado)

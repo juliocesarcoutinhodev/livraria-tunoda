@@ -67,7 +67,16 @@ class DeductStockFromOrderUseCaseTest {
             null,
             "Cliente",
             "cliente@email.com",
-            "11999999999"
+            "11999999999",
+            ShippingAddress.create(
+                "Rua A",
+                "123",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01000-000"
+            )
         );
 
         // Cria Books reais com estoque suficiente
@@ -235,7 +244,16 @@ class DeductStockFromOrderUseCaseTest {
             null,
             "Cliente",
             "cliente@email.com",
-            "11999999999"
+            "11999999999",
+            ShippingAddress.create(
+                "Rua A",
+                "123",
+                null,
+                "Centro",
+                "Sao Paulo",
+                "SP",
+                "01000-000"
+            )
         );
 
         when(bookRepository.findById(bookId1)).thenReturn(Optional.of(book1));

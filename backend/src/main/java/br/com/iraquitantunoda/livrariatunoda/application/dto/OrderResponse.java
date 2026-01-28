@@ -14,6 +14,8 @@ public record OrderResponse(
     String currency,
     BigDecimal total,
     String paymentReference,
+    String customerName,
+    ShippingAddressResponse shippingAddress,
     String createdAt,
     String paidAt,
     String processingAt,

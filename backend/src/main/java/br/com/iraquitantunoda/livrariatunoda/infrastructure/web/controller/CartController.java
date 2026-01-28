@@ -66,7 +66,14 @@ public class CartController {
             request.shippingQuoteId(),
             request.customerName(),
             request.customerEmail(),
-            request.customerPhone()
+            request.customerPhone(),
+            request.street(),
+            request.number(),
+            request.complement(),
+            request.neighborhood(),
+            request.city(),
+            request.state(),
+            request.postalCode()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

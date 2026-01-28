@@ -441,7 +441,7 @@ Response: 200 OK
 ### Checkout (Criar Pedido)
 ```
 POST /api/carts/checkout
-Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone }
+Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone, street, number, complement, neighborhood, city, state, postalCode }
 Response: 201 Created + { orderId, status, total }
 ```
 

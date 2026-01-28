@@ -59,7 +59,7 @@ class ProcessMercadoPagoWebhookUseCaseTest {
         var bookId = BookId.generate();
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
-        order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
+        order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999", "Rua A", "123", null, "Centro", "Sao Paulo", "SP", "01000-000");
 
         // Cria payment
         var amount = Money.brl(BigDecimal.valueOf(49.90));

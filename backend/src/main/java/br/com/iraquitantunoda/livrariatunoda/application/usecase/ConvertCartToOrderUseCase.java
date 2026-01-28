@@ -40,7 +40,9 @@ public class ConvertCartToOrderUseCase {
      */
     @Transactional
     public OrderResponse execute(String cartId, String shippingQuoteId,
-                                 String customerName, String customerEmail, String customerPhone) {
+                                 String customerName, String customerEmail, String customerPhone,
+                                 String street, String number, String complement, String neighborhood,
+                                 String city, String state, String postalCode) {
         log.info("Iniciando checkout do carrinho {}. Frete: {}", cartId,
                  shippingQuoteId != null ? shippingQuoteId : "sem frete");
 
@@ -72,10 +74,16 @@ public class ConvertCartToOrderUseCase {
             log.debug("Criando pedido com frete. Cotação: {}, Valor: {}",
                       shippingQuoteId, shippingQuote.getSelectedOption().getPrice());
 
-            order = Order.createFromCartWithShipping(cart, shippingQuote, customerName, customerEmail, customerPhone);
+            order = Order.createFromCartWithShipping(
+                cart, shippingQuote, customerName, customerEmail, customerPhone,
+                street, number, complement, neighborhood, city, state, postalCode
+            );
         } else {
             log.debug("Criando pedido sem frete (frete grátis)");
-            order = Order.createFromCart(cart, customerName, customerEmail, customerPhone);
+            order = Order.createFromCart(
+                cart, customerName, customerEmail, customerPhone,
+                street, number, complement, neighborhood, city, state, postalCode
+            );
         }
 
         // 6. Marcar carrinho como convertido (impede uso futuro)

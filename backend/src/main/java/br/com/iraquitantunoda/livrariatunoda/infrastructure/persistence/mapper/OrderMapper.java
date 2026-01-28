@@ -26,6 +26,21 @@ public interface OrderMapper {
             shippingQuoteId = ShippingQuoteId.of(entity.getShippingQuoteId());
         }
 
+        br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress = null;
+        if (entity.getShippingStreet() != null || entity.getShippingNumber() != null ||
+            entity.getShippingNeighborhood() != null || entity.getShippingCity() != null ||
+            entity.getShippingState() != null || entity.getShippingPostalCode() != null) {
+            shippingAddress = br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress.create(
+                entity.getShippingStreet(),
+                entity.getShippingNumber(),
+                entity.getShippingComplement(),
+                entity.getShippingNeighborhood(),
+                entity.getShippingCity(),
+                entity.getShippingState(),
+                entity.getShippingPostalCode()
+            );
+        }
+
         return Order.reconstitute(
             OrderId.of(entity.getId()),
             CartId.of(entity.getCartId()),
@@ -45,7 +60,8 @@ public interface OrderMapper {
             entity.getExpiredAt(),
             entity.getCustomerName(),
             entity.getCustomerEmail(),
-            entity.getCustomerPhone()
+            entity.getCustomerPhone(),
+            shippingAddress
         );
     }
 
@@ -84,6 +100,15 @@ public interface OrderMapper {
         entity.setCustomerName(order.getCustomerName());
         entity.setCustomerEmail(order.getCustomerEmail());
         entity.setCustomerPhone(order.getCustomerPhone());
+        if (order.getShippingAddress() != null) {
+            entity.setShippingStreet(order.getShippingAddress().getStreet());
+            entity.setShippingNumber(order.getShippingAddress().getNumber());
+            entity.setShippingComplement(order.getShippingAddress().getComplement());
+            entity.setShippingNeighborhood(order.getShippingAddress().getNeighborhood());
+            entity.setShippingCity(order.getShippingAddress().getCity());
+            entity.setShippingState(order.getShippingAddress().getState());
+            entity.setShippingPostalCode(order.getShippingAddress().getPostalCode());
+        }
 
         var itemEntities = new ArrayList<OrderItemEntity>();
         for (var item : order.getItems()) {

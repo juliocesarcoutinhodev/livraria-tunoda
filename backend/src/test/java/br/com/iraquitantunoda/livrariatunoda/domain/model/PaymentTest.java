@@ -287,7 +287,7 @@ class PaymentTest {
         var item = CartItem.create(bookId, "Clean Code", 1, Money.brl(BigDecimal.valueOf(49.90)));
         cart.addItem(item);
 
-        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999");
+        var order = Order.createFromCart(cart, "Cliente", "cliente@email.com", "11999999999", "Rua A", "123", null, "Centro", "Sao Paulo", "SP", "01000-000");
 
         var payment = Payment.create(order, PaymentMethod.PIX, PaymentGateway.MERCADO_PAGO);
 
