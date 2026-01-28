@@ -14,7 +14,12 @@ public record OrderResponse(
     String currency,
     BigDecimal total,
     String paymentReference,
-    String createdAt
+    String createdAt,
+    String paidAt,
+    String processingAt,
+    String shippedAt,
+    String deliveredAt,
+    String cancelledAt,
+    String expiredAt
 ) {
 }
-

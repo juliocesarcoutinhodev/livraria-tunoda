@@ -33,6 +33,12 @@ Contexto delimitado responsável por gerenciar pedidos após checkout.
 - `customerEmail: String` - Email do cliente
 - `customerPhone: String` - Telefone do cliente
 - `createdAt: LocalDateTime`
+- `paidAt: LocalDateTime` - Data/hora de pagamento aprovado
+- `processingAt: LocalDateTime` - Data/hora de inicio do processamento
+- `shippedAt: LocalDateTime` - Data/hora de envio
+- `deliveredAt: LocalDateTime` - Data/hora de entrega
+- `cancelledAt: LocalDateTime` - Data/hora de cancelamento
+- `expiredAt: LocalDateTime` - Data/hora de expiracao
 
 #### Status Possíveis
 
@@ -107,7 +113,13 @@ CREATE TABLE tb_orders (
     customer_name VARCHAR(120),
     customer_email VARCHAR(255),
     customer_phone VARCHAR(30),
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL,
+    paid_at TIMESTAMP NULL,
+    processing_at TIMESTAMP NULL,
+    shipped_at TIMESTAMP NULL,
+    delivered_at TIMESTAMP NULL,
+    cancelled_at TIMESTAMP NULL,
+    expired_at TIMESTAMP NULL
 );
 
 CREATE TABLE tb_order_items (

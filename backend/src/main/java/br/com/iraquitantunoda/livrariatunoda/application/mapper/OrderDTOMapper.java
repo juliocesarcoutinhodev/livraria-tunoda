@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 @Mapper(componentModel = "spring")
 public interface OrderDTOMapper {
 
-    DateTimeFormatter BRAZILIAN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    DateTimeFormatter BRAZILIAN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     @Mapping(target = "orderId", source = "id.value")
     @Mapping(target = "cartId", source = "cartId.value")
@@ -27,7 +27,13 @@ public interface OrderDTOMapper {
     @Mapping(target = "shippingCost", source = "shippingCost.amount")
     @Mapping(target = "currency", source = "subtotal.currency")
     @Mapping(target = "total", source = "total.amount")
-    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "formatDate")
+    @Mapping(target = "paidAt", source = "paidAt", qualifiedByName = "formatDate")
+    @Mapping(target = "processingAt", source = "processingAt", qualifiedByName = "formatDate")
+    @Mapping(target = "shippedAt", source = "shippedAt", qualifiedByName = "formatDate")
+    @Mapping(target = "deliveredAt", source = "deliveredAt", qualifiedByName = "formatDate")
+    @Mapping(target = "cancelledAt", source = "cancelledAt", qualifiedByName = "formatDate")
+    @Mapping(target = "expiredAt", source = "expiredAt", qualifiedByName = "formatDate")
     OrderResponse toResponse(Order order);
 
     @Mapping(target = "orderId", source = "entity.id")
@@ -41,6 +47,12 @@ public interface OrderDTOMapper {
     @Mapping(target = "total", source = "entity.totalAmount")
     @Mapping(target = "paymentReference", source = "entity.paymentReference")
     @Mapping(target = "createdAt", source = "entity.createdAt", qualifiedByName = "formatDate")
+    @Mapping(target = "paidAt", source = "entity.paidAt", qualifiedByName = "formatDate")
+    @Mapping(target = "processingAt", source = "entity.processingAt", qualifiedByName = "formatDate")
+    @Mapping(target = "shippedAt", source = "entity.shippedAt", qualifiedByName = "formatDate")
+    @Mapping(target = "deliveredAt", source = "entity.deliveredAt", qualifiedByName = "formatDate")
+    @Mapping(target = "cancelledAt", source = "entity.cancelledAt", qualifiedByName = "formatDate")
+    @Mapping(target = "expiredAt", source = "entity.expiredAt", qualifiedByName = "formatDate")
     OrderResponse toResponseFromEntity(OrderEntity entity);
 
     @Mapping(target = "itemId", source = "id.value")
