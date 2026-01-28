@@ -9,8 +9,8 @@ export default function SiteFooter() {
             Transforme sua jornada espiritual
           </h3>
           <p className="font-inter text-white/80 mb-6 max-w-2xl mx-auto">
-            Descubra mensagens que fortalecem a fé, renovam a esperança e trazem
-            paz ao coração.
+            Descubra mensagens que fortalecem a fe, renovam a esperanca e trazem
+            paz ao coracao.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center text-[#C9A44C] mb-8">
@@ -22,7 +22,7 @@ export default function SiteFooter() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="font-inter font-medium">Frete grátis</span>
+              <span className="font-inter font-medium">Frete gratis</span>
             </div>
             <div className="flex items-center space-x-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -32,7 +32,7 @@ export default function SiteFooter() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="font-inter font-medium">Entrega rápida</span>
+              <span className="font-inter font-medium">Entrega rapida</span>
             </div>
             <div className="flex items-center space-x-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

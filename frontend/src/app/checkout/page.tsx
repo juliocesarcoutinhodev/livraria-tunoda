@@ -1085,7 +1085,6 @@ export default function CheckoutPage() {
                         <Wallet
                           key={paymentPreferenceId}
                           initialization={{ preferenceId: paymentPreferenceId }}
-                          customization={{ texts: { valueProp: "security_details" } }}
                         />
                       ) : (
                         <div className="rounded-2xl border border-[#2F5D8C]/10 bg-white p-5 text-sm font-inter text-[#2E2E2E]">
@@ -1110,17 +1109,26 @@ export default function CheckoutPage() {
                         </p>
                       )}
 
-                      {order?.orderId && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            router.push(`/pedido/${order.orderId}/confirmacao`)
-                          }
-                          className="w-full border border-[#2F5D8C] text-[#2F5D8C] hover:bg-[#2F5D8C] hover:text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all"
-                        >
-                          Acompanhar pedido
-                        </button>
-                      )}
+                      {order?.orderId &&
+                        (payment?.status === "APPROVED" ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(`/pedido/${order.orderId}/confirmacao`)
+                            }
+                            className="w-full border border-[#2F5D8C] text-[#2F5D8C] hover:bg-[#2F5D8C] hover:text-white font-inter font-semibold py-3 px-6 rounded-xl transition-all"
+                          >
+                            Acompanhar pedido
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            className="w-full border border-gray-200 text-gray-400 font-inter font-semibold py-3 px-6 rounded-xl"
+                          >
+                            Acompanhar pedido (após pagamento)
+                          </button>
+                        ))}
                     </div>
                   ) : (
                     <button

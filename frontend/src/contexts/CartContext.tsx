@@ -524,14 +524,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const resetCart = () => {
+  const resetCart = useCallback(() => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("cartId");
       localStorage.removeItem("cartSnapshot");
     }
     cartRef.current = { ...emptyCartState, isLoading: false };
     setState({ ...emptyCartState, isLoading: false });
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -543,7 +543,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       resetCart,
       refreshCart,
     }),
-    [state]
+    [state, resetCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
