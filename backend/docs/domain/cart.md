@@ -212,7 +212,8 @@ CREATE INDEX idx_cart_items_cart_id ON tb_cart_items(cart_id);
    → Retorna items, subtotal
 
 6. Cliente faz checkout
-   POST /api/carts/{cartId}/checkout
+   POST /api/carts/checkout
+   Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone }
    → Converte Cart em Order
 ```
 

@@ -425,8 +425,8 @@ Response: 200 OK
 
 ### Checkout (Criar Pedido)
 ```
-POST /api/carts/{cartId}/checkout
-Body: { shippingQuoteId, customerEmail }
+POST /api/carts/checkout
+Body: { cartId, shippingQuoteId, customerName, customerEmail, customerPhone }
 Response: 201 Created + { orderId, status, total }
 ```
 
@@ -436,9 +436,17 @@ GET /api/orders/{id}
 Response: { id, items, status, total, shippingCost, ... }
 ```
 
+### Consultar Pedido por Email
+```
+POST /api/orders/lookup
+Body: { orderId, email }
+Response 200: { valid, orderId, redirectUrl }
+Response 403: { valid, message }
+```
+
 ### Listar Pedidos (Admin)
 ```
-GET /api/admin/orders?page=0&size=10&status=PENDING_PAYMENT
+GET /api/admin/orders?page=0&size=10&status=PENDING
 Auth: ROLE_ADMIN
 Response: { content: [...], totalElements }
 ```
@@ -447,8 +455,8 @@ Response: { content: [...], totalElements }
 
 ### Criar Pagamento
 ```
-POST /api/payments
-Body: { orderId }
+POST /api/orders/{orderId}/payments
+Body: { paymentMethod }
 Response: 201 Created + { id, approvalUrl, status }
 ```
 
@@ -456,6 +464,12 @@ Response: 201 Created + { id, approvalUrl, status }
 ```
 GET /api/payments/{id}
 Response: { id, orderId, amount, status, method }
+```
+
+### Processar Pagamento
+```
+POST /api/payments/{id}/process
+Response: 200 OK + { payment, checkoutUrl }
 ```
 
 ### Webhook Mercado Pago

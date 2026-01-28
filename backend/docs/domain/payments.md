@@ -180,8 +180,9 @@ CREATE INDEX idx_payments_status ON tb_payments(status);
 
 ## API Endpoints
 
-- `POST /api/payments` - Criar pagamento
-- `GET /api/payments/{id}` - Buscar pagamento
+- `POST /api/orders/{orderId}/payments` - Criar pagamento
+- `POST /api/payments/{paymentId}/process` - Processar pagamento
+- `GET /api/payments/{paymentId}` - Buscar pagamento
 - `POST /api/webhooks/mercadopago` - Webhook (público)
 
 ## Fluxo de Pagamento
@@ -193,7 +194,7 @@ CREATE INDEX idx_payments_status ON tb_payments(status);
 5. Cliente paga no Mercado Pago
 6. Mercado Pago envia webhook
 7. Sistema atualiza Payment status
-8. Se APPROVED → Order status = PAYMENT_CONFIRMED
+8. Se APPROVED → Order status = CONFIRMED
 
 ## Segurança
 

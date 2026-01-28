@@ -13,6 +13,17 @@ cd backend
 export JWT_SECRET="your-256-bit-secret"
 export MELHOR_ENVIO_TOKEN="your-token"
 export MERCADO_PAGO_ACCESS_TOKEN="your-token"
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="http://localhost:3000"
 
 # 3. Suba o banco
 docker-compose up -d

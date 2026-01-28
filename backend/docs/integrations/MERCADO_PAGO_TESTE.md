@@ -71,7 +71,16 @@ Content-Type: application/json
 
 ### **6. Converter Carrinho em Pedido (Checkout)**
 ```bash
-POST http://localhost:8080/api/carts/{cartId}/checkout
+POST http://localhost:8080/api/carts/checkout
+Content-Type: application/json
+
+{
+  "cartId": "SEU_CART_ID",
+  "shippingQuoteId": "SEU_QUOTE_ID",
+  "customerName": "Nome do cliente",
+  "customerEmail": "cliente@email.com",
+  "customerPhone": "11999999999"
+}
 ```
 
 **Response:** Anote o `orderId`
@@ -277,4 +286,3 @@ Se tudo funcionar, você terá:
 ---
 
 **Próximo passo:** Implementar webhook para receber notificação quando o pagamento for aprovado/rejeitado pelo Mercado Pago.
-

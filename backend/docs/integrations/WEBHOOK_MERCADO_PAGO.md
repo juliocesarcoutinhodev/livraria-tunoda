@@ -165,7 +165,14 @@ PUT http://localhost:8080/api/shipping/quotes/{quoteId}/select
 }
 
 # 6. Fazer checkout
-POST http://localhost:8080/api/carts/{cartId}/checkout
+POST http://localhost:8080/api/carts/checkout
+{
+  "cartId": "{cartId}",
+  "shippingQuoteId": "{quoteId}",
+  "customerName": "Nome do cliente",
+  "customerEmail": "cliente@email.com",
+  "customerPhone": "11999999999"
+}
 
 # Retorna: { "orderId": "..." }
 ```
@@ -341,4 +348,3 @@ O sistema garante que:
 6. ✅ Logar payload completo
 
 **Webhook funcionando 100%!** 🚀
-

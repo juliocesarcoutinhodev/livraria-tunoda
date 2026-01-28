@@ -15,6 +15,17 @@ cd backend
 export JWT_SECRET="your-256-bit-secret"
 export MELHOR_ENVIO_TOKEN="your-token"
 export MERCADO_PAGO_ACCESS_TOKEN="your-token"
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="http://localhost:3000"
 
 # Suba o banco e execute
 docker-compose up -d
@@ -83,6 +94,7 @@ curl http://localhost:8080/api/v1/actuator/health
 - [Melhor Envio - Quick Start](docs/integrations/MELHOR_ENVIO_QUICKSTART.md) - Início rápido
 - [Mercado Pago](docs/integrations/mercado-pago.md) - API de pagamentos
 - [Webhooks](docs/integrations/WEBHOOK_MERCADO_PAGO.md) - Notificações de pagamento
+- [Email](docs/email.md) - SMTP e templates de email
 
 ### 📖 API
 
@@ -145,6 +157,9 @@ Senha: admin123
 | `/api/admin/authors/{id}` | GET | Buscar autor por ID | ADMIN |
 | `/api/admin/orders` | GET | Listar pedidos (com filtros de status) | ADMIN |
 | `/api/carts` | POST | Criar carrinho | Público |
+| `/api/carts/checkout` | POST | Checkout (criar pedido) | Público |
+| `/api/orders/{id}` | GET | Consultar pedido | Público |
+| `/api/orders/lookup` | POST | Consultar pedido por email | Público |
 | `/api/shipping/quotes` | POST | Calcular frete | Público |
 | `/api/payments` | POST | Criar pagamento | Público |
 

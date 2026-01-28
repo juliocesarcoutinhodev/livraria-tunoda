@@ -12,6 +12,8 @@ Contexto delimitado responsável por gerenciar pedidos após checkout.
 
 **Propósito:** Gestão completa do ciclo de vida de pedidos
 
+**Acompanhamento sem login:** O cliente recebe link de acompanhamento por email e pode validar o pedido via `orderId + email` no endpoint `/api/orders/lookup`.
+
 ## Aggregate Root
 
 ### Order
@@ -27,27 +29,31 @@ Contexto delimitado responsável por gerenciar pedidos após checkout.
 - `total: Money` - Total (subtotal + frete)
 - `paymentReference: String` - Referência do pagamento
 - `shippingQuoteId: ShippingQuoteId` - Cotação de frete selecionada
+- `customerName: String` - Nome do cliente
 - `customerEmail: String` - Email do cliente
+- `customerPhone: String` - Telefone do cliente
 - `createdAt: LocalDateTime`
-- `updatedAt: LocalDateTime`
 
 #### Status Possíveis
 
-- `PENDING_PAYMENT` - Aguardando pagamento
-- `PAYMENT_CONFIRMED` - Pagamento confirmado
+- `PENDING` - Aguardando pagamento
+- `CONFIRMED` - Pagamento confirmado
 - `PROCESSING` - Em processamento
 - `SHIPPED` - Enviado
 - `DELIVERED` - Entregue
 - `CANCELLED` - Cancelado
+- `EXPIRED` - Expirado
 
 #### Métodos
 
-- `Order.createFromCart(cart, shippingQuote)` - Cria pedido do carrinho
-- `confirmPayment(paymentReference)` - Confirma pagamento
-- `markAsProcessing()` - Marca como em processamento
-- `markAsShipped(trackingCode)` - Marca como enviado
-- `markAsDelivered()` - Marca como entregue
-- `cancel(reason)` - Cancela pedido
+- `Order.createFromCart(cart, customerName, customerEmail, customerPhone)` - Cria pedido do carrinho
+- `Order.createFromCartWithShipping(cart, shippingQuote, customerName, customerEmail, customerPhone)` - Cria pedido com frete
+- `confirm()` - Confirma pagamento
+- `startProcessing()` - Marca como em processamento
+- `ship()` - Marca como enviado
+- `deliver()` - Marca como entregue
+- `cancel()` - Cancela pedido
+- `expire()` - Expira pedido pendente
 
 ## Value Objects
 
@@ -98,9 +104,10 @@ CREATE TABLE tb_orders (
     total_currency VARCHAR(3) NOT NULL,
     payment_reference VARCHAR(255),
     shipping_quote_id UUID,
+    customer_name VARCHAR(120),
     customer_email VARCHAR(255),
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    customer_phone VARCHAR(30),
+    created_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE tb_order_items (
@@ -116,8 +123,9 @@ CREATE TABLE tb_order_items (
 
 ## API Endpoints
 
-- `POST /api/carts/{cartId}/checkout` - Criar pedido
+- `POST /api/carts/checkout` - Criar pedido
 - `GET /api/orders/{id}` - Buscar pedido
+- `POST /api/orders/lookup` - Validar pedido por email
 - `GET /api/admin/orders` - Listar todos (admin)
 
 ## Fluxo de Checkout
@@ -125,12 +133,14 @@ CREATE TABLE tb_order_items (
 1. Cliente tem carrinho com itens
 2. Cliente calcula frete
 3. Cliente seleciona opção de frete
-4. Sistema cria Order com status PENDING_PAYMENT
-5. Cliente cria pagamento
-6. Webhook confirma pagamento → status = PAYMENT_CONFIRMED
-7. Admin processa → status = PROCESSING
-8. Admin envia → status = SHIPPED
-9. Entregue → status = DELIVERED
+4. Sistema cria Order com status PENDING
+5. Email de pedido criado enviado ao cliente
+6. Cliente cria pagamento
+7. Webhook confirma pagamento → status = CONFIRMED
+8. Email de pagamento confirmado enviado ao cliente
+9. Admin processa → status = PROCESSING
+10. Admin envia → status = SHIPPED
+11. Entregue → status = DELIVERED
 
 ## Integrações
 

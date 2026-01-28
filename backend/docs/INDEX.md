@@ -65,6 +65,7 @@
 - [Melhor Envio Quick Start](integrations/MELHOR_ENVIO_QUICKSTART.md) - Início rápido
 - [Mercado Pago](integrations/mercado-pago.md) - API de pagamentos
 - [Webhooks Mercado Pago](integrations/WEBHOOK_MERCADO_PAGO.md) - Notificações
+- [Email](email.md) - SMTP e templates de email
 
 ### **8. Deployment**
 - [Docker](deployment/DOCKER.md) - Containers e imagens

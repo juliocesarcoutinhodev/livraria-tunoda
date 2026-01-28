@@ -50,7 +50,7 @@ Data: 13 Janeiro 2026
 
 ### Web
 7. **CartController.java**
-   - Novo endpoint: `POST /api/carts/checkout` (body com cartId + shippingQuoteId)
+   - Novo endpoint: `POST /api/carts/checkout` (body com cartId, shippingQuoteId e dados do cliente)
    - Deprecated: `POST /api/carts/{cartId}/checkout` (mantido para compatibilidade)
 
 ---
@@ -62,7 +62,10 @@ Data: 13 Janeiro 2026
 POST /api/carts/checkout
 {
   "cartId": "uuid",
-  "shippingQuoteId": null
+  "shippingQuoteId": null,
+  "customerName": "Nome do cliente",
+  "customerEmail": "cliente@email.com",
+  "customerPhone": "11999999999"
 }
 
 → Order com shippingCost = 0.00
@@ -74,7 +77,10 @@ POST /api/carts/checkout
 POST /api/carts/checkout
 {
   "cartId": "uuid",
-  "shippingQuoteId": "uuid"
+  "shippingQuoteId": "uuid",
+  "customerName": "Nome do cliente",
+  "customerEmail": "cliente@email.com",
+  "customerPhone": "11999999999"
 }
 
 → Valida ShippingQuote (SELECTED, não expirado)
@@ -239,4 +245,3 @@ Os erros reportados em `OrderEntity.java` são normais:
 ---
 
 **STATUS:** ✅ PRONTO PARA TESTES
-

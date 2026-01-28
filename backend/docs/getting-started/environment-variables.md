@@ -48,6 +48,27 @@ MELHOR_ENVIO_TOKEN=your_melhor_envio_token
 MERCADO_PAGO_ACCESS_TOKEN=your_mercado_pago_access_token
 ```
 
+### Email (SMTP)
+
+```bash
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
+MAIL_SMTP_STARTTLS_REQUIRED=true
+MAIL_SMTP_CONNECTION_TIMEOUT=5000
+MAIL_SMTP_TIMEOUT=5000
+MAIL_SMTP_WRITE_TIMEOUT=5000
+```
+
+### Frontend
+
+```bash
+APP_FRONTEND_BASE_URL=http://localhost:3000
+```
+
 ## Variáveis Opcionais
 
 Estas variáveis têm valores padrão e podem ser omitidas:
@@ -181,6 +202,17 @@ export SPRING_PROFILES_ACTIVE=local
 export JWT_SECRET="dev-secret-key-minimum-256-bits-required"
 export MELHOR_ENVIO_TOKEN="sandbox-token-here"
 export MERCADO_PAGO_ACCESS_TOKEN="test-token-here"
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="http://localhost:3000"
 
 # Banco via Docker Compose (não precisa configurar JDBC_DATABASE_URL)
 ```
@@ -197,6 +229,17 @@ export JWT_SECRET="staging-secret-key-256-bits"
 export MELHOR_ENVIO_TOKEN="sandbox-token"
 export MERCADO_PAGO_ACCESS_TOKEN="test-token"
 export MERCADO_PAGO_NOTIFICATION_URL=http://hml-tunoda.sp1.br.saveincloud.net.br:8080/api/webhooks/mercadopago
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="https://www.iraquitantunoda.com.br"
 ```
 
 ### Produção
@@ -213,6 +256,17 @@ export MERCADO_PAGO_ACCESS_TOKEN="production-access-token"
 export MERCADO_PAGO_SUCCESS_URL=https://livrariatunoda.com.br/payment/success
 export MERCADO_PAGO_FAILURE_URL=https://livrariatunoda.com.br/payment/failure
 export MERCADO_PAGO_NOTIFICATION_URL=https://api.livrariatunoda.com.br/api/webhooks/mercadopago
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="https://www.iraquitantunoda.com.br"
 ```
 
 ## Validação Automática

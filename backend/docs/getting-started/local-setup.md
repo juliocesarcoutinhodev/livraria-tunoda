@@ -29,6 +29,17 @@ Defina as variáveis de ambiente obrigatórias:
 export JWT_SECRET="your-secure-jwt-secret-key-minimum-256-bits-required-for-hs256-algorithm"
 export MELHOR_ENVIO_TOKEN="your_melhor_envio_token"
 export MERCADO_PAGO_ACCESS_TOKEN="your_mercado_pago_access_token"
+export MAIL_HOST="smtp.gmail.com"
+export MAIL_PORT="587"
+export MAIL_USERNAME="your-email@gmail.com"
+export MAIL_PASSWORD="your-app-password"
+export MAIL_SMTP_AUTH="true"
+export MAIL_SMTP_STARTTLS_ENABLE="true"
+export MAIL_SMTP_STARTTLS_REQUIRED="true"
+export MAIL_SMTP_CONNECTION_TIMEOUT="5000"
+export MAIL_SMTP_TIMEOUT="5000"
+export MAIL_SMTP_WRITE_TIMEOUT="5000"
+export APP_FRONTEND_BASE_URL="http://localhost:3000"
 ```
 
 **Importante:** O sistema validará essas variáveis na inicialização. Se alguma estiver ausente ou inválida, a aplicação falhará com mensagem clara.
@@ -229,7 +240,7 @@ curl http://localhost:8080/api/public/books
 
 **Causa:** Variável de ambiente obrigatória faltando
 
-**Solução:** Configure todas as variáveis obrigatórias (JWT_SECRET, tokens das APIs)
+**Solução:** Configure todas as variáveis obrigatórias (JWT_SECRET, tokens das APIs, MAIL_* e APP_FRONTEND_BASE_URL)
 
 ### Erro: Connection refused (PostgreSQL)
 
