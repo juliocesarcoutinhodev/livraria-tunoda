@@ -183,6 +183,9 @@ export const queryKeys = {
   dashboard: {
     /** Estatísticas gerais do dashboard */
     stats: () => ["dashboard", "stats"] as const,
+    /** Métricas consolidadas do dashboard */
+    metrics: (days: number, topLimit: number) =>
+      ["dashboard", "metrics", days, topLimit] as const,
   },
 } as const;
 

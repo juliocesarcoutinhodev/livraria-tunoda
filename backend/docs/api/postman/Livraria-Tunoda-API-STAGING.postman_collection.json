@@ -1625,6 +1625,45 @@
       "description": "Endpoints de gestão de pedidos (admin)"
     },
     {
+      "name": "Admin - Dashboard",
+      "item": [
+        {
+          "name": "Metricas do Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard/metrics?days=30&topLimit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard",
+                "metrics"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30",
+                  "description": "Janela em dias (max 60)"
+                },
+                {
+                  "key": "topLimit",
+                  "value": "10",
+                  "description": "Quantidade maxima por ranking (max 50)"
+                }
+              ]
+            },
+            "description": "Retorna KPIs, serie temporal e rankings para o dashboard admin."
+          },
+          "response": []
+        }
+      ],
+      "description": "Metricas agregadas para dashboard admin"
+    },
+    {
       "name": "Health Check & Monitoring",
       "item": [
         {

@@ -68,6 +68,7 @@ export { usePayment, useCreatePayment } from "./usePayments";
 // Dashboard hooks
 export {
   useDashboardStats,
+  useDashboardMetrics,
   useMostViewedBooks as useDashboardMostViewed,
   useMostClickedBooks as useDashboardMostClicked,
   useLowStockBooks,

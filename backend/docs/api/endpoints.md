@@ -199,6 +199,21 @@ Exemplos:
 - Todos os pedidos: (sem filtro status)
 ```
 
+## Admin - Dashboard
+
+### Métricas do Dashboard
+```
+GET /api/admin/dashboard/metrics?days=30&topLimit=10
+Auth: ROLE_ADMIN
+Response: {
+  kpis: { totalOrders, ordersMonthly, ordersDaily },
+  ordersByDay: [{ date, count }],
+  topSold: [{ bookId, title, totalSold }],
+  mostViewed: [{ bookId, title, total }],
+  mostClicked: [{ bookId, title, total }]
+}
+```
+
 ## Admin - Livros
 
 ### Listar Livros ⭐ ATUALIZADO

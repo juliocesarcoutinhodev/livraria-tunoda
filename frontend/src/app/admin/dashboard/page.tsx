@@ -20,10 +20,51 @@ import StockAdjustmentModal from "@/components/ui/StockAdjustmentModal";
 import type { Book } from "@/types/book";
 import {
   useDashboardStats,
-  useDashboardMostViewed,
-  useDashboardMostClicked,
+  useDashboardMetrics,
   useLowStockBooks,
 } from "@/hooks";
+
+const formatCompactNumber = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { notation: "compact" }).format(value);
+
+const formatShortDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+};
+
+const buildLinePath = (values: number[], width: number, height: number) => {
+  if (values.length === 0) {
+    return "";
+  }
+  const padding = 16;
+  const innerWidth = width - padding * 2;
+  const innerHeight = height - padding * 2;
+  const maxValue = Math.max(1, ...values);
+
+  return values
+    .map((value, index) => {
+      const x =
+        padding +
+        (values.length === 1
+          ? innerWidth / 2
+          : (innerWidth / (values.length - 1)) * index);
+      const y = padding + innerHeight - (value / maxValue) * innerHeight;
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+    })
+    .join(" ");
+};
+
+const buildAreaPath = (linePath: string, width: number, height: number) => {
+  if (!linePath) {
+    return "";
+  }
+  const padding = 16;
+  const bottom = height - padding;
+  return `${linePath} L ${width - padding} ${bottom} L ${padding} ${bottom} Z`;
+};
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -33,10 +74,10 @@ export default function DashboardPage() {
 
   // Buscar métricas
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: mostViewed, isLoading: viewedLoading } =
-    useDashboardMostViewed(5);
-  const { data: mostClicked, isLoading: clickedLoading } =
-    useDashboardMostClicked(5);
+  const dashboardDays = 30;
+  const dashboardTopLimit = 5;
+  const { data: dashboardMetrics, isLoading: metricsLoading } =
+    useDashboardMetrics(dashboardDays, dashboardTopLimit);
   const { data: lowStockData, isLoading: stockLoading } = useLowStockBooks();
 
   // Estado do modal de ajuste de estoque
@@ -58,6 +99,11 @@ export default function DashboardPage() {
     setShowStockModal(false);
     setSelectedBook(null);
   };
+
+  const ordersByDay = dashboardMetrics?.ordersByDay ?? [];
+  const topSold = dashboardMetrics?.topSold ?? [];
+  const mostViewed = dashboardMetrics?.mostViewed ?? [];
+  const mostClicked = dashboardMetrics?.mostClicked ?? [];
 
   return (
     <div className="flex min-h-screen bg-christian-background">
@@ -197,177 +243,340 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* Card 4 - Total de Pedidos */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-christian-text/60 font-medium">
+                    Total de Pedidos
+                  </p>
+                  {metricsLoading ? (
+                    <div className="h-10 w-20 bg-gray-200 animate-pulse rounded mt-2" />
+                  ) : (
+                    <p className="text-3xl font-bold text-christian-gold mt-2">
+                      {dashboardMetrics?.kpis.totalOrders || 0}
+                    </p>
+                  )}
+                </div>
+                <div className="p-3 bg-christian-gold/15 rounded-lg">
+                  <svg
+                    className="w-8 h-8 text-christian-gold"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5H17M9 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM20.5 19.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5 - Pedidos no Mês */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-christian-text/60 font-medium">
+                    Pedidos no Mês
+                  </p>
+                  {metricsLoading ? (
+                    <div className="h-10 w-20 bg-gray-200 animate-pulse rounded mt-2" />
+                  ) : (
+                    <p className="text-3xl font-bold text-christian-green mt-2">
+                      {dashboardMetrics?.kpis.ordersMonthly || 0}
+                    </p>
+                  )}
+                </div>
+                <div className="p-3 bg-christian-green/10 rounded-lg">
+                  <svg
+                    className="w-8 h-8 text-christian-green"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10m-11 8h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6 - Pedidos Hoje */}
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-christian-text/60 font-medium">
+                    Pedidos Hoje
+                  </p>
+                  {metricsLoading ? (
+                    <div className="h-10 w-20 bg-gray-200 animate-pulse rounded mt-2" />
+                  ) : (
+                    <p className="text-3xl font-bold text-christian-blue mt-2">
+                      {dashboardMetrics?.kpis.ordersDaily || 0}
+                    </p>
+                  )}
+                </div>
+                <div className="p-3 bg-christian-blue/10 rounded-lg">
+                  <svg
+                    className="w-8 h-8 text-christian-blue"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Grid de Tabelas */}
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Top 5 Mais Visualizados */}
+          {/* Graficos de Pedidos e Ranking */}
+          <div className="space-y-6 mb-8">
             <div className="bg-white rounded-xl shadow-md border border-gray-100">
               <div className="p-4 sm:p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-christian-text">
+                      Pedidos dos ultimos {dashboardDays} dias
+                    </h2>
+                    <p className="text-sm text-christian-text/60 mt-1">
+                      Tendencia diaria de pedidos criados
+                    </p>
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-christian-text">
-                    Top 5 Mais Visualizados
-                  </h2>
+                  <div className="text-sm text-christian-text/60">
+                    {ordersByDay.length
+                      ? `${formatCompactNumber(
+                          ordersByDay.reduce(
+                            (sum, item) => sum + item.count,
+                            0
+                          )
+                        )} pedidos`
+                      : "Sem dados"}
+                  </div>
                 </div>
               </div>
               <div className="p-4 sm:p-6">
-                {viewedLoading ? (
-                  <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gray-200 animate-pulse rounded" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" />
-                          <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : mostViewed && mostViewed.length > 0 ? (
-                  <div className="space-y-4">
-                    {mostViewed.map((book, index) => (
-                      <div
-                        key={book.id}
-                        className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 bg-christian-blue/10 rounded-full flex items-center justify-center font-bold text-christian-blue">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-christian-text truncate">
-                            {book.title}
-                          </p>
-                          <p className="text-sm text-christian-text/60">
-                            <span className="font-medium text-blue-600">
-                              {book.totalMetrics.toLocaleString("pt-BR")}
-                            </span>{" "}
-                            visualizações
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                {metricsLoading ? (
+                  <div className="h-40 bg-gray-100 animate-pulse rounded-lg" />
+                ) : ordersByDay.length > 0 ? (
+                  <div>
+                    <svg
+                      viewBox="0 0 600 200"
+                      className="w-full h-48"
+                      role="img"
+                      aria-label="Pedidos por dia"
+                    >
+                      <defs>
+                        <linearGradient id="ordersFill" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor="#2F5D8C" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="#2F5D8C" stopOpacity="0.02" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d={buildAreaPath(
+                          buildLinePath(
+                            ordersByDay.map((item) => item.count),
+                            600,
+                            200
+                          ),
+                          600,
+                          200
+                        )}
+                        fill="url(#ordersFill)"
+                      />
+                      <path
+                        d={buildLinePath(
+                          ordersByDay.map((item) => item.count),
+                          600,
+                          200
+                        )}
+                        fill="none"
+                        stroke="#2F5D8C"
+                        strokeWidth="3"
+                      />
+                    </svg>
+                    <div className="flex items-center justify-between text-xs text-christian-text/50 mt-3">
+                      <span>{formatShortDate(ordersByDay[0].date)}</span>
+                      <span>{formatShortDate(ordersByDay[ordersByDay.length - 1].date)}</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-christian-text/60">
-                    <svg
-                      className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    <p>Nenhum livro visualizado ainda</p>
+                    Nenhum pedido registrado no periodo.
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Top 5 Mais Clicados */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100">
-              <div className="p-4 sm:p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
-                    <svg
-                      className="w-6 h-6 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
-                      />
-                    </svg>
-                  </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-christian-text">
-                    Top 5 Mais Clicados
-                  </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl shadow-md border border-gray-100">
+                <div className="p-4 sm:p-6 border-b border-gray-100">
+                  <h3 className="text-lg font-bold text-christian-text">
+                    Top vendidos
+                  </h3>
+                  <p className="text-sm text-christian-text/60 mt-1">
+                    Ultimos {dashboardDays} dias
+                  </p>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                  {metricsLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(dashboardTopLimit)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-4 bg-gray-100 animate-pulse rounded"
+                        />
+                      ))}
+                    </div>
+                  ) : topSold.length > 0 ? (
+                    topSold.map((item) => {
+                      const maxValue = Math.max(
+                        1,
+                        ...topSold.map((entry) => entry.totalSold)
+                      );
+                      return (
+                        <div key={item.bookId}>
+                          <div className="flex items-center justify-between text-xs text-christian-text/70">
+                            <span className="truncate pr-3">{item.title}</span>
+                            <span className="font-semibold text-christian-blue">
+                              {item.totalSold}
+                            </span>
+                          </div>
+                          <div className="mt-2 h-2 rounded-full bg-gray-100">
+                            <div
+                              className="h-2 rounded-full bg-christian-blue"
+                              style={{
+                                width: `${(item.totalSold / maxValue) * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-christian-text/60">
+                      Sem vendas registradas.
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="p-4 sm:p-6">
-                {clickedLoading ? (
-                  <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gray-200 animate-pulse rounded" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" />
-                          <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2" />
+
+              <div className="bg-white rounded-xl shadow-md border border-gray-100">
+                <div className="p-4 sm:p-6 border-b border-gray-100">
+                  <h3 className="text-lg font-bold text-christian-text">
+                    Mais visualizados
+                  </h3>
+                  <p className="text-sm text-christian-text/60 mt-1">
+                    Ultimos {dashboardDays} dias
+                  </p>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                  {metricsLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(dashboardTopLimit)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-4 bg-gray-100 animate-pulse rounded"
+                        />
+                      ))}
+                    </div>
+                  ) : mostViewed.length > 0 ? (
+                    mostViewed.map((item) => {
+                      const maxValue = Math.max(
+                        1,
+                        ...mostViewed.map((entry) => entry.total)
+                      );
+                      return (
+                        <div key={item.bookId}>
+                          <div className="flex items-center justify-between text-xs text-christian-text/70">
+                            <span className="truncate pr-3">{item.title}</span>
+                            <span className="font-semibold text-blue-600">
+                              {item.total}
+                            </span>
+                          </div>
+                          <div className="mt-2 h-2 rounded-full bg-gray-100">
+                            <div
+                              className="h-2 rounded-full bg-blue-500"
+                              style={{
+                                width: `${(item.total / maxValue) * 100}%`,
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : mostClicked && mostClicked.length > 0 ? (
-                  <div className="space-y-4">
-                    {mostClicked.map((book, index) => (
-                      <div
-                        key={book.id}
-                        className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 bg-christian-green/10 rounded-full flex items-center justify-center font-bold text-christian-green">
-                          {index + 1}
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-christian-text/60">
+                      Sem visualizacoes.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-md border border-gray-100">
+                <div className="p-4 sm:p-6 border-b border-gray-100">
+                  <h3 className="text-lg font-bold text-christian-text">
+                    Mais clicados
+                  </h3>
+                  <p className="text-sm text-christian-text/60 mt-1">
+                    Ultimos {dashboardDays} dias
+                  </p>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                  {metricsLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(dashboardTopLimit)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-4 bg-gray-100 animate-pulse rounded"
+                        />
+                      ))}
+                    </div>
+                  ) : mostClicked.length > 0 ? (
+                    mostClicked.map((item) => {
+                      const maxValue = Math.max(
+                        1,
+                        ...mostClicked.map((entry) => entry.total)
+                      );
+                      return (
+                        <div key={item.bookId}>
+                          <div className="flex items-center justify-between text-xs text-christian-text/70">
+                            <span className="truncate pr-3">{item.title}</span>
+                            <span className="font-semibold text-green-600">
+                              {item.total}
+                            </span>
+                          </div>
+                          <div className="mt-2 h-2 rounded-full bg-gray-100">
+                            <div
+                              className="h-2 rounded-full bg-green-500"
+                              style={{
+                                width: `${(item.total / maxValue) * 100}%`,
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-christian-text truncate">
-                            {book.title}
-                          </p>
-                          <p className="text-sm text-christian-text/60">
-                            <span className="font-medium text-green-600">
-                              {book.totalMetrics.toLocaleString("pt-BR")}
-                            </span>{" "}
-                            cliques
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-christian-text/60">
-                    <svg
-                      className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
-                      />
-                    </svg>
-                    <p>Nenhum livro clicado ainda</p>
-                  </div>
-                )}
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-christian-text/60">
+                      Sem cliques registrados.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

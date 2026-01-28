@@ -9,10 +9,28 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Repository
 public interface OrderJpaRepository extends JpaRepository<OrderEntity, String> {
 
     @Query("SELECT o FROM OrderEntity o WHERE (:status IS NULL OR o.status = :status)")
     Page<OrderEntity> findWithFilters(@Param("status") OrderStatus status, Pageable pageable);
-}
 
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+        SELECT function('date', o.createdAt) as date, COUNT(o) as total
+        FROM OrderEntity o
+        WHERE o.createdAt >= :startDate
+        GROUP BY function('date', o.createdAt)
+        ORDER BY function('date', o.createdAt)
+        """)
+    List<OrderCountByDayProjection> countOrdersByDay(@Param("startDate") LocalDateTime startDate);
+
+    interface OrderCountByDayProjection {
+        java.time.LocalDate getDate();
+        Long getTotal();
+    }
+}

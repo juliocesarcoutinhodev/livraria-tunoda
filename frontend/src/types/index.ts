@@ -102,6 +102,17 @@ export type {
 } from "./order";
 
 // ============================================================================
+// Dashboard - Métricas
+// ============================================================================
+export type {
+  DashboardKpis,
+  OrdersByDayPoint,
+  TopSoldItem,
+  DashboardMetricItem,
+  DashboardMetrics,
+} from "./dashboard";
+
+// ============================================================================
 // Payment - Pagamentos
 // ============================================================================
 export type {

@@ -156,6 +156,7 @@ Senha: admin123
 | `/api/admin/authors` | GET | Listar autores (com busca e ordenação) | ADMIN |
 | `/api/admin/authors/{id}` | GET | Buscar autor por ID | ADMIN |
 | `/api/admin/orders` | GET | Listar pedidos (com filtros de status) | ADMIN |
+| `/api/admin/dashboard/metrics` | GET | Métricas do dashboard | ADMIN |
 | `/api/carts` | POST | Criar carrinho | Público |
 | `/api/carts/checkout` | POST | Checkout (criar pedido) | Público |
 | `/api/orders/{id}` | GET | Consultar pedido | Público |

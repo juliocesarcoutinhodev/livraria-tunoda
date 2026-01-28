@@ -9,11 +9,13 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { bookService } from "@/services/bookService";
 import { authorService } from "@/services/authorService";
+import { dashboardService } from "@/services/dashboardService";
 import { queryKeys } from "@/lib/react-query";
 import type { TopBook } from "@/types/book";
 import type { PaginatedResponse } from "@/types/api";
 import type { Author } from "@/types/author";
 import type { Book } from "@/types/book";
+import type { DashboardMetrics } from "@/types/dashboard";
 
 // ============================================================================
 // STATISTICS QUERIES
@@ -58,6 +60,25 @@ export function useDashboardStats() {
       };
     },
     staleTime: 2 * 60 * 1000, // 2 minutos (atualiza com frequência)
+  });
+}
+
+/**
+ * Hook para obter métricas consolidadas do dashboard
+ *
+ * @param days - Janela de dias para a série
+ * @param topLimit - Quantidade de itens nos rankings
+ */
+export function useDashboardMetrics(
+  days: number,
+  topLimit: number,
+  options?: Omit<UseQueryOptions<DashboardMetrics>, "queryKey" | "queryFn">
+) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.metrics(days, topLimit),
+    queryFn: () => dashboardService.getMetrics(days, topLimit),
+    staleTime: 2 * 60 * 1000,
+    ...options,
   });
 }
 

@@ -15,6 +15,8 @@ Documentação dos endpoints REST da API.
 
 Lista completa de todos os endpoints da API com exemplos.
 
+Inclui `/api/admin/dashboard/metrics` para KPIs e series do dashboard.
+
 ### [Limpar Carrinho](CLEAR_CART.md) ⭐ NOVO
 
 Endpoint para remover todos os itens do carrinho de compras.
