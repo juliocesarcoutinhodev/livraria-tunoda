@@ -88,10 +88,16 @@ export interface Order {
   updatedAt?: string;
   /** Data de pagamento */
   paidAt?: string;
+  /** Data de processamento */
+  processingAt?: string;
   /** Data de envio */
   shippedAt?: string;
   /** Data de entrega */
   deliveredAt?: string;
+  /** Data de cancelamento */
+  cancelledAt?: string;
+  /** Data de expiração */
+  expiredAt?: string;
 }
 
 /**

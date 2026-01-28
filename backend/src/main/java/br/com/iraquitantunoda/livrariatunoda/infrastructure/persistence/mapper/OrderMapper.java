@@ -37,6 +37,12 @@ public interface OrderMapper {
             entity.getCreatedAt(),
             entity.getStatus(),
             entity.getPaymentReference(),
+            entity.getPaidAt(),
+            entity.getProcessingAt(),
+            entity.getShippedAt(),
+            entity.getDeliveredAt(),
+            entity.getCancelledAt(),
+            entity.getExpiredAt(),
             entity.getCustomerName(),
             entity.getCustomerEmail(),
             entity.getCustomerPhone()
@@ -69,6 +75,12 @@ public interface OrderMapper {
         entity.setTotalCurrency(order.getTotal().getCurrency());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setPaymentReference(order.getPaymentReference());
+        entity.setPaidAt(order.getPaidAt());
+        entity.setProcessingAt(order.getProcessingAt());
+        entity.setShippedAt(order.getShippedAt());
+        entity.setDeliveredAt(order.getDeliveredAt());
+        entity.setCancelledAt(order.getCancelledAt());
+        entity.setExpiredAt(order.getExpiredAt());
         entity.setCustomerName(order.getCustomerName());
         entity.setCustomerEmail(order.getCustomerEmail());
         entity.setCustomerPhone(order.getCustomerPhone());

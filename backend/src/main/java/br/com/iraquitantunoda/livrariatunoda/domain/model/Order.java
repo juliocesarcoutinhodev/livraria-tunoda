@@ -25,6 +25,12 @@ public class Order {
     private final Money shippingCost;
     private final Money total;
     private final LocalDateTime createdAt;
+    private LocalDateTime paidAt;
+    private LocalDateTime processingAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime deliveredAt;
+    private LocalDateTime cancelledAt;
+    private LocalDateTime expiredAt;
     private final String customerName;
     private final String customerEmail;
     private final String customerPhone;
@@ -34,6 +40,8 @@ public class Order {
     private Order(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId, List<OrderItem> items,
                   Money subtotal, Money shippingCost, Money total, LocalDateTime createdAt,
                   OrderStatus status, String paymentReference,
+                  LocalDateTime paidAt, LocalDateTime processingAt, LocalDateTime shippedAt,
+                  LocalDateTime deliveredAt, LocalDateTime cancelledAt, LocalDateTime expiredAt,
                   String customerName, String customerEmail, String customerPhone) {
         validateItems(items);
         validateAmounts(subtotal, shippingCost, total);
@@ -46,6 +54,12 @@ public class Order {
         this.shippingCost = shippingCost;
         this.total = total;
         this.createdAt = createdAt;
+        this.paidAt = paidAt;
+        this.processingAt = processingAt;
+        this.shippedAt = shippedAt;
+        this.deliveredAt = deliveredAt;
+        this.cancelledAt = cancelledAt;
+        this.expiredAt = expiredAt;
         this.customerName = customerName;
         this.customerEmail = customerEmail;
         this.customerPhone = customerPhone;
@@ -90,6 +104,12 @@ public class Order {
                 subtotal,
                 LocalDateTime.now(),
                 OrderStatus.PENDING,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null,
                 customerName.trim(),
                 normalizeEmail(customerEmail),
@@ -153,6 +173,12 @@ public class Order {
                 LocalDateTime.now(),
                 OrderStatus.PENDING,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 customerName.trim(),
                 normalizeEmail(customerEmail),
                 customerPhone.trim()
@@ -162,10 +188,14 @@ public class Order {
     public static Order reconstitute(OrderId id, CartId cartId, ShippingQuoteId shippingQuoteId,
                                      List<OrderItem> items, Money subtotal, Money shippingCost,
                                      Money total, LocalDateTime createdAt, OrderStatus status,
-                                     String paymentReference, String customerName, String customerEmail,
+                                     String paymentReference, LocalDateTime paidAt,
+                                     LocalDateTime processingAt, LocalDateTime shippedAt,
+                                     LocalDateTime deliveredAt, LocalDateTime cancelledAt,
+                                     LocalDateTime expiredAt, String customerName, String customerEmail,
                                      String customerPhone) {
         return new Order(id, cartId, shippingQuoteId, items, subtotal, shippingCost, total,
-                        createdAt, status, paymentReference, customerName, customerEmail, customerPhone);
+                        createdAt, status, paymentReference, paidAt, processingAt, shippedAt,
+                        deliveredAt, cancelledAt, expiredAt, customerName, customerEmail, customerPhone);
     }
 
     public void associatePaymentReference(String reference) {
@@ -192,6 +222,7 @@ public class Order {
             throw new BusinessException("Pedido não pode ser confirmado sem referência de pagamento");
         }
         this.status = OrderStatus.CONFIRMED;
+        this.paidAt = LocalDateTime.now();
     }
 
     public void expire() {
@@ -199,6 +230,7 @@ public class Order {
             throw new BusinessException("Apenas pedidos pendentes podem expirar");
         }
         this.status = OrderStatus.EXPIRED;
+        this.expiredAt = LocalDateTime.now();
     }
 
     public void startProcessing() {
@@ -206,6 +238,7 @@ public class Order {
             throw new BusinessException("Apenas pedidos confirmados podem ser processados");
         }
         this.status = OrderStatus.PROCESSING;
+        this.processingAt = LocalDateTime.now();
     }
 
     public void ship() {
@@ -213,6 +246,7 @@ public class Order {
             throw new BusinessException("Apenas pedidos em processamento podem ser enviados");
         }
         this.status = OrderStatus.SHIPPED;
+        this.shippedAt = LocalDateTime.now();
     }
 
     public void deliver() {
@@ -220,6 +254,7 @@ public class Order {
             throw new BusinessException("Apenas pedidos enviados podem ser marcados como entregues");
         }
         this.status = OrderStatus.DELIVERED;
+        this.deliveredAt = LocalDateTime.now();
     }
 
     public void cancel() {
@@ -230,6 +265,7 @@ public class Order {
             throw new BusinessException("Pedido já está cancelado");
         }
         this.status = OrderStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
     }
 
     public boolean isPending() {

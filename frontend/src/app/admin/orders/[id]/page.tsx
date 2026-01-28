@@ -438,6 +438,35 @@ export default function OrderDetailsPage() {
                         </div>
                       )}
 
+                      {/* Processando */}
+                      {order.processingAt && (
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-blue-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8 8 0 104.582 9m0 0H9m11 11v-5h-.581m0 0a8 8 0 01-15.356-2m15.356 2H15"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              Pedido em Processamento
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(order.processingAt)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Enviado */}
                       {order.shippedAt && (
                         <div className="flex gap-3">
@@ -491,6 +520,64 @@ export default function OrderDetailsPage() {
                             </p>
                             <p className="text-xs text-gray-500">
                               {formatDate(order.deliveredAt)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cancelado */}
+                      {order.cancelledAt && (
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-red-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              Pedido Cancelado
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(order.cancelledAt)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Expirado */}
+                      {order.expiredAt && (
+                        <div className="flex gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              Pedido Expirado
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(order.expiredAt)}
                             </p>
                           </div>
                         </div>

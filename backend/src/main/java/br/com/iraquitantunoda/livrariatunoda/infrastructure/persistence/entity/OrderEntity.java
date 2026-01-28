@@ -55,6 +55,24 @@ public class OrderEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "processing_at")
+    private LocalDateTime processingAt;
+
+    @Column(name = "shipped_at")
+    private LocalDateTime shippedAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
+
     @Column(name = "payment_reference", length = 100)
     private String paymentReference;
 
