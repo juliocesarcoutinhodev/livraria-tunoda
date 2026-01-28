@@ -354,6 +354,9 @@ export default function CheckoutPage() {
       const created = await cartService.checkout({
         cartId,
         shippingQuoteId: shippingQuote.id,
+        customerName: customer.fullName,
+        customerEmail: customer.email,
+        customerPhone: customer.phone,
       });
       setOrderSummary({
         subtotal,

@@ -97,6 +97,8 @@ export type {
   OrderShipping,
   Order,
   OrderFilterParams,
+  OrderLookupRequest,
+  OrderLookupResponse,
 } from "./order";
 
 // ============================================================================

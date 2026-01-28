@@ -69,6 +69,8 @@ cnpja:
   zip-endpoint: ${CNPJA_ZIP_ENDPOINT:/zip/{code}}
 
 app:
+  frontend:
+    base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   security:
     jwt:
       secret: ${JWT_SECRET}

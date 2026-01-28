@@ -102,6 +102,7 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Pagamento via Mercado Pago (Cartão/PIX) no Step 4
 - Status do pagamento em tempo real + webhook atualizado
 - Página de confirmação `/pedido/[id]/confirmacao`
+- Consulta de pedido sem login: `/pedido/consulta` (orderId + email)
 
 ### ✅ **Seção Sobre o Autor**
 
@@ -2002,6 +2003,7 @@ O projeto possui uma camada completa de serviços para comunicação com o backe
 **Carrinho - limpar:** `DELETE /carts/{cartId}/clear`
 
 **Pagamentos:** `POST /orders/{id}/payments`, `POST /payments/{id}/process`, `GET /payments/{id}`
+**Pedidos:** `POST /orders/lookup`
 
 **Frete:** `POST /shipping/quotes`, `POST /shipping/quotes/{id}/calculate`, `PUT /shipping/quotes/{id}/select`
 

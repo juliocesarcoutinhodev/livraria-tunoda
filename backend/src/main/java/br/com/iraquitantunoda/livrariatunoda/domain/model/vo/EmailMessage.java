@@ -11,17 +11,27 @@ public class EmailMessage {
     Email to;
     String subject;
     String body;
+    boolean html;
 
-    private EmailMessage(Email to, String subject, String body) {
+    private EmailMessage(Email to, String subject, String body, boolean html) {
         validateSubject(subject);
         validateBody(body);
         this.to = to;
         this.subject = subject.trim();
         this.body = body.trim();
+        this.html = html;
     }
 
     public static EmailMessage of(String to, String subject, String body) {
-        return new EmailMessage(Email.of(to), subject, body);
+        return ofText(to, subject, body);
+    }
+
+    public static EmailMessage ofText(String to, String subject, String body) {
+        return new EmailMessage(Email.of(to), subject, body, false);
+    }
+
+    public static EmailMessage ofHtml(String to, String subject, String body) {
+        return new EmailMessage(Email.of(to), subject, body, true);
     }
 
     private static void validateSubject(String subject) {

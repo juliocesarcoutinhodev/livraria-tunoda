@@ -71,6 +71,12 @@ export interface CheckoutRequest {
   cartId: string;
   /** ID da cotação de frete selecionada */
   shippingQuoteId?: string | null;
+  /** Nome completo do cliente */
+  customerName: string;
+  /** Email do cliente */
+  customerEmail: string;
+  /** Telefone do cliente */
+  customerPhone: string;
 }
 
 /**

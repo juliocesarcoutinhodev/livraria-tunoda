@@ -108,3 +108,19 @@ export interface OrderFilterParams {
   /** Ordenação */
   sort?: string;
 }
+
+/**
+ * Request para consultar pedido por email
+ * POST /api/orders/lookup
+ */
+export interface OrderLookupRequest {
+  orderId: string;
+  email: string;
+}
+
+export interface OrderLookupResponse {
+  valid: boolean;
+  orderId?: string;
+  redirectUrl?: string;
+  message?: string;
+}

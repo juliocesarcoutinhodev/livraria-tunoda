@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento confirmado</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #F7F6F2; font-family: Arial, sans-serif; color: #2E2E2E; }
+    .wrapper { width: 100%; padding: 24px 0; }
+    .container { max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(47, 93, 140, 0.08); }
+    .header { background: #2F5D8C; padding: 28px; color: #FFFFFF; }
+    .header h1 { margin: 0; font-size: 20px; letter-spacing: 0.3px; }
+    .content { padding: 28px; }
+    .content h2 { margin: 0 0 12px 0; font-size: 18px; color: #2E2E2E; }
+    .content p { margin: 0 0 14px 0; line-height: 1.6; }
+    .card { background: #FFFFFF; border: 1px solid rgba(47, 93, 140, 0.1); border-radius: 10px; padding: 16px; margin: 16px 0; }
+    .card-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #2E2E2E; }
+    .button { display: inline-block; margin-top: 12px; padding: 12px 18px; background: #C9A44C; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-weight: 600; }
+    .footer { padding: 18px 28px 28px; font-size: 12px; color: #6B7280; }
+    .muted { color: #6B7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <h1>Livraria Tunoda</h1>
+      </div>
+      <div class="content">
+        <h2>Pagamento confirmado</h2>
+        <p>Ola, <strong th:text="${customerName}">Cliente</strong>. Seu pagamento foi confirmado.</p>
+        <div class="card">
+          <div class="card-row">
+            <span>Pedido</span>
+            <strong th:text="${orderId}">ORDER_ID</strong>
+          </div>
+          <div class="card-row">
+            <span>Status</span>
+            <strong th:text="${status}">CONFIRMED</strong>
+          </div>
+        </div>
+        <p>Proximos passos: seu pedido sera processado e enviado em breve.</p>
+        <a class="button" th:href="${trackingUrl}">Acompanhar pedido</a>
+        <p class="muted">Se voce nao reconhece este pedido, ignore esta mensagem.</p>
+      </div>
+      <div class="footer">
+        Esta e uma mensagem automatica. Nao responda este email.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

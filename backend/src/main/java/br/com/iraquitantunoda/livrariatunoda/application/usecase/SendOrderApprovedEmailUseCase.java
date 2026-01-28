@@ -3,9 +3,13 @@ package br.com.iraquitantunoda.livrariatunoda.application.usecase;
 import br.com.iraquitantunoda.livrariatunoda.application.service.EmailDispatchService;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.Order;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.EmailMessage;
+import br.com.iraquitantunoda.livrariatunoda.domain.service.EmailTemplateRenderer;
+import br.com.iraquitantunoda.livrariatunoda.domain.service.FrontendUrlProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class SendOrderApprovedEmailUseCase {
 
     private final EmailDispatchService emailDispatchService;
+    private final EmailTemplateRenderer emailTemplateRenderer;
+    private final FrontendUrlProvider frontendUrlProvider;
 
     public void execute(Order order) {
         if (order.getCustomerEmail() == null || order.getCustomerEmail().isBlank()) {
@@ -27,16 +33,14 @@ public class SendOrderApprovedEmailUseCase {
         }
 
         var subject = "Pagamento confirmado";
-        var body = new StringBuilder()
-            .append("Ola, ").append(customerName).append(".\n\n")
-            .append("Pagamento confirmado para o seu pedido.\n")
-            .append("Pedido: ").append(order.getId().getValue()).append("\n")
-            .append("Status: ").append(order.getStatus().name()).append("\n")
-            .append("Acompanhe aqui: /pedido/").append(order.getId().getValue()).append("/confirmacao\n")
-            .append("\nProximos passos: seu pedido sera processado e enviado em breve.\n")
-            .toString();
+        var variables = new HashMap<String, Object>();
+        variables.put("customerName", customerName);
+        variables.put("orderId", order.getId().getValue());
+        variables.put("status", order.getStatus().name());
+        variables.put("trackingUrl", frontendUrlProvider.getOrderConfirmationUrl(order.getId().getValue()));
 
-        var message = EmailMessage.of(order.getCustomerEmail(), subject, body);
+        var body = emailTemplateRenderer.render("email/order-approved", variables);
+        var message = EmailMessage.ofHtml(order.getCustomerEmail(), subject, body);
         emailDispatchService.sendAsync(message);
     }
 }

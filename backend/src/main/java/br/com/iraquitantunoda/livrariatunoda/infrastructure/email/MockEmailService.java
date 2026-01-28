@@ -14,6 +14,7 @@ public class MockEmailService implements EmailSender {
     @Override
     public void send(EmailMessage message) {
         log.info("Email mock enviado para {}", message.getTo().getValue());
+        log.info("Formato: {}", message.isHtml() ? "HTML" : "TEXTO");
         log.info("Assunto: {}", message.getSubject());
         log.info("Corpo: {}", message.getBody());
     }

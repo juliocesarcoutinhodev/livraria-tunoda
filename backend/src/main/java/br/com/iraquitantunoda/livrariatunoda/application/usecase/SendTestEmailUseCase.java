@@ -18,7 +18,7 @@ public class SendTestEmailUseCase {
     public SendTestEmailResponse execute(SendTestEmailRequest request) {
         log.info("Solicitado envio de email de teste para {}", request.to());
 
-        var message = EmailMessage.of(request.to(), request.subject(), request.body());
+        var message = EmailMessage.ofText(request.to(), request.subject(), request.body());
         emailDispatchService.sendAsync(message);
 
         return new SendTestEmailResponse("QUEUED", "Email enfileirado para envio");

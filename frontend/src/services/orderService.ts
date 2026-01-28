@@ -8,7 +8,12 @@
 
 import { apiClient } from "@/lib/api-client";
 import type { PaginatedResponse } from "@/types/api";
-import type { Order, OrderFilterParams } from "@/types/order";
+import type {
+  Order,
+  OrderFilterParams,
+  OrderLookupRequest,
+  OrderLookupResponse,
+} from "@/types/order";
 
 /**
  * Busca um pedido por ID
@@ -53,10 +58,27 @@ const listAdmin = async (
 };
 
 /**
+ * Valida pedido por email (sem login)
+ *
+ * @param data - orderId + email
+ * @returns Resultado com redirectUrl quando valido
+ */
+const lookup = async (
+  data: OrderLookupRequest
+): Promise<OrderLookupResponse> => {
+  const response = await apiClient.post<OrderLookupResponse>(
+    "/orders/lookup",
+    data
+  );
+  return response.data;
+};
+
+/**
  * Order Service
  * Exporta todas as operações com pedidos
  */
 export const orderService = {
   getById,
   listAdmin,
+  lookup,
 };

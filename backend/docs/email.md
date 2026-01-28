@@ -25,30 +25,30 @@ Requer autenticacao com perfil `ADMIN`.
 }
 ```
 
-## Configuracao (application.properties)
+## Configuracao (variaveis de ambiente)
 
 Exemplo para Gmail SMTP em `prod` e `staging`:
 
 ```properties
-spring.profiles.active=prod
+SPRING_PROFILES_ACTIVE=prod
+APP_FRONTEND_BASE_URL=http://localhost:3000
 
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=SEU_EMAIL@gmail.com
-spring.mail.password=fkjkdcyzaerxtfzy
-
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
-spring.mail.properties.mail.smtp.starttls.required=true
-spring.mail.properties.mail.smtp.connectiontimeout=5000
-spring.mail.properties.mail.smtp.timeout=5000
-spring.mail.properties.mail.smtp.writetimeout=5000
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=SEU_EMAIL@gmail.com
+MAIL_PASSWORD=sua-senha-de-app
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
+MAIL_SMTP_STARTTLS_REQUIRED=true
+MAIL_SMTP_CONNECTION_TIMEOUT=5000
+MAIL_SMTP_TIMEOUT=5000
+MAIL_SMTP_WRITE_TIMEOUT=5000
 ```
 
 Em `dev`, use:
 
 ```properties
-spring.profiles.active=dev
+SPRING_PROFILES_ACTIVE=dev
 ```
 
 O perfil `dev` usa `MockEmailService` e apenas registra o conteudo no log.
