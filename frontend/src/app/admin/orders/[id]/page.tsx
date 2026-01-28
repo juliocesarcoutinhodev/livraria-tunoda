@@ -93,12 +93,35 @@ export default function OrderDetailsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("pt-BR", {
+    const normalized = dateString?.trim();
+    if (!normalized) {
+      return "-";
+    }
+
+    let date: Date | null = null;
+    if (normalized.includes("/")) {
+      const [datePart, timePart] = normalized.split(" ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      if (day && month && year) {
+        if (timePart) {
+          const [hour, minute] = timePart.split(":").map(Number);
+          date = new Date(year, month - 1, day, hour || 0, minute || 0);
+        } else {
+          date = new Date(year, month - 1, day);
+        }
+      }
+    } else {
+      date = new Date(normalized);
+    }
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return normalized;
+    }
+
+    return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
