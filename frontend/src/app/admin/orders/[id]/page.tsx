@@ -393,14 +393,63 @@ export default function OrderDetailsPage() {
                     </h2>
                   </div>
                   <div className="p-6 text-sm text-gray-900 space-y-1">
+                    {order.shippingAddress ? (
+                      <>
+                        <p>
+                          {order.shippingAddress.street}{" "}
+                          {order.shippingAddress.number}
+                          {order.shippingAddress.complement
+                            ? `, ${order.shippingAddress.complement}`
+                            : ""}
+                        </p>
+                        <p>
+                          {order.shippingAddress.neighborhood} -{" "}
+                          {order.shippingAddress.city}/
+                          {order.shippingAddress.state}
+                        </p>
+                        <p>CEP: {order.shippingAddress.postalCode}</p>
+                      </>
+                    ) : (
+                      <p>Endereco nao informado.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Frete */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-gray-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7h8m-8 4h8m-6 4h6M6 7V5a2 2 0 012-2h8a2 2 0 012 2v2M6 7h12v10a2 2 0 01-2 2H8a2 2 0 01-2-2V7z"
+                        />
+                      </svg>
+                      Frete selecionado
+                    </h2>
+                  </div>
+                  <div className="p-6 text-sm text-gray-900 space-y-1">
                     <p>
-                      {order.street} {order.number}
-                      {order.complement ? `, ${order.complement}` : ""}
+                      {order.shippingCompany || "Transportadora"} -{" "}
+                      {order.shippingServiceName || "Servico"}
+                      {order.shippingServiceCode
+                        ? ` (${order.shippingServiceCode})`
+                        : ""}
                     </p>
-                    <p>
-                      {order.neighborhood} - {order.city}/{order.state}
-                    </p>
-                    <p>CEP: {order.postalCode}</p>
+                    {order.shippingDeliveryDays !== undefined && (
+                      <p>
+                        Prazo estimado: {order.shippingDeliveryDays}{" "}
+                        {order.shippingDeliveryDays === 1 ? "dia" : "dias"}
+                      </p>
+                    )}
+                    <p>Frete: {formatPrice(order.shippingCost)}</p>
                   </div>
                 </div>
 

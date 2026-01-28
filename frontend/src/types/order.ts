@@ -70,20 +70,24 @@ export interface Order {
   customerName?: string;
   /** Telefone do cliente */
   customerPhone?: string;
-  /** Endereco - rua */
-  street?: string;
-  /** Endereco - numero */
-  number?: string;
-  /** Endereco - complemento */
-  complement?: string | null;
-  /** Endereco - bairro */
-  neighborhood?: string;
-  /** Endereco - cidade */
-  city?: string;
-  /** Endereco - estado */
-  state?: string;
-  /** Endereco - CEP */
-  postalCode?: string;
+  /** Codigo do servico de frete */
+  shippingServiceCode?: string;
+  /** Nome do servico de frete */
+  shippingServiceName?: string;
+  /** Transportadora */
+  shippingCompany?: string;
+  /** Prazo em dias */
+  shippingDeliveryDays?: number;
+  /** Endereco completo de entrega */
+  shippingAddress?: {
+    street: string;
+    number: string;
+    complement?: string | null;
+    neighborhood: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  };
   /** Lista de itens */
   items: OrderItem[];
   /** Subtotal dos itens */

@@ -19,6 +19,8 @@ public record OrderResponse(
     String shippingCompany,
     Integer shippingDeliveryDays,
     String customerName,
+    String customerEmail,
+    String customerPhone,
     ShippingAddressResponse shippingAddress,
     String createdAt,
     String paidAt,
