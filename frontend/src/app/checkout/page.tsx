@@ -357,6 +357,13 @@ export default function CheckoutPage() {
         customerName: customer.fullName,
         customerEmail: customer.email,
         customerPhone: customer.phone,
+        street: address.street,
+        number: address.number,
+        complement: address.complement || null,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        postalCode: address.cep,
       });
       setOrderSummary({
         subtotal,

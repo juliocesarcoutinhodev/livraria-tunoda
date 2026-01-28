@@ -66,6 +66,24 @@ export interface Order {
   shippingQuoteId: string;
   /** Email do cliente (apenas no detalhe) */
   customerEmail?: string;
+  /** Nome do cliente */
+  customerName?: string;
+  /** Telefone do cliente */
+  customerPhone?: string;
+  /** Endereco - rua */
+  street?: string;
+  /** Endereco - numero */
+  number?: string;
+  /** Endereco - complemento */
+  complement?: string | null;
+  /** Endereco - bairro */
+  neighborhood?: string;
+  /** Endereco - cidade */
+  city?: string;
+  /** Endereco - estado */
+  state?: string;
+  /** Endereco - CEP */
+  postalCode?: string;
   /** Lista de itens */
   items: OrderItem[];
   /** Subtotal dos itens */

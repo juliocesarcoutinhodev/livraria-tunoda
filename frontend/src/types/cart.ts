@@ -77,6 +77,20 @@ export interface CheckoutRequest {
   customerEmail: string;
   /** Telefone do cliente */
   customerPhone: string;
+  /** Rua */
+  street: string;
+  /** Numero */
+  number: string;
+  /** Complemento */
+  complement?: string | null;
+  /** Bairro */
+  neighborhood: string;
+  /** Cidade */
+  city: string;
+  /** Estado */
+  state: string;
+  /** CEP */
+  postalCode: string;
 }
 
 /**
