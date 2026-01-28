@@ -46,6 +46,18 @@ public class OrderEntity {
     @Column(name = "shipping_cost_currency", nullable = false, length = 3)
     private String shippingCostCurrency;
 
+    @Column(name = "shipping_service_code", length = 50)
+    private String shippingServiceCode;
+
+    @Column(name = "shipping_service_name", length = 120)
+    private String shippingServiceName;
+
+    @Column(name = "shipping_company", length = 120)
+    private String shippingCompany;
+
+    @Column(name = "shipping_delivery_days")
+    private Integer shippingDeliveryDays;
+
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 

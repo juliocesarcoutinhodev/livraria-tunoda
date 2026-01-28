@@ -24,6 +24,10 @@ public class Order {
     private final Money subtotal;
     private final Money shippingCost;
     private final Money total;
+    private final String shippingServiceCode;
+    private final String shippingServiceName;
+    private final String shippingCompany;
+    private final Integer shippingDeliveryDays;
     private final LocalDateTime createdAt;
     private LocalDateTime paidAt;
     private LocalDateTime processingAt;
@@ -44,7 +48,9 @@ public class Order {
                   LocalDateTime paidAt, LocalDateTime processingAt, LocalDateTime shippedAt,
                   LocalDateTime deliveredAt, LocalDateTime cancelledAt, LocalDateTime expiredAt,
                   String customerName, String customerEmail, String customerPhone,
-                  br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress) {
+                  br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress,
+                  String shippingServiceCode, String shippingServiceName, String shippingCompany,
+                  Integer shippingDeliveryDays) {
         validateItems(items);
         validateAmounts(subtotal, shippingCost, total);
 
@@ -55,6 +61,10 @@ public class Order {
         this.subtotal = subtotal;
         this.shippingCost = shippingCost;
         this.total = total;
+        this.shippingServiceCode = shippingServiceCode;
+        this.shippingServiceName = shippingServiceName;
+        this.shippingCompany = shippingCompany;
+        this.shippingDeliveryDays = shippingDeliveryDays;
         this.createdAt = createdAt;
         this.paidAt = paidAt;
         this.processingAt = processingAt;
@@ -120,7 +130,11 @@ public class Order {
                 customerName.trim(),
                 normalizeEmail(customerEmail),
                 customerPhone.trim(),
-                shippingAddress
+                shippingAddress,
+                null,
+                null,
+                null,
+                null
         );
     }
 
@@ -192,7 +206,11 @@ public class Order {
                 customerName.trim(),
                 normalizeEmail(customerEmail),
                 customerPhone.trim(),
-                shippingAddress
+                shippingAddress,
+                selectedOption.getServiceCode(),
+                selectedOption.getServiceName(),
+                selectedOption.getCompany(),
+                selectedOption.getDeliveryDays()
         );
     }
 
@@ -204,11 +222,14 @@ public class Order {
                                      LocalDateTime deliveredAt, LocalDateTime cancelledAt,
                                      LocalDateTime expiredAt, String customerName, String customerEmail,
                                      String customerPhone,
-                                     br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress) {
+                                     br.com.iraquitantunoda.livrariatunoda.domain.model.vo.ShippingAddress shippingAddress,
+                                     String shippingServiceCode, String shippingServiceName, String shippingCompany,
+                                     Integer shippingDeliveryDays) {
         return new Order(id, cartId, shippingQuoteId, items, subtotal, shippingCost, total,
                         createdAt, status, paymentReference, paidAt, processingAt, shippedAt,
                         deliveredAt, cancelledAt, expiredAt, customerName, customerEmail, customerPhone,
-                        shippingAddress);
+                        shippingAddress, shippingServiceCode, shippingServiceName, shippingCompany,
+                        shippingDeliveryDays);
     }
 
     public void associatePaymentReference(String reference) {

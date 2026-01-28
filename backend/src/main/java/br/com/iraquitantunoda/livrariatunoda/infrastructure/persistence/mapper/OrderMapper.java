@@ -61,7 +61,11 @@ public interface OrderMapper {
             entity.getCustomerName(),
             entity.getCustomerEmail(),
             entity.getCustomerPhone(),
-            shippingAddress
+            shippingAddress,
+            entity.getShippingServiceCode(),
+            entity.getShippingServiceName(),
+            entity.getShippingCompany(),
+            entity.getShippingDeliveryDays()
         );
     }
 
@@ -91,6 +95,10 @@ public interface OrderMapper {
         entity.setTotalCurrency(order.getTotal().getCurrency());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setPaymentReference(order.getPaymentReference());
+        entity.setShippingServiceCode(order.getShippingServiceCode());
+        entity.setShippingServiceName(order.getShippingServiceName());
+        entity.setShippingCompany(order.getShippingCompany());
+        entity.setShippingDeliveryDays(order.getShippingDeliveryDays());
         entity.setPaidAt(order.getPaidAt());
         entity.setProcessingAt(order.getProcessingAt());
         entity.setShippedAt(order.getShippedAt());

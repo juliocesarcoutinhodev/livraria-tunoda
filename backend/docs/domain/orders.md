@@ -33,6 +33,10 @@ Contexto delimitado responsável por gerenciar pedidos após checkout.
 - `customerEmail: String` - Email do cliente
 - `customerPhone: String` - Telefone do cliente
 - `shippingAddress: ShippingAddress` - Endereco completo de entrega
+- `shippingServiceCode: String` - Codigo do servico de frete
+- `shippingServiceName: String` - Nome do servico de frete
+- `shippingCompany: String` - Transportadora
+- `shippingDeliveryDays: Integer` - Prazo de entrega em dias
 - `createdAt: LocalDateTime`
 - `paidAt: LocalDateTime` - Data/hora de pagamento aprovado
 - `processingAt: LocalDateTime` - Data/hora de inicio do processamento
@@ -121,6 +125,10 @@ CREATE TABLE tb_orders (
     shipping_city VARCHAR(100),
     shipping_state VARCHAR(2),
     shipping_postal_code VARCHAR(20),
+    shipping_service_code VARCHAR(50),
+    shipping_service_name VARCHAR(120),
+    shipping_company VARCHAR(120),
+    shipping_delivery_days INTEGER,
     created_at TIMESTAMP NOT NULL,
     paid_at TIMESTAMP NULL,
     processing_at TIMESTAMP NULL,

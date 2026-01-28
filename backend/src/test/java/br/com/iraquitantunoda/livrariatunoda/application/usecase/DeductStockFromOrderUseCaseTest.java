@@ -76,7 +76,11 @@ class DeductStockFromOrderUseCaseTest {
                 "Sao Paulo",
                 "SP",
                 "01000-000"
-            )
+            ),
+            null,
+            null,
+            null,
+            null
         );
 
         // Cria Books reais com estoque suficiente
@@ -253,7 +257,11 @@ class DeductStockFromOrderUseCaseTest {
                 "Sao Paulo",
                 "SP",
                 "01000-000"
-            )
+            ),
+            null,
+            null,
+            null,
+            null
         );
 
         when(bookRepository.findById(bookId1)).thenReturn(Optional.of(book1));
