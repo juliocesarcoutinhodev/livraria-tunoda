@@ -9,6 +9,21 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE}
+            required: ${MAIL_SMTP_STARTTLS_REQUIRED}
+          connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT}
+          timeout: ${MAIL_SMTP_TIMEOUT}
+          writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT}
 
 server:
   port: ${SERVER_PORT:8080}

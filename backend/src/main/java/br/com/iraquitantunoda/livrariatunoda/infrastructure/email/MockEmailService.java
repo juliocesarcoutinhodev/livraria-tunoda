@@ -3,11 +3,12 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.email;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.EmailMessage;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.EmailSender;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
-@Profile({"dev", "local", "test"})
+@Profile({"dev", "test", "local"})
 @Slf4j
 public class MockEmailService implements EmailSender {
 

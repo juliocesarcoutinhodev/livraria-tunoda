@@ -36,11 +36,19 @@ public class SendOrderApprovedEmailUseCase {
         var variables = new HashMap<String, Object>();
         variables.put("customerName", customerName);
         variables.put("orderId", order.getId().getValue());
-        variables.put("status", order.getStatus().name());
+        variables.put("status", formatStatus(order.getStatus().name()));
         variables.put("trackingUrl", frontendUrlProvider.getOrderConfirmationUrl(order.getId().getValue()));
 
         var body = emailTemplateRenderer.render("email/order-approved", variables);
         var message = EmailMessage.ofHtml(order.getCustomerEmail(), subject, body);
         emailDispatchService.sendAsync(message);
+    }
+
+    private String formatStatus(String status) {
+        return switch (status) {
+            case "PENDING" -> "Pendente";
+            case "CONFIRMED" -> "Confirmado";
+            default -> status;
+        };
     }
 }
