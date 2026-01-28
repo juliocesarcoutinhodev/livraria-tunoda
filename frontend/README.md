@@ -209,7 +209,7 @@ npm run lint && npm run type-check && npm run format:check
 2. **Seleção** → Adiciona livros ao carrinho
 3. **Carrinho** → Revisa itens e quantidades
 4. **Checkout** → Identificação, endereço e frete
-5. **Pagamento** → [Preparado para integração]
+5. **Pagamento** → Mercado Pago (Cartão/PIX) + webhook de status
 
 ## 📂 Estrutura do Projeto (Enterprise Pattern)
 
@@ -2029,6 +2029,15 @@ const newBook = await bookService.create({
   weight: 300,
   authorIds: ["author-id-123"]
 });
+```
+
+#### **Fluxo de Pagamento (Mercado Pago)**
+
+1. Criar pedido via `POST /carts/checkout`
+2. Criar pagamento via `POST /orders/{id}/payments` (method: `PIX` ou `CREDIT_CARD`)
+3. Processar pagamento via `POST /payments/{id}/process` (gera `paymentUrl`)
+4. Webhook atualiza status do pedido/pagamento
+5. Frontend acompanha status em tempo real e exibe `/pedido/[id]/confirmacao`
 ```
 
 #### **Configuração de Ambiente:**
