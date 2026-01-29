@@ -208,6 +208,15 @@ Response: PDF (application/pdf)
 Retorna o PDF do pedido (resumo + itens).
 ```
 
+### Baixar Etiqueta de Envio
+```
+GET /api/admin/orders/{orderId}/shipping-label
+Auth: ROLE_ADMIN
+Response: PDF (application/pdf)
+
+Retorna a etiqueta de envio no formato PDF.
+```
+
 ## Admin - Dashboard
 
 ### Métricas do Dashboard

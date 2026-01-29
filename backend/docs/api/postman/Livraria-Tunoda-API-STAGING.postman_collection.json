@@ -1649,6 +1649,35 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Baixar Etiqueta de Envio",
+          "request": {
+            "description": "Gera e retorna o PDF da etiqueta de envio.",
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/shipping-label",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                ":orderId",
+                "shipping-label"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}",
+                  "description": "UUID do pedido"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "description": "Endpoints de gestão de pedidos (admin)"

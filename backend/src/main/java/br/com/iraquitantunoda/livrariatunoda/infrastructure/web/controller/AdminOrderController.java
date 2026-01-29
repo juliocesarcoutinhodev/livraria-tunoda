@@ -3,6 +3,7 @@ package br.com.iraquitantunoda.livrariatunoda.infrastructure.web.controller;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.OrderResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.dto.PageResponse;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.GenerateOrderReportUseCase;
+import br.com.iraquitantunoda.livrariatunoda.application.usecase.GenerateShippingLabelUseCase;
 import br.com.iraquitantunoda.livrariatunoda.application.usecase.ListOrdersUseCase;
 import br.com.iraquitantunoda.livrariatunoda.domain.model.vo.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class AdminOrderController {
 
     private final ListOrdersUseCase listOrdersUseCase;
     private final GenerateOrderReportUseCase generateOrderReportUseCase;
+    private final GenerateShippingLabelUseCase generateShippingLabelUseCase;
 
     @GetMapping
     public ResponseEntity<PageResponse<OrderResponse>> listOrders(
@@ -40,6 +42,21 @@ public class AdminOrderController {
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.attachment()
             .filename("pedido-" + orderId + ".pdf")
+            .build());
+
+        return ResponseEntity.ok()
+            .headers(headers)
+            .body(pdf);
+    }
+
+    @GetMapping(value = "/{orderId}/shipping-label", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> downloadShippingLabel(@PathVariable String orderId) {
+        var pdf = generateShippingLabelUseCase.execute(orderId);
+
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment()
+            .filename("etiqueta-" + orderId + ".pdf")
             .build());
 
         return ResponseEntity.ok()

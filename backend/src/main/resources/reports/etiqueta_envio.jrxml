@@ -1,0 +1,55 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="EtiquetaEnvio" language="java" pageWidth="283" pageHeight="425" columnWidth="263" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" uuid="802f6f65-c9de-4f51-9aa2-5affb28ff8ec">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="livraria"/>
+	<parameter name="ORDER_ID" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[SELECT * FROM vw_order_report WHERE order_id = $P{ORDER_ID}]]></query>
+	<field name="customer_name" class="java.lang.String"/>
+	<field name="shipping_street" class="java.lang.String"/>
+	<field name="shipping_number" class="java.lang.String"/>
+	<field name="shipping_neighborhood" class="java.lang.String"/>
+	<field name="shipping_city" class="java.lang.String"/>
+	<field name="shipping_state" class="java.lang.String"/>
+	<field name="shipping_postal_code" class="java.lang.String"/>
+	<field name="shipping_address_line_1" class="java.lang.String"/>
+	<field name="shipping_address_line_2" class="java.lang.String"/>
+	<background height="405">
+		<element kind="rectangle" uuid="063dbe15-ce0b-425a-83e9-4fe9982615c6" x="0" y="0" width="263" height="405">
+			<pen lineWidth="1.0" lineStyle="Solid"/>
+		</element>
+	</background>
+	<title height="70">
+		<element kind="staticText" uuid="86436b11-c6d0-4498-974a-6016b4d0d08e" x="10" y="10" width="150" height="20" fontSize="14.0" bold="true">
+			<text><![CDATA[DESTINATÁRIO]]></text>
+		</element>
+		<element kind="rectangle" uuid="4db682b1-9fbc-42ca-b6b6-2f13f67d14da" x="180" y="5" width="75" height="55"/>
+		<element kind="staticText" uuid="51ed241e-891d-47bc-9ff6-7437b32de1a2" x="180" y="5" width="75" height="55" fontSize="11.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[CORREIOS]]></text>
+		</element>
+	</title>
+	<detail>
+		<band height="330">
+			<element kind="textField" uuid="43776e4e-7460-4bf1-86bd-57d8b6c89878" x="10" y="0" width="243" height="25" fontSize="12.0" bold="true" vTextAlign="Middle">
+				<expression><![CDATA[$F{customer_name}]]></expression>
+			</element>
+			<element kind="textField" uuid="db144dc6-14e3-42b0-96d8-f22157e63cc1" x="10" y="25" width="243" height="85" fontSize="11.0" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{shipping_address_line_1} + "\n" + $F{shipping_address_line_2} + "\nCEP: " + $F{shipping_postal_code}]]></expression>
+			</element>
+			<element kind="component" uuid="634fcc56-d926-4bae-80ab-e13863e90be1" x="31" y="120" width="200" height="60">
+				<component kind="barcode4j:Code128">
+					<codeExpression><![CDATA[$F{shipping_postal_code}]]></codeExpression>
+				</component>
+			</element>
+			<element kind="line" uuid="e54dd6b3-37d0-40b8-982d-0c0f3c9601e3" x="10" y="210" width="243" height="1">
+				<pen lineStyle="Dashed"/>
+			</element>
+			<element kind="staticText" uuid="eaeac3c2-fd69-44b5-9286-557d7fc46a45" x="10" y="220" width="100" height="15" fontSize="9.0" bold="true">
+				<text><![CDATA[REMETENTE:]]></text>
+			</element>
+			<element kind="staticText" uuid="c2de24a0-824e-438d-a20d-a6afb133e3a6" x="10" y="235" width="243" height="55" fontSize="9.0">
+				<text><![CDATA[LIVRARIA TUNODA LTDA
+Rua das Flores, 123 - Centro
+São Paulo / SP - CEP: 01000-000]]></text>
+			</element>
+		</band>
+	</detail>
+</jasperReport>
