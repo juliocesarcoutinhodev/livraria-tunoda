@@ -104,6 +104,12 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 - Página de confirmação `/pedido/[id]/confirmacao`
 - Consulta de pedido sem login: `/pedido/consulta` (orderId + email)
 
+### ✅ **Admin: Pedidos e Relatórios**
+
+- Listagem e detalhes completos do pedido (itens, cliente, frete, timeline)
+- Exportação de relatório em PDF via backend: `GET /api/admin/orders/{orderId}/report`
+- Métricas no dashboard (KPIs + gráficos com pedidos por dia e rankings)
+
 ### ✅ **Seção Sobre o Autor**
 
 - História completa do Pastor Iraquitan
@@ -147,6 +153,11 @@ npm run dev
 # 5. Acessar no navegador
 # Local: http://localhost:3000
 ```
+
+### Variáveis de Ambiente
+
+- `NEXT_PUBLIC_API_URL` (obrigatório) - base URL do backend (`http://localhost:8080/api`)
+- `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY` (opcional) - habilita o Brick do Mercado Pago no checkout
 
 ### Scripts Disponíveis
 
