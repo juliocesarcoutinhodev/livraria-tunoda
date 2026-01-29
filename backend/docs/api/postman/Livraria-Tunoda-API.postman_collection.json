@@ -1620,6 +1620,35 @@
             "description": "Lista todos os pedidos com paginação e filtros opcionais. Filtros: status (todos os OrderStatus). Ordenação: sortBy (campo) e sortDirection (asc/desc). Retorna data formatada (dd/MM/yyyy)."
           },
           "response": []
+        },
+        {
+          "name": "Baixar Relatorio do Pedido",
+          "request": {
+            "description": "Gera e retorna o PDF do pedido (resumo + itens).",
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/report",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                ":orderId",
+                "report"
+              ],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "{{orderId}}",
+                  "description": "UUID do pedido"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "description": "Endpoints de gestão de pedidos (admin)"

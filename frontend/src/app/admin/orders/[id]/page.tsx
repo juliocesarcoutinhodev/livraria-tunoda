@@ -10,17 +10,20 @@
  */
 
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { useOrder } from "@/hooks";
 import { useAutoLogoutAfterInactivity } from "@/hooks/useInactivityLogout";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminFooter from "@/components/layout/AdminFooter";
 import Breadcrumb from "@/components/layout/Breadcrumb";
+import { orderService } from "@/services/orderService";
 import type { OrderStatus } from "@/types/order";
 
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params?.id as string;
+  const [isExporting, setIsExporting] = useState(false);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
@@ -123,6 +126,30 @@ export default function OrderDetailsPage() {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const handleExportPdf = async () => {
+    if (!orderId) {
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const blob = await orderService.downloadReport(orderId);
+      const filename = `pedido-${order?.orderId?.slice(0, 8) || "pedido"}.pdf`;
+      const url = window.URL.createObjectURL(
+        blob instanceof Blob ? blob : new Blob([blob], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (isLoading) {
@@ -683,6 +710,18 @@ export default function OrderDetailsPage() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-4">
                     <button
+                      type="button"
+                      onClick={handleExportPdf}
+                      disabled={isExporting}
+                      className={`w-full mb-3 py-2 px-4 rounded-lg font-medium transition-colors ${
+                        isExporting
+                          ? "bg-gray-200 text-gray-500"
+                          : "bg-christian-blue text-white hover:bg-christian-green"
+                      }`}
+                    >
+                      {isExporting ? "Gerando PDF..." : "Exportar pedido (PDF)"}
+                    </button>
+                    <button
                       onClick={() => router.push("/admin/orders")}
                       className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
                     >
@@ -698,6 +737,7 @@ export default function OrderDetailsPage() {
           <AdminFooter />
         </div>
       </div>
+
     </>
   );
 }

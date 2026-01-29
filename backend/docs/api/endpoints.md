@@ -199,6 +199,15 @@ Exemplos:
 - Todos os pedidos: (sem filtro status)
 ```
 
+### Baixar Relatorio do Pedido
+```
+GET /api/admin/orders/{orderId}/report
+Auth: ROLE_ADMIN
+Response: PDF (application/pdf)
+
+Retorna o PDF do pedido (resumo + itens).
+```
+
 ## Admin - Dashboard
 
 ### Métricas do Dashboard

@@ -1,0 +1,28 @@
+CREATE OR REPLACE VIEW vw_order_report AS
+SELECT
+    o.id AS order_id,
+    o.customer_name,
+    o.customer_email,
+    o.customer_phone,
+    o.created_at,
+    o.paid_at,
+    o.processing_at,
+    o.shipped_at,
+    o.delivered_at,
+    o.cancelled_at,
+    o.expired_at,
+    o.shipping_service_name,
+    o.shipping_service_code,
+    o.shipping_company,
+    o.shipping_delivery_days,
+    o.subtotal_amount AS subtotal,
+    o.shipping_cost_amount AS shipping_cost,
+    o.total_amount AS total,
+    o.shipping_street,
+    o.shipping_number,
+    o.shipping_complement,
+    o.shipping_neighborhood,
+    o.shipping_city,
+    o.shipping_state,
+    o.shipping_postal_code
+FROM tb_orders o;

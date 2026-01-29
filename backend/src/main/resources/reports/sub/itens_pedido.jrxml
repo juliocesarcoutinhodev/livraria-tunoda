@@ -1,0 +1,44 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="itens_pedido" language="java" pageWidth="555" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="52b94f30-e16f-4a0c-8bd0-5018debaeb71">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="livraria"/>
+	<parameter name="ORDER_ID_PARAM" class="java.lang.String">
+		<defaultValueExpression><![CDATA["b50d5545-dff3-408c-a67f-e923fdf2c476"]]></defaultValueExpression>
+	</parameter>
+	<query language="SQL"><![CDATA[SELECT book_title, quantity, unit_price, subtotal FROM vw_order_items_report WHERE order_id = $P{ORDER_ID_PARAM}]]></query>
+	<field name="book_title" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.Integer"/>
+	<field name="unit_price" class="java.lang.Double"/>
+	<field name="subtotal" class="java.lang.Double"/>
+	<columnHeader height="35" splitType="Stretch">
+		<element kind="staticText" uuid="23a50cad-707d-4f48-ab8a-ca9fa1ff0070" x="10" y="10" width="290" height="20" forecolor="#6B7280" fontSize="10.0" bold="true" vTextAlign="Middle">
+			<text><![CDATA[LIVRO / DESCRIÇÃO]]></text>
+		</element>
+		<element kind="staticText" uuid="518f086b-856f-49e3-bf48-a25b461e11c4" x="300" y="10" width="50" height="20" forecolor="#6B7280" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[QTD]]></text>
+		</element>
+		<element kind="staticText" uuid="3c22996f-9a6d-4438-88f1-0aa5c944f134" x="350" y="10" width="90" height="20" forecolor="#6B7280" fontSize="10.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<text><![CDATA[UNITÁRIO]]></text>
+		</element>
+		<element kind="staticText" uuid="170a34a6-ad09-4af6-ace0-9ff8f81f9404" x="440" y="10" width="105" height="20" forecolor="#6B7280" fontSize="10.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+			<text><![CDATA[SUBTOTAL]]></text>
+		</element>
+		<element kind="line" uuid="30734d69-320c-41e0-bd2e-e30598040052" x="10" y="32" width="535" height="1" forecolor="#E5E7EB"/>
+	</columnHeader>
+	<detail>
+		<band height="45" splitType="Stretch">
+			<element kind="textField" uuid="bf42789e-2b5a-4041-84bf-1c5b8f00dca6" x="10" y="10" width="290" height="25" fontSize="11.0" textAdjust="StretchHeight" blankWhenNull="true" bold="false" vTextAlign="Top">
+				<paragraph lineSpacing="1_1_2"/>
+				<expression><![CDATA[$F{book_title}]]></expression>
+			</element>
+			<element kind="textField" uuid="3426b7e4-e85b-4fa8-a961-e8036c8d2e51" x="300" y="10" width="50" height="25" fontSize="11.0" blankWhenNull="true" hTextAlign="Center" vTextAlign="Top">
+				<expression><![CDATA[$F{quantity}]]></expression>
+			</element>
+			<element kind="textField" uuid="83abea9c-b20d-4513-9f4a-abd77809a736" x="350" y="10" width="90" height="25" fontSize="11.0" pattern="¤ #,##0.00" blankWhenNull="true" hTextAlign="Right" vTextAlign="Top">
+				<expression><![CDATA[$F{unit_price}]]></expression>
+			</element>
+			<element kind="textField" uuid="7fe00a38-e826-413b-9e9f-207047d5891f" x="440" y="10" width="105" height="25" fontSize="11.0" pattern="¤ #,##0.00" blankWhenNull="true" bold="true" hTextAlign="Right" vTextAlign="Top">
+				<expression><![CDATA[$F{subtotal}]]></expression>
+			</element>
+		</band>
+	</detail>
+</jasperReport>

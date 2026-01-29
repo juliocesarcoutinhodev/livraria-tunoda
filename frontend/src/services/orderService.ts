@@ -74,6 +74,19 @@ const lookup = async (
 };
 
 /**
+ * Exporta relatorio do pedido (PDF) (ADMIN)
+ *
+ * @param id - ID do pedido
+ * @returns Blob do PDF
+ */
+const downloadReport = async (id: string): Promise<Blob> => {
+  const response = await apiClient.get(`/admin/orders/${id}/report`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+/**
  * Order Service
  * Exporta todas as operações com pedidos
  */
@@ -81,4 +94,5 @@ export const orderService = {
   getById,
   listAdmin,
   lookup,
+  downloadReport,
 };
