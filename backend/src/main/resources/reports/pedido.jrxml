@@ -17,6 +17,8 @@
 	<field name="shipping_neighborhood" class="java.lang.String"/>
 	<field name="shipping_city" class="java.lang.String"/>
 	<field name="shipping_state" class="java.lang.String"/>
+	<field name="shipping_address_line_1" class="java.lang.String"/>
+	<field name="shipping_address_line_2" class="java.lang.String"/>
 	<background height="802">
 		<element kind="rectangle" uuid="9b035199-0b16-47c4-a521-d70cd3e01e27" x="-20" y="-20" width="595" height="822" forecolor="rgba(255, 255, 255, 0.0)" backcolor="#F7F6F2"/>
 	</background>
@@ -43,7 +45,7 @@
 			<expression><![CDATA[$F{customer_name}]]></expression>
 		</element>
 		<element kind="textField" uuid="e06f0f51-678e-4130-8926-af2d0223ef5a" x="20" y="67" width="280" height="40" forecolor="#4B5563" fontSize="11.0" textAdjust="StretchHeight" blankWhenNull="true" vTextAlign="Top">
-			<expression><![CDATA[$F{shipping_street} + ", " + $F{shipping_number} + "\n" + $F{shipping_neighborhood} + " - " + $F{shipping_city} + "/" + $F{shipping_state}]]></expression>
+			<expression><![CDATA[$F{shipping_address_line_1} + "\n" + $F{shipping_address_line_2}]]></expression>
 		</element>
 		<element kind="staticText" uuid="204b53d2-0b51-4f0b-a6ed-7daf38e55abf" x="340" y="25" width="120" height="15" forecolor="#6B7280" fontSize="10.0" bold="true">
 			<text><![CDATA[MÉTODO DE ENVIO]]></text>
