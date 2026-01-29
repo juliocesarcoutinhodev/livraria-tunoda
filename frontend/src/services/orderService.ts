@@ -87,6 +87,19 @@ const downloadReport = async (id: string): Promise<Blob> => {
 };
 
 /**
+ * Exporta etiqueta de envio (PDF) (ADMIN)
+ *
+ * @param id - ID do pedido
+ * @returns Blob do PDF
+ */
+const downloadShippingLabel = async (id: string): Promise<Blob> => {
+  const response = await apiClient.get(`/admin/orders/${id}/shipping-label`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+/**
  * Order Service
  * Exporta todas as operações com pedidos
  */
@@ -95,4 +108,5 @@ export const orderService = {
   listAdmin,
   lookup,
   downloadReport,
+  downloadShippingLabel,
 };

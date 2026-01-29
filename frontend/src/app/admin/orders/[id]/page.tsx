@@ -23,7 +23,8 @@ export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params?.id as string;
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingReport, setIsExportingReport] = useState(false);
+  const [isExportingLabel, setIsExportingLabel] = useState(false);
 
   // Auto-logout por inatividade
   useAutoLogoutAfterInactivity();
@@ -128,27 +129,46 @@ export default function OrderDetailsPage() {
     });
   };
 
-  const handleExportPdf = async () => {
+  const downloadPdf = async (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(
+      blob instanceof Blob ? blob : new Blob([blob], { type: "application/pdf" })
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleExportReport = async () => {
     if (!orderId) {
       return;
     }
 
-    setIsExporting(true);
+    setIsExportingReport(true);
     try {
       const blob = await orderService.downloadReport(orderId);
       const filename = `pedido-${order?.orderId?.slice(0, 8) || "pedido"}.pdf`;
-      const url = window.URL.createObjectURL(
-        blob instanceof Blob ? blob : new Blob([blob], { type: "application/pdf" })
-      );
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      await downloadPdf(blob, filename);
     } finally {
-      setIsExporting(false);
+      setIsExportingReport(false);
+    }
+  };
+
+  const handleExportLabel = async () => {
+    if (!orderId) {
+      return;
+    }
+
+    setIsExportingLabel(true);
+    try {
+      const blob = await orderService.downloadShippingLabel(orderId);
+      const filename = `etiqueta-${order?.orderId?.slice(0, 8) || "pedido"}.pdf`;
+      await downloadPdf(blob, filename);
+    } finally {
+      setIsExportingLabel(false);
     }
   };
 
@@ -222,7 +242,7 @@ export default function OrderDetailsPage() {
             />
 
             {/* Header */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 font-mono">
                   Pedido #{order.orderId?.slice(0, 8) || "N/A"}
@@ -231,7 +251,41 @@ export default function OrderDetailsPage() {
                   Criado em {formatDate(order.createdAt)}
                 </p>
               </div>
-              {getStatusBadge(order.status)}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                {getStatusBadge(order.status)}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleExportReport}
+                    disabled={isExportingReport}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isExportingReport
+                        ? "bg-gray-200 text-gray-500"
+                        : "bg-christian-blue text-white hover:bg-christian-green"
+                    }`}
+                  >
+                    {isExportingReport ? "Gerando PDF..." : "Exportar pedido"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportLabel}
+                    disabled={isExportingLabel}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isExportingLabel
+                        ? "bg-gray-200 text-gray-500"
+                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                    }`}
+                  >
+                    {isExportingLabel ? "Gerando etiqueta..." : "Imprimir etiqueta"}
+                  </button>
+                  <button
+                    onClick={() => router.push("/admin/orders")}
+                    className="px-4 py-2 border border-christian-blue text-christian-blue hover:bg-christian-blue hover:text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Voltar para pedidos
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -706,29 +760,7 @@ export default function OrderDetailsPage() {
                   </div>
                 </div>
 
-                {/* Ações */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="p-4">
-                    <button
-                      type="button"
-                      onClick={handleExportPdf}
-                      disabled={isExporting}
-                      className={`w-full mb-3 py-2 px-4 rounded-lg font-medium transition-colors ${
-                        isExporting
-                          ? "bg-gray-200 text-gray-500"
-                          : "bg-christian-blue text-white hover:bg-christian-green"
-                      }`}
-                    >
-                      {isExporting ? "Gerando PDF..." : "Exportar pedido (PDF)"}
-                    </button>
-                    <button
-                      onClick={() => router.push("/admin/orders")}
-                      className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
-                    >
-                      Voltar para pedidos
-                    </button>
-                  </div>
-                </div>
+                {/* Ações removidas (movidas para o topo) */}
               </div>
             </div>
           </main>

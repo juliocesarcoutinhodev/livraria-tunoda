@@ -108,6 +108,8 @@ Criar uma experiência que transmita **paz**, **fé**, **esperança**, **confian
 
 - Listagem e detalhes completos do pedido (itens, cliente, frete, timeline)
 - Exportação de relatório em PDF via backend: `GET /api/admin/orders/{orderId}/report`
+- Exportação de etiqueta de envio (PDF): `GET /api/admin/orders/{orderId}/shipping-label`
+- Ações no detalhe do pedido: exportar relatório e imprimir etiqueta
 - Métricas no dashboard (KPIs + gráficos com pedidos por dia e rankings)
 
 ### ✅ **Seção Sobre o Autor**
