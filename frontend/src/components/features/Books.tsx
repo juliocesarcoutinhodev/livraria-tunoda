@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useBooks, useTrackBookMetric } from "@/hooks/useBooks";
 import Skeleton from "@/components/ui/Skeleton";
@@ -235,40 +236,14 @@ export default function Books({ className = "" }: BooksProps) {
         {/* Call to Action */}
         <div className="text-center mt-16 pt-8 border-t border-[#2F5D8C]/10">
           <p className="font-inter text-lg text-[#2E2E2E] opacity-80 mb-6">
-            Transforme sua jornada espiritual com nossa coleção completa
+            Quer ver todos os titulos disponiveis?
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <div className="flex items-center space-x-2 text-[#3A7D44]">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="font-inter font-medium">Frete grátis</span>
-            </div>
-            <div className="flex items-center space-x-2 text-[#3A7D44]">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="font-inter font-medium">Entrega rápida</span>
-            </div>
-            <div className="flex items-center space-x-2 text-[#3A7D44]">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="font-inter font-medium">Pagamento seguro</span>
-            </div>
-          </div>
+          <Link
+            href="/livros"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-inter font-semibold text-sm text-white bg-[#2F5D8C] hover:bg-[#254B6F] transition-colors"
+          >
+            Veja nosso catalogo completo
+          </Link>
         </div>
       </div>
     </section>
