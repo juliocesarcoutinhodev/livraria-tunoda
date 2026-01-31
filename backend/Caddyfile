@@ -1,0 +1,4 @@
+vps7348.integrator.host {
+  encode gzip
+  reverse_proxy app:8080
+}

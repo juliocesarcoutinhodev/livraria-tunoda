@@ -2135,7 +2135,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://hml-tunoda.sp1.br.saveincloud.net.br:8080",
+      "value": "https://vps7348.integrator.host",
       "type": "string"
     },
     {
