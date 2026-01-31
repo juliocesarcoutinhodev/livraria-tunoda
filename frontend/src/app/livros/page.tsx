@@ -9,7 +9,7 @@
  * @module app/livros
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,7 +25,7 @@ import type { PublicBookFilterParams } from "@/types/book";
 /**
  * Página de catálogo de livros
  */
-export default function LivrosPage() {
+function LivrosPageContent() {
   const router = useRouter();
   const { addItem, isUpdating } = useCart();
   const searchParams = useSearchParams();
@@ -396,5 +396,19 @@ export default function LivrosPage() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function LivrosPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center font-inter text-[#2E2E2E]">
+          Carregando catalogo...
+        </div>
+      }
+    >
+      <LivrosPageContent />
+    </Suspense>
   );
 }

@@ -282,11 +282,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = async (payload: AddToCartPayload) => {
     setState((prev) => ({ ...prev, isUpdating: true }));
     const quantity = Math.max(1, payload.quantity ?? 1);
+    const previous = cartRef.current;
 
     try {
       const currentCartId = await ensureCartId();
       logCartDebug("addItem: start", { cartId: currentCartId });
-      const previous = cartRef.current;
       const existing = previous.items.find(
         (item) => item.bookId === payload.bookId
       );
@@ -343,7 +343,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         try {
           const newCartId = await createFreshCart();
-          const previous = cartRef.current;
           const existing = previous.items.find(
             (item) => item.bookId === payload.bookId
           );
