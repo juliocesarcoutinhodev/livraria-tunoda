@@ -78,6 +78,9 @@ export const metadata: Metadata = {
 
   // Other meta tags
   category: "religion",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
