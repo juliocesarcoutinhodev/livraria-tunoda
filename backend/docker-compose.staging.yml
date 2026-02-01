@@ -18,6 +18,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+      - ~/apps/livraria/uploads:/var/www/uploads:ro
     depends_on:
       - app
     restart: unless-stopped
@@ -90,6 +91,12 @@ services:
       MERCADO_PAGO_CREATE_PREFERENCE_ENDPOINT: /checkout/preferences
       MERCADO_PAGO_GET_PAYMENT_ENDPOINT: /v1/payments/{id}
 
+      # CNPJA
+      CNPJA_API_URL: ${CNPJA_API_URL:-https://api.cnpja.com}
+      CNPJA_API_TOKEN: ${CNPJA_API_TOKEN}
+      CNPJA_TIMEOUT_SECONDS: ${CNPJA_TIMEOUT_SECONDS:-10}
+      CNPJA_ZIP_ENDPOINT: ${CNPJA_ZIP_ENDPOINT:-/zip/{code}}
+
       # Email (SMTP)
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
@@ -103,12 +110,12 @@ services:
       MAIL_SMTP_WRITE_TIMEOUT: ${MAIL_SMTP_WRITE_TIMEOUT}
 
       # CORS
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://www.iraquitantunoda.com.br}
-      CORS_ALLOWED_METHODS: GET,POST,PUT,DELETE,PATCH,OPTIONS
-      CORS_ALLOWED_HEADERS: Authorization,Content-Type,Accept,Origin,X-Requested-With
-      CORS_EXPOSED_HEADERS: Authorization
-      CORS_ALLOW_CREDENTIALS: true
-      CORS_MAX_AGE: 3600
+      APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://www.iraquitantunoda.com.br}
+      APP_CORS_ALLOWED_METHODS: GET,POST,PUT,DELETE,PATCH,OPTIONS
+      APP_CORS_ALLOWED_HEADERS: Authorization,Content-Type,Accept,Origin,X-Requested-With,X-Correlation-Id
+      APP_CORS_EXPOSED_HEADERS: Authorization,X-Correlation-Id
+      APP_CORS_ALLOW_CREDENTIALS: true
+      APP_CORS_MAX_AGE: 3600
 
       # JVM Options
       JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError

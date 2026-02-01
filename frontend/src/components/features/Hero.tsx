@@ -15,10 +15,10 @@ export default function Hero({ className = "" }: HeroProps) {
         {/* Mobile: Imagem primeiro */}
         <div className="order-1 lg:order-1 flex justify-center lg:justify-start">
           <div className="relative group w-full max-w-sm lg:max-w-md">
-            <div className="absolute -inset-4 bg-gradient-to-r from-[#2F5D8C] to-[#3A7D44] rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
-            <div className="relative aspect-[3/4] w-full">
+            <div className="absolute -inset-4 bg-linear-to-r from-[#2F5D8C] to-[#3A7D44] rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+            <div className="relative aspect-3/4 w-full">
               <Image
-                src="/img/img1.jpeg"
+                src="/img/img_hero.jpg"
                 alt="Pastor Iraquitan Tunoda - Missionário e autor dos livros cristãos, transmitindo paz e serenidade"
                 fill
                 priority
@@ -97,7 +97,7 @@ export default function Hero({ className = "" }: HeroProps) {
                   />
                 </svg>
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#C9A44C] to-[#B8934A] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-[#C9A44C] to-[#B8934A] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           </div>
         </div>
