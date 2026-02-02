@@ -9,30 +9,42 @@ Lista completa dos endpoints REST disponíveis.
 POST /api/auth/login
 Body: { email, password }
 Response: { accessToken, refreshToken, tokenType, expiresIn }
+Cookies: __Secure-at, __Secure-rt (HttpOnly, Secure, SameSite=None)
+
+Retorna tokens no body JSON + cookies HttpOnly para maior segurança.
+Access token expira em 15 minutos, refresh token em 30 dias.
 ```
 
 ### Refresh Token
 ```
 POST /api/auth/refresh
-Body: { refreshToken }
+Body: { refreshToken } (opcional se cookie presente)
 Response: { accessToken, refreshToken, tokenType, expiresIn }
+Cookies: Novos __Secure-at e __Secure-rt
+
+Lê refresh token do cookie automaticamente ou do body.
+Implementa token rotation: invalida token antigo.
+Detecta reuso de token (revoga todos os tokens se detectado).
 ```
 
-### Logout (Revoke Token) ⭐ NOVO
+### Logout (Revoke Token) ⭐ ATUALIZADO
 ```
 POST /api/auth/revoke
-Body: { refreshToken }
+Body: { refreshToken } (opcional se cookie presente)
 Response: 204 No Content
+Cookies: Removidos (Max-Age=0)
 
 Revoga o refresh token fornecido, impedindo renovação futura.
-O access token expira naturalmente (1 hora).
+O access token expira naturalmente (15 minutos).
+Cookies são automaticamente limpos.
 ```
 
-### Logout Completo (Revoke All) ⭐ NOVO
+### Logout Completo (Revoke All) ⭐ ATUALIZADO
 ```
 POST /api/auth/revoke-all
-Body: { refreshToken }
+Body: { refreshToken } (opcional se cookie presente)
 Response: 204 No Content
+Cookies: Removidos (Max-Age=0)
 
 Revoga TODOS os tokens do usuário, invalidando todas as sessões ativas.
 Útil em casos de comprometimento de segurança.

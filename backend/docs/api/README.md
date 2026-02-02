@@ -76,17 +76,28 @@ Content-Type: application/json
   "email": "admin@livraria.com",
   "password": "admin123"
 }
+
+# Response: tokens no body + cookies HttpOnly
+# Set-Cookie: __Secure-at=...
+# Set-Cookie: __Secure-rt=...
 ```
 
-### Logout ⭐ NOVO
+### Logout ⭐ ATUALIZADO
 
 ```bash
+# Via cookie (preferencial)
+POST /api/auth/revoke
+# Cookie __Secure-rt enviado automaticamente
+
+# Via body (compatibilidade)
 POST /api/auth/revoke
 Content-Type: application/json
 
 {
   "refreshToken": "seu-refresh-token"
 }
+
+# Response: 204 No Content + cookies removidos
 ```
 
 ### Buscar Livros com Filtros ⭐ ATUALIZADO

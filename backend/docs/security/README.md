@@ -4,18 +4,30 @@ Documentação sobre autenticação, autorização e segurança do sistema.
 
 ## Visão Geral
 
-**Autenticação:** JWT (JSON Web Tokens)  
+**Autenticação:** JWT (JSON Web Tokens) + Cookies HttpOnly  
 **Autorização:** Role-based (RBAC)  
 **Sessão:** Stateless  
-**Senha:** BCrypt (12 rounds)
+**Senha:** BCrypt (12 rounds)  
+**Tokens:** Hash SHA-256 no banco
 
 ## Documentos
 
 ### [Autenticação](authentication.md)
 
-Como funciona o sistema de autenticação JWT.
+Como funciona o sistema de autenticação JWT com cookies HttpOnly.
+Inclui: token rotation, reuse detection, hash SHA-256.
 
-### [Logout (Revoke)](LOGOUT_IMPLEMENTATION.md) ⭐ NOVO
+### [Cookies Cross-Site](CROSS_SITE_COOKIES.md) ⭐ NOVO
+
+Configuração completa para frontend e backend em domínios diferentes.
+Cookies com SameSite=None, prefixo __Secure-, CORS correto.
+
+### [Desenvolvimento Local](../getting-started/LOCAL_DEVELOPMENT_COOKIES.md) ⭐ NOVO
+
+Como desenvolver localmente sem HTTPS usando profile `local`.
+Cookies funcionam em HTTP para facilitar desenvolvimento.
+
+### [Logout (Revoke)](LOGOUT_IMPLEMENTATION.md)
 
 Sistema completo de logout com revogação de tokens.
 
@@ -38,11 +50,19 @@ Recomendações de segurança para produção.
 ```bash
 POST /api/auth/login
 Body: { email, password }
-→ { accessToken, refreshToken }
+→ { accessToken, refreshToken, tokenType, expiresIn }
+→ Cookies: __Secure-at, __Secure-rt (HttpOnly, Secure)
 ```
 
 ### Usar Token
 
+**Opção A: Cookie (Automático)**
+```bash
+GET /api/admin/books
+# Cookie __Secure-at enviado automaticamente
+```
+
+**Opção B: Header (APIs/Postman)**
 ```bash
 GET /api/admin/books
 Authorization: Bearer {accessToken}
@@ -50,24 +70,34 @@ Authorization: Bearer {accessToken}
 
 ### Renovar Token
 
+**Opção A: Cookie (Recomendado)**
+```bash
+POST /api/auth/refresh
+# Cookie __Secure-rt enviado automaticamente, body opcional
+→ Novos tokens + novos cookies
+```
+
+**Opção B: Body (Compatibilidade)**
 ```bash
 POST /api/auth/refresh
 Body: { refreshToken }
-→ Novos tokens
+→ Novos tokens + novos cookies
 ```
 
-### Logout ⭐ NOVO
+### Logout ⭐ ATUALIZADO
 
 ```bash
-# Logout simples
+# Logout simples (via cookie ou body)
 POST /api/auth/revoke
-Body: { refreshToken }
+Body: { refreshToken } (opcional se cookie presente)
 → 204 No Content
+→ Cookies removidos
 
 # Logout completo (todas as sessões)
 POST /api/auth/revoke-all
-Body: { refreshToken }
+Body: { refreshToken } (opcional se cookie presente)
 → 204 No Content
+→ Cookies removidos
 ```
 
 ## Níveis de Acesso
@@ -85,15 +115,28 @@ Body: { refreshToken }
 ## Configuração
 
 ```yaml
-jwt:
-  secret: ${JWT_SECRET}              # 256 bits mínimo
-  expiration: ${JWT_EXPIRATION:3600} # 1 hora
-  
-refresh-token:
-  expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:30}
+app:
+  security:
+    cookies:
+      secure: true  # false em profile 'local', true em staging/prod
+    jwt:
+      secret: ${JWT_SECRET}              # 256 bits mínimo
+      expiration: ${JWT_EXPIRATION:900}  # 15 minutos
+    refresh-token:
+      expiration-days: ${REFRESH_TOKEN_EXPIRATION_DAYS:30}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allow-credentials: true  # Obrigatório para cookies
 ```
+
+**Profiles:**
+- `local`: cookies.secure=false (HTTP funciona)
+- `staging/prod`: cookies.secure=true (HTTPS obrigatório)
 
 ## Referências
 
+- [Autenticação Completa](authentication.md)
+- [Cookies Cross-Site](CROSS_SITE_COOKIES.md)
+- [Desenvolvimento Local](../getting-started/LOCAL_DEVELOPMENT_COOKIES.md)
 - [Usuários Domain](../domain/users.md)
 - [Spring Security](https://spring.io/projects/spring-security)

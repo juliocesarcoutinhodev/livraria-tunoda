@@ -1,6 +1,7 @@
-# 📚 Índice Completo da Documentação - v1.1.0
+# 📚 Índice Completo da Documentação - v1.2.0
 
-**Última Atualização:** 26/01/2026
+**Última Atualização:** 02/02/2026  
+**Novidades:** Cookies HttpOnly, Hash SHA-256, Reuse Detection, Cross-Site Support
 
 ---
 
@@ -47,13 +48,16 @@
 - [Bugfix: Filtro NULL](api/BUGFIX_NULL_FILTER.md) - Correção PostgreSQL
 - [Postman Collections](api/postman/) - Collections de teste
 
-### **5. Segurança** ⭐ ATUALIZADO
-- [Visão Geral](security/README.md) - Introdução
-- [Autenticação](security/authentication.md) - JWT e tokens
-- [Logout (Revoke)](security/LOGOUT_IMPLEMENTATION.md) ⭐ NOVO - Sistema de logout
-- [Autorização](security/authorization.md) - Roles e permissões
+### **5. Segurança** ⭐ ATUALIZADO v1.2.0
+- [Visão Geral](security/README.md) - Introdução à segurança
+- [Autenticação JWT](security/authentication.md) ⭐ ATUALIZADO - Cookies HttpOnly + Hash SHA-256
+- [Cookies Cross-Site](security/CROSS_SITE_COOKIES.md) ⭐ NOVO - Frontend/backend em domínios diferentes
+- [Desenvolvimento Local](getting-started/LOCAL_DEVELOPMENT_COOKIES.md) ⭐ NOVO - Sem HTTPS
+- [Logout](security/LOGOUT_IMPLEMENTATION.md) - Revogação de tokens
+- [Autorização](security/authorization.md) - Controle de acesso (RBAC)
 - [Credenciais Admin](security/ADMIN_CREDENTIALS.md) - Usuário padrão
-- [Boas Práticas](security/best-practices.md) - Segurança em produção
+- [Boas Práticas](security/best-practices.md) - Recomendações
+- [Changelog Documentação](security/DOCUMENTATION_CHANGELOG.md) ⭐ NOVO - Histórico de mudanças
 
 ### **6. Banco de Dados**
 - [Schema](database/schema.md) - Estrutura de tabelas
