@@ -50,11 +50,15 @@ Revoga TODOS os tokens do usuário, invalidando todas as sessões ativas.
 Útil em casos de comprometimento de segurança.
 ```
 
-### Usuário Atual
+### Usuário Atual ⭐ ATUALIZADO
 ```
 GET /api/user/me
-Auth: Bearer token
-Response: { id, name, email, role }
+Auth: Cookie __Secure-at ou Bearer token (header Authorization)
+Response: { id, email, role }
+
+Retorna dados do usuário autenticado.
+Token pode vir automaticamente do cookie ou via header Authorization.
+Não consulta banco - dados vêm do JWT.
 ```
 
 ## Catálogo Público
