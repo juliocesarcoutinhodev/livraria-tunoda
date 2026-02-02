@@ -25,6 +25,7 @@ public interface RefreshTokenMapper {
             RefreshTokenId.of(entity.getId()),
             UserId.of(entity.getUserId()),
             entity.getToken(),
+            entity.getTokenHash(),
             entity.getCreatedAt(),
             entity.getExpiresAt(),
             entity.isRevoked()

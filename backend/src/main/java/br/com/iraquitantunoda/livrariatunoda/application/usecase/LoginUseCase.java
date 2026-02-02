@@ -9,6 +9,7 @@ import br.com.iraquitantunoda.livrariatunoda.domain.repository.RefreshTokenRepos
 import br.com.iraquitantunoda.livrariatunoda.domain.repository.UserRepository;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.JwtService;
 import br.com.iraquitantunoda.livrariatunoda.domain.service.PasswordEncoderService;
+import br.com.iraquitantunoda.livrariatunoda.domain.service.TokenHashService;
 import br.com.iraquitantunoda.livrariatunoda.infrastructure.config.SecurityProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class LoginUseCase {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoderService passwordEncoder;
+    private final TokenHashService tokenHashService;
     private final SecurityProperties securityProperties;
 
     /**
@@ -75,9 +77,13 @@ public class LoginUseCase {
         // Gera access token JWT
         var accessToken = jwtService.generateAccessToken(user);
 
-        // Gera refresh token persistido
+        // Gera refresh token com hash para armazenamento seguro
+        var rawToken = java.util.UUID.randomUUID().toString();
+        var tokenHash = tokenHashService.hashToken(rawToken);
         var refreshToken = RefreshToken.create(
             user.getId(),
+            rawToken,
+            tokenHash,
             securityProperties.getRefreshToken().getExpirationDays()
         );
         refreshTokenRepository.save(refreshToken);

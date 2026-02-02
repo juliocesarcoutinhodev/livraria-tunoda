@@ -19,6 +19,8 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenEnt
 
     Optional<RefreshTokenEntity> findByToken(String token);
 
+    Optional<RefreshTokenEntity> findByTokenHash(String tokenHash);
+
     @Query("SELECT r FROM RefreshTokenEntity r WHERE r.userId = :userId AND r.revoked = false AND r.expiresAt > :now")
     List<RefreshTokenEntity> findValidTokensByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 

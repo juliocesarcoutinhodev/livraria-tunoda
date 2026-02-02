@@ -28,6 +28,11 @@ public interface RefreshTokenRepository {
     Optional<RefreshToken> findByToken(String token);
 
     /**
+     * Busca refresh token pelo hash do token.
+     */
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
+
+    /**
      * Busca todos os tokens validos de um usuario.
      */
     List<RefreshToken> findValidTokensByUserId(UserId userId);

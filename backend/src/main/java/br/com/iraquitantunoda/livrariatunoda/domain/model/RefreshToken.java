@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Aggregate Root que representa um refresh token no sistema.
@@ -28,15 +27,17 @@ public class RefreshToken {
     private final RefreshTokenId id;
     private final UserId userId;
     private final String token;
+    private final String tokenHash;
     private final LocalDateTime createdAt;
     private final LocalDateTime expiresAt;
     private boolean revoked;
 
-    private RefreshToken(RefreshTokenId id, UserId userId, String token,
+    private RefreshToken(RefreshTokenId id, UserId userId, String token, String tokenHash,
                         LocalDateTime createdAt, LocalDateTime expiresAt, boolean revoked) {
         this.id = id;
         this.userId = userId;
         this.token = token;
+        this.tokenHash = tokenHash;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.revoked = revoked;
@@ -46,19 +47,29 @@ public class RefreshToken {
      * Cria um novo refresh token.
      *
      * @param userId Usuario dono do token
+     * @param token Token UUID gerado
+     * @param tokenHash Hash SHA-256 do token
      * @param expirationDays Dias ate expirar
      * @return RefreshToken criado
      */
-    public static RefreshToken create(UserId userId, int expirationDays) {
+    public static RefreshToken create(UserId userId, String token, String tokenHash, int expirationDays) {
         validate(userId, expirationDays);
 
+        if (token == null || token.isBlank()) {
+            throw new BusinessException("Token nao pode ser nulo ou vazio");
+        }
+
+        if (tokenHash == null || tokenHash.isBlank()) {
+            throw new BusinessException("Token hash nao pode ser nulo ou vazio");
+        }
+
         var now = LocalDateTime.now();
-        var token = UUID.randomUUID().toString();
 
         return new RefreshToken(
             RefreshTokenId.generate(),
             userId,
             token,
+            tokenHash,
             now,
             now.plusDays(expirationDays),
             false
@@ -69,15 +80,19 @@ public class RefreshToken {
      * Reconstitui um refresh token existente.
      */
     public static RefreshToken reconstitute(RefreshTokenId id, UserId userId, String token,
-                                           LocalDateTime createdAt, LocalDateTime expiresAt,
-                                           boolean revoked) {
+                                           String tokenHash, LocalDateTime createdAt,
+                                           LocalDateTime expiresAt, boolean revoked) {
         validate(userId, 1); // Valida apenas userId
 
         if (token == null || token.isBlank()) {
             throw new BusinessException("Token nao pode ser nulo ou vazio");
         }
 
-        return new RefreshToken(id, userId, token, createdAt, expiresAt, revoked);
+        if (tokenHash == null || tokenHash.isBlank()) {
+            throw new BusinessException("Token hash nao pod// Valida apenase ser nulo ou vazio");
+        }
+
+        return new RefreshToken(id, userId, token, tokenHash, createdAt, expiresAt, revoked);
     }
 
     private static void validate(UserId userId, int expirationDays) {

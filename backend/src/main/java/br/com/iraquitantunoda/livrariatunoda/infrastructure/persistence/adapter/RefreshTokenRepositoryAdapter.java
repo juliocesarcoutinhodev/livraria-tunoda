@@ -43,6 +43,12 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepository {
     }
 
     @Override
+    public Optional<RefreshToken> findByTokenHash(String tokenHash) {
+        return jpaRepository.findByTokenHash(tokenHash)
+            .map(mapper::toDomain);
+    }
+
+    @Override
     public List<RefreshToken> findValidTokensByUserId(UserId userId) {
         return jpaRepository.findValidTokensByUserId(userId.getValue(), LocalDateTime.now())
             .stream()

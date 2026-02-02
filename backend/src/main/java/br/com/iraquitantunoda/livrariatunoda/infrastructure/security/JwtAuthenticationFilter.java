@@ -1,6 +1,7 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.security;
 
 import br.com.iraquitantunoda.livrariatunoda.domain.service.JwtService;
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import java.util.List;
 /**
  * Filtro JWT que intercepta requisicoes e valida tokens de autenticacao.
  * Extrai informacoes do token e adiciona ao contexto de seguranca do Spring.
+ * Suporta leitura de token via header Authorization ou cookie.
  */
 @Slf4j
 @Component
@@ -27,6 +29,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final CookieService cookieService;
 
     @Override
     protected void doFilterInternal(
@@ -35,17 +38,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        String jwt = null;
 
-        // Se nao tem header Authorization, continua sem autenticar
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Tenta extrair token do header Authorization (para compatibilidade com APIs)
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+            log.debug("Token JWT extraido do header Authorization");
+        }
+
+        // Se nao encontrou no header, tenta extrair do cookie
+        if (jwt == null) {
+            jwt = cookieService.getAccessToken(request).orElse(null);
+            if (jwt != null) {
+                log.debug("Token JWT extraido do cookie");
+            }
+        }
+
+        // Se nao tem token, continua sem autenticar
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            // Extrai token do header
-            final String jwt = authHeader.substring(7);
 
             // Valida token
             if (!jwtService.validateToken(jwt)) {
