@@ -37,9 +37,9 @@ const ADMIN_ROUTES = ["/admin"];
  */
 function getAccessToken(request: NextRequest): string | null {
   // Tenta obter do cookie
-  const cookieToken = request.cookies.get(
-    "livraria_tunoda_access_token"
-  )?.value;
+  const cookieToken =
+    request.cookies.get("__Secure-at")?.value ||
+    request.cookies.get("at")?.value;
   if (cookieToken) {
     return cookieToken;
   }
@@ -101,22 +101,17 @@ export function middleware(request: NextRequest) {
   // Obtém o access token
   const accessToken = getAccessToken(request);
 
-  // Se não há token, redireciona para login com query param
+  // Se não há token, permite seguir (cookies de auth vivem no domínio da API)
   if (!accessToken) {
-    console.log("[Middleware] No token - redirecting to login");
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    console.log("[Middleware] No token - allowing access");
+    return NextResponse.next();
   }
 
   // Valida o token
   if (!isValidToken(accessToken)) {
-    console.log("[Middleware] Invalid token - redirecting to login");
-    // Token inválido ou expirado
-    // TODO: Implementar tentativa de refresh token automático
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    console.log("[Middleware] Invalid token - allowing access");
+    // Token inválido ou expirado no cookie do domínio atual
+    return NextResponse.next();
   }
 
   // Verifica se a rota requer role ADMIN

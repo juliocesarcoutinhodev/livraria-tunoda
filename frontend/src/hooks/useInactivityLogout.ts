@@ -10,8 +10,8 @@ import { useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store";
 import { useUIStore } from "@/store";
-import { clearAuthData } from "@/lib/auth-storage";
 import { useQueryClient } from "@tanstack/react-query";
+import { authService } from "@/services/authService";
 
 export interface InactivityLogoutOptions {
   /** Tempo de inatividade em milissegundos (padrão: 1 hora) */
@@ -52,7 +52,7 @@ export function useInactivityLogout(options: InactivityLogoutOptions = {}) {
 
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, logout: zustandLogout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const { addNotification } = useUIStore();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,9 +66,8 @@ export function useInactivityLogout(options: InactivityLogoutOptions = {}) {
 
     console.log("Auto-logout por inatividade");
 
-    // Limpa stores
-    zustandLogout();
-    clearAuthData();
+    // Revoga no backend e limpa stores locais
+    void authService.logout();
     queryClient.clear();
 
     // Redireciona para login com flag de sessão expirada

@@ -2,7 +2,7 @@
  * Auth Store - Zustand store para autenticação
  *
  * Gerencia estado de autenticação com persistência no localStorage.
- * Inclui JWT tokens, informações do usuário e estado de autenticação.
+ * Inclui informações do usuário e estado de autenticação.
  *
  * @module store/useAuthStore
  */
@@ -17,10 +17,6 @@ import type { User } from "@/types/auth";
  * Interface do estado de autenticação
  */
 interface AuthState {
-  /** JWT access token */
-  accessToken: string | null;
-  /** JWT refresh token */
-  refreshToken: string | null;
   /** Dados do usuário autenticado */
   user: User | null;
   /** Flag de autenticação */
@@ -34,30 +30,15 @@ interface AuthActions {
   /**
    * Define dados de autenticação após login
    *
-   * @param accessToken - JWT access token
-   * @param refreshToken - JWT refresh token
    * @param user - Dados do usuário
    *
    * @example
    * ```ts
    * const { setAuth } = useAuthStore();
-   * setAuth(accessToken, refreshToken, userData);
+   * setAuth(userData);
    * ```
    */
-  setAuth: (accessToken: string, refreshToken: string, user: User) => void;
-
-  /**
-   * Atualiza apenas o access token (usado no refresh)
-   *
-   * @param accessToken - Novo JWT access token
-   *
-   * @example
-   * ```ts
-   * const { setAccessToken } = useAuthStore();
-   * setAccessToken(newAccessToken);
-   * ```
-   */
-  setAccessToken: (accessToken: string) => void;
+  setAuth: (user: User) => void;
 
   /**
    * Atualiza dados do usuário
@@ -117,7 +98,7 @@ type AuthStore = AuthState & AuthActions;
  *
  *   const handleLogin = async () => {
  *     const response = await authService.login(credentials);
- *     setAuth(response.accessToken, response.refreshToken, userData);
+ *     setAuth(userData);
  *   };
  *
  *   if (isAuthenticated) {
@@ -160,17 +141,13 @@ export const useAuthStore = create<AuthStore>()(
       persist(
         (set, get) => ({
           // Estado inicial
-          accessToken: null,
-          refreshToken: null,
           user: null,
           isAuthenticated: false,
 
           // Ações
-          setAuth: (accessToken, refreshToken, user) =>
+          setAuth: (user) =>
             set(
               {
-                accessToken,
-                refreshToken,
                 user,
                 isAuthenticated: true,
               },
@@ -178,16 +155,11 @@ export const useAuthStore = create<AuthStore>()(
               "setAuth"
             ),
 
-          setAccessToken: (accessToken) =>
-            set({ accessToken }, false, "setAccessToken"),
-
           setUser: (user) => set({ user }, false, "setUser"),
 
           logout: () =>
             set(
               {
-                accessToken: null,
-                refreshToken: null,
                 user: null,
                 isAuthenticated: false,
               },
@@ -203,10 +175,8 @@ export const useAuthStore = create<AuthStore>()(
         {
           name: "auth-storage", // Nome da chave no localStorage
           storage: createJSONStorage(() => localStorage), // Usa localStorage
-          // Particiona o estado: apenas persiste tokens e user, não persiste funções
+          // Particiona o estado: apenas persiste user e estado de auth
           partialize: (state) => ({
-            accessToken: state.accessToken,
-            refreshToken: state.refreshToken,
             user: state.user,
             isAuthenticated: state.isAuthenticated,
           }),
@@ -222,9 +192,6 @@ export const useAuthStore = create<AuthStore>()(
  * Selectors úteis para evitar re-renders desnecessários
  */
 export const authSelectors = {
-  /** Selector para access token */
-  accessToken: (state: AuthStore) => state.accessToken,
-
   /** Selector para user */
   user: (state: AuthStore) => state.user,
 

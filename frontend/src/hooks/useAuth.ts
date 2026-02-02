@@ -12,9 +12,10 @@ import {
   useQueryClient,
   type UseQueryOptions,
 } from "@tanstack/react-query";
+import axios from "axios";
 import { authService } from "@/services/authService";
 import { queryKeys, invalidateQueries } from "@/lib/react-query";
-import { isAuthenticated } from "@/lib/auth-storage";
+import { useAuthStore } from "@/store/useAuthStore";
 import type { User, LoginRequest } from "@/types/auth";
 
 // ============================================================================
@@ -48,14 +49,22 @@ import type { User, LoginRequest } from "@/types/auth";
 export function useAuth(
   options?: Omit<UseQueryOptions<User>, "queryKey" | "queryFn">
 ) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return useQuery({
     queryKey: queryKeys.auth.me,
     queryFn: () => authService.getCurrentUser(),
     staleTime: 10 * 60 * 1000, // 10 minutos
     // Apenas executa se houver token de autenticação
-    enabled: isAuthenticated(),
+    enabled: isAuthenticated,
     // Não refetch automaticamente (dados do usuário não mudam frequentemente)
     refetchOnWindowFocus: false,
+    retry: false,
+    onError: (error) => {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        useAuthStore.getState().logout();
+      }
+    },
     ...options,
   });
 }
@@ -79,8 +88,7 @@ export function useAuth(
  * ```
  */
 export function useIsAuthenticated(): boolean {
-  const { data: user } = useAuth();
-  return !!user;
+  return useAuthStore((state) => state.isAuthenticated);
 }
 
 /**
@@ -103,7 +111,7 @@ export function useIsAuthenticated(): boolean {
  * ```
  */
 export function useHasRole(requiredRole: string): boolean {
-  const { data: user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   return user?.role === requiredRole;
 }
 

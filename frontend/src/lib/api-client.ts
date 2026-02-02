@@ -2,7 +2,7 @@
  * API Client - Cliente HTTP configurado para comunicação com backend
  *
  * Instância Axios com interceptors para:
- * - Adicionar JWT automaticamente
+ * - Enviar cookies de autenticação automaticamente
  * - Tratar erros globalmente
  * - Refresh token automático
  * - Retry logic para erros de rede
@@ -16,13 +16,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import type { ApiErrorResponse } from "@/types/api";
-import {
-  getAccessToken,
-  getRefreshToken,
-  saveAccessToken,
-  saveRefreshToken,
-  clearAuthData,
-} from "./auth-storage";
+// Tokens agora são gerenciados via cookies HttpOnly no backend
 
 // Obtém baseURL das variáveis de ambiente
 const API_BASE_URL =
@@ -34,6 +28,7 @@ const API_BASE_URL =
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 segundos
+  withCredentials: true, // necessário para cookies cross-site
   headers: {
     "Content-Type": "application/json",
   },
@@ -44,19 +39,19 @@ export const apiClient: AxiosInstance = axios.create({
  */
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (error: Error) => void;
 }> = [];
 
 /**
  * Processa fila de requisições que falharam durante refresh
  */
-const processQueue = (error: Error | null, token: string | null = null) => {
+const processQueue = (error: Error | null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error);
-    } else if (token) {
-      promise.resolve(token);
+    } else {
+      promise.resolve();
     }
   });
   failedQueue = [];
@@ -68,12 +63,6 @@ const processQueue = (error: Error | null, token: string | null = null) => {
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Adiciona access token se existir
-    const token = getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
     // Adiciona correlation ID único para rastreamento
     const correlationId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     config.headers["X-Correlation-ID"] = correlationId;
@@ -99,19 +88,23 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
+    const requestUrl = originalRequest?.url || "";
+
+    // Evita refresh em endpoints de auth para não criar loops
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/refresh") ||
+      requestUrl.includes("/auth/revoke") ||
+      requestUrl.includes("/auth/revoke-all");
+
     // Erro 401: Token expirado - tenta refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         // Já está refreshing: enfileira requisição
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
+          .then(() => apiClient(originalRequest))
           .catch((err) => {
             return Promise.reject(err);
           });
@@ -120,54 +113,32 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = getRefreshToken();
-
-      if (!refreshToken) {
-        // Sem refresh token: faz logout
-        clearAuthData();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
-        return Promise.reject(error);
-      }
-
       try {
         // Tenta fazer refresh
-        const response = await axios.post(
+        await axios.post(
           `${API_BASE_URL}/auth/refresh`,
-          { refreshToken },
+          null,
           {
             headers: {
               "Content-Type": "application/json",
             },
+            withCredentials: true,
           }
         );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-        // Salva novos tokens
-        saveAccessToken(accessToken);
-        if (newRefreshToken) {
-          saveRefreshToken(newRefreshToken);
-        }
-
-        // Atualiza header da requisição original
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-
         // Processa fila de requisições pendentes
-        processQueue(null, accessToken);
+        processQueue(null);
         isRefreshing = false;
 
         // Refaz requisição original
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh falhou: faz logout
-        processQueue(refreshError as Error, null);
+        processQueue(refreshError as Error);
         isRefreshing = false;
-        clearAuthData();
         if (typeof window !== "undefined") {
+          const { useAuthStore } = await import("@/store/useAuthStore");
+          useAuthStore.getState().logout();
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);

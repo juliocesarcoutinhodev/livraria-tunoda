@@ -24,13 +24,13 @@ export interface LoginRequest {
  */
 export interface AuthenticationResponse {
   /** JWT access token */
-  accessToken: string;
+  accessToken?: string;
   /** JWT refresh token */
-  refreshToken: string;
+  refreshToken?: string;
   /** Tipo do token (geralmente "Bearer") */
-  tokenType: string;
+  tokenType?: string;
   /** Tempo de expiração em segundos */
-  expiresIn: number;
+  expiresIn?: number;
 }
 
 /**

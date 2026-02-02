@@ -3,7 +3,7 @@
  *
  * Gerencia operações de autenticação:
  * - Login
- * - Refresh token
+ * - Refresh token (via cookies HttpOnly)
  * - Logout
  * - Obter usuário atual
  *
@@ -11,16 +11,10 @@
  */
 
 import { apiClient } from "@/lib/api-client";
-import {
-  saveAuthData,
-  clearAuthData,
-  getRefreshToken,
-} from "@/lib/auth-storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   LoginRequest,
   AuthenticationResponse,
-  RefreshTokenRequest,
   User,
 } from "@/types/auth";
 
@@ -36,7 +30,7 @@ import type {
  *   email: "admin@example.com",
  *   password: "senha123"
  * });
- * console.log(auth.accessToken);
+ * console.log(auth.expiresIn);
  * ```
  */
 const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
@@ -47,32 +41,15 @@ const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
 
   const authData = response.data;
 
-  // PRIMEIRO: Salva os tokens com dados básicos no localStorage
-  // Isso permite que próximas requisições tenham autenticação
-  saveAuthData(authData.accessToken, authData.refreshToken, {
-    id: "",
-    name: "",
-    email: data.email,
-    role: "USER",
-  });
-
   // DEPOIS: Busca dados completos do usuário
-  // Agora a requisição terá o token no header
+  // Cookies HttpOnly já foram setados pelo backend
   try {
     const user = await getCurrentUser();
-
-    // Atualiza com dados completos do usuário no localStorage
-    saveAuthData(authData.accessToken, authData.refreshToken, {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
 
     // IMPORTANTE: Atualiza o Zustand store também!
     useAuthStore
       .getState()
-      .setAuth(authData.accessToken, authData.refreshToken, {
+      .setAuth({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -84,7 +61,7 @@ const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
 
     useAuthStore
       .getState()
-      .setAuth(authData.accessToken, authData.refreshToken, {
+      .setAuth({
         id: "",
         name: "",
         email: data.email,
@@ -98,22 +75,15 @@ const login = async (data: LoginRequest): Promise<AuthenticationResponse> => {
 /**
  * Renova o access token usando refresh token
  *
- * @param refreshToken - Refresh token válido
  * @returns Nova resposta de autenticação
  *
  * @example
  * ```ts
- * const auth = await authService.refresh("refresh_token_aqui");
+ * const auth = await authService.refresh();
  * ```
  */
-const refresh = async (
-  refreshToken: string
-): Promise<AuthenticationResponse> => {
-  const request: RefreshTokenRequest = { refreshToken };
-  const response = await apiClient.post<AuthenticationResponse>(
-    "/auth/refresh",
-    request
-  );
+const refresh = async (): Promise<AuthenticationResponse> => {
+  const response = await apiClient.post<AuthenticationResponse>("/auth/refresh");
   return response.data;
 };
 
@@ -148,20 +118,13 @@ const getCurrentUser = async (): Promise<User> => {
  */
 const logout = async (): Promise<void> => {
   try {
-    // Tenta revogar o refresh token no backend
-    const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      await apiClient.post("/auth/revoke", { refreshToken });
-    }
+    // Tenta revogar o refresh token no backend (via cookie)
+    await apiClient.post("/auth/revoke");
   } catch (error) {
     // Se falhar (ex: backend offline, token já expirado), continua
     console.warn("Erro ao revogar token no backend:", error);
   } finally {
-    // SEMPRE limpa dados locais, mesmo se a revogação falhar
-    clearAuthData();
-
     // Limpa Zustand store
-    const { useAuthStore } = await import("@/store/useAuthStore");
     useAuthStore.getState().logout();
   }
 };

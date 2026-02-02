@@ -4,7 +4,7 @@
  * Admin Dashboard Page
  *
  * Dashboard administrativo com métricas e estatísticas reais.
- * Protegido pelo middleware (server-side).
+ * Protegido por guard client-side no layout de /admin.
  * Inclui auto-logout por inatividade (1 hora).
  *
  * @module app/admin/dashboard
