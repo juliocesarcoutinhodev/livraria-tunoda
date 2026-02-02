@@ -24,6 +24,7 @@ public class SecurityProperties {
 
     private Jwt jwt = new Jwt();
     private RefreshToken refreshToken = new RefreshToken();
+    private Cookies cookies = new Cookies();
 
     @Getter
     @Setter
@@ -40,6 +41,12 @@ public class SecurityProperties {
     public static class RefreshToken {
         @Min(value = 1, message = "Expiracao minima do Refresh Token: 1 dia")
         private int expirationDays;
+    }
+
+    @Getter
+    @Setter
+    public static class Cookies {
+        private boolean secure = true; // Default: requer HTTPS (pode ser overridden por profile)
     }
 }
 

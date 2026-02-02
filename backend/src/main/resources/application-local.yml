@@ -58,4 +58,7 @@ app:
     exposed-headers: Authorization
     allow-credentials: true
     max-age: 3600
+  security:
+    cookies:
+      secure: false  # Permite cookies sem HTTPS em desenvolvimento local
 

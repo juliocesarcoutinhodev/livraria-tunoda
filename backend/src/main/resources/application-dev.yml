@@ -43,3 +43,9 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+
+app:
+  security:
+    cookies:
+      secure: true  # Requer HTTPS em dev
+

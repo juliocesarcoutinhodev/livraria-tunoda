@@ -64,6 +64,9 @@ management:
         http.server.requests: true
 
 app:
+  security:
+    cookies:
+      secure: true  # OBRIGATORIO em producao (HTTPS)
   cors:
     # Production: apenas dominio de producao autorizado
     allowed-origins: ${CORS_ALLOWED_ORIGINS}

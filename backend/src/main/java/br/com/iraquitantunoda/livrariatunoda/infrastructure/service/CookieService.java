@@ -1,5 +1,6 @@
 package br.com.iraquitantunoda.livrariatunoda.infrastructure.service;
 
+import br.com.iraquitantunoda.livrariatunoda.infrastructure.config.SecurityProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,19 +14,27 @@ import java.util.Optional;
 /**
  * Servico para gerenciamento de cookies de autenticacao.
  * Implementa boas praticas de seguranca com cookies HttpOnly e Secure.
+ * Usa prefixo __Secure- e SameSite=None para suportar cross-site requests.
+ * Flag Secure e configuravel por profile (false em local, true em prod).
  */
 @Slf4j
 @Service
 public class CookieService {
 
-    public static final String ACCESS_TOKEN_COOKIE = "at";
-    public static final String REFRESH_TOKEN_COOKIE = "rt";
+    public static final String ACCESS_TOKEN_COOKIE = "__Secure-at";
+    public static final String REFRESH_TOKEN_COOKIE = "__Secure-rt";
+
+    private final SecurityProperties securityProperties;
 
     @Value("${app.security.jwt.expiration}")
     private long accessTokenExpiration;
 
     @Value("${app.security.refresh-token.expiration-days}")
     private int refreshTokenExpirationDays;
+
+    public CookieService(SecurityProperties securityProperties) {
+        this.securityProperties = securityProperties;
+    }
 
     /**
      * Cria cookie de access token com configuracoes de seguranca.
@@ -110,14 +119,23 @@ public class CookieService {
 
     /**
      * Cria cookie seguro com configuracoes padrao.
+     * Usa SameSite=None para permitir cross-site requests (frontend em dominio diferente).
+     * Flag Secure e configuravel por profile:
+     * - local: false (permite HTTP)
+     * - dev/prod: true (requer HTTPS)
      */
     private Cookie createSecureCookie(String name, String value, int maxAge, String path) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true); // Requer HTTPS em producao
+        cookie.setSecure(securityProperties.getCookies().isSecure()); // Configuravel por profile
         cookie.setPath(path);
         cookie.setMaxAge(maxAge);
-        cookie.setAttribute("SameSite", "Lax");
+        cookie.setAttribute("SameSite", "None"); // Cross-site support
+
+        if (!securityProperties.getCookies().isSecure()) {
+            log.debug("AVISO: Cookies com Secure=false (apenas para desenvolvimento local)");
+        }
+
         return cookie;
     }
 
@@ -127,7 +145,7 @@ public class CookieService {
     private void clearCookie(HttpServletResponse response, String name, String path) {
         Cookie cookie = new Cookie(name, "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(securityProperties.getCookies().isSecure()); // Mesma config do profile
         cookie.setPath(path);
         cookie.setMaxAge(0);
         response.addCookie(cookie);

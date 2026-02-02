@@ -87,6 +87,8 @@ app:
   frontend:
     base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   security:
+    cookies:
+      secure: ${COOKIES_SECURE:true}
     jwt:
       secret: ${JWT_SECRET}
       expiration: ${JWT_EXPIRATION:900}
