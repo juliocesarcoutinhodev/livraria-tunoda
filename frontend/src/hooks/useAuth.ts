@@ -6,6 +6,7 @@
  * @module hooks/useAuth
  */
 
+import { useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -51,7 +52,7 @@ export function useAuth(
 ) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  return useQuery({
+  const query = useQuery({
     queryKey: queryKeys.auth.me,
     queryFn: () => authService.getCurrentUser(),
     staleTime: 10 * 60 * 1000, // 10 minutos
@@ -60,13 +61,16 @@ export function useAuth(
     // Não refetch automaticamente (dados do usuário não mudam frequentemente)
     refetchOnWindowFocus: false,
     retry: false,
-    onError: (error) => {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        useAuthStore.getState().logout();
-      }
-    },
     ...options,
   });
+
+  useEffect(() => {
+    if (axios.isAxiosError(query.error) && query.error.response?.status === 401) {
+      useAuthStore.getState().logout();
+    }
+  }, [query.error]);
+
+  return query;
 }
 
 /**

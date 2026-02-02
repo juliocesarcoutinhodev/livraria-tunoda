@@ -39,7 +39,7 @@ export const apiClient: AxiosInstance = axios.create({
  */
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: () => void;
+  resolve: (value?: unknown) => void;
   reject: (error: Error) => void;
 }> = [];
 

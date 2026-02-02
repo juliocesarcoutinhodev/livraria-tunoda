@@ -72,7 +72,7 @@ export function useInactivityLogout(options: InactivityLogoutOptions = {}) {
 
     // Redireciona para login com flag de sessão expirada
     router.push("/login?session_expired=true");
-  }, [isAuthenticated, zustandLogout, queryClient, router]);
+  }, [isAuthenticated, queryClient, router]);
 
   /**
    * Mostra notificação de aviso de inatividade
